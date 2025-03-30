@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 services:
   js:
     build:
@@ -11,9 +11,8 @@ services:
       - .env
     depends_on:
       - neo4j
-  neo4j:
+  db:
     image: neo4j:4.4.42-community
     container_name: neo4j-container
     env_file:
       - .env
-
