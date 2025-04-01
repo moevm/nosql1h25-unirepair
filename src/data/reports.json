@@ -1,0 +1,39 @@
+[
+  {
+    "status": "Complete",
+    "waterSpent": 1000,
+    "foamSpent": 200,
+    "allegedFireCause": "неосторожное обращение с огнём",
+    "damage": 50000,
+    "additionalNotes": "Пожар был локализован быстро.",
+    "modifiedAt": "2025-04-01T12:00:00Z"
+  },
+  {
+    "status": "Complete",
+    "waterSpent": 2000,
+    "foamSpent": 150,
+    "allegedFireCause": "короткое замыкание",
+    "damage": 150000,
+    "additionalNotes": "Возникло сильное задымление, необходима вентиляция.",
+    "modifiedAt": "2025-03-20T17:30:00Z"
+  },
+  {
+    "status": "Incomplete",
+    "waterSpent": 300,
+    "foamSpent": 50,
+    "allegedFireCause": "поджог",
+    "damage": 25000,
+    "additionalNotes": "Пожар был быстро потушен, но требуется расследование.",
+    "modifiedAt": "2025-03-22T14:15:00Z"
+  },
+  {
+    "status": "New",
+    "waterSpent": 0,
+    "foamSpent": 0,
+    "allegedFireCause": "неизвестно",
+    "damage": 0,
+    "additionalNotes": "Данные ещё не внесены, ожидается завершение отчёта.",
+    "modifiedAt": "2025-03-30T10:50:00Z"
+  }
+]
+
