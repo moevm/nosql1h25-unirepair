@@ -1,11 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const neo4j = require('neo4j-driver');
-
-const driver = neo4j.driver(
-  process.env.NEO4J_URI,
-  neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD)
-);
+const driver = require('./db');
 
 let dbReady = false; 
 let userCount = null; 
@@ -15,8 +10,8 @@ router.get('/status', async (req, res) => {
     const session = driver.session();
     try {
       const result = await session.run(`MATCH (u:User) RETURN count(u) AS total`);
-      userCount = result.records[0].get('total');
-      userCount = parseInt(userCount, 10);
+      userCount = result.records[0].get('total'); 
+      userCount = parseInt(userCount, 10); 
     } catch (error) {
       console.error('Ошибка тестового запроса:', error);
     } finally {
