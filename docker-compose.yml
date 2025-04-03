@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 services:
   js:
     build:
@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
     container_name: js-container
     ports:
-      - "3000:3000"
+      - 127.0.0.1:3000:3000
     env_file:
       - .env
     depends_on:
@@ -16,3 +16,4 @@ services:
     container_name: neo4j-container
     env_file:
       - .env
+
