@@ -4,14 +4,10 @@ const path = require('path');
 const app = express();
 const PORT = 3000;
 const { router, setDbReady } = require('./routes');
-const neo4j = require('neo4j-driver');
+const driver = require('./db');
 
 require('dotenv').config();
 
-const driver = neo4j.driver(
-  process.env.NEO4J_URI,
-  neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD)
-);
 
 const retryConnection = async (driver, retries = 10, delay = 10_000) => {
   while (retries > 0) {
