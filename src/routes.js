@@ -3,47 +3,70 @@ const router = express.Router();
 const driver = require('./db');
 
 let dbReady = false; 
-let userCount = null; 
 
-router.get('/status', async (req, res) => {
-  if (dbReady && userCount === null) {
-    const session = driver.session();
-    try {
-      const result = await session.run(`MATCH (u:User) RETURN count(u) AS total`);
-      userCount = result.records[0].get('total'); 
-      userCount = parseInt(userCount, 10); 
-    } catch (error) {
-      console.error('Ошибка тестового запроса:', error);
-    } finally {
-      await session.close();
-    }
-  }
-  
-  res.json({ dbReady, userCount });
+router.get('/', (req, res) => {
+  res.redirect('/login'); 
+});
+
+router.get('/login', (req, res) => {
+  res.send('экран входа');
+});
+
+//_________________для пожарных_____________________
+router.get('/firefighterProfile', (req, res) => {
+  res.send('профиль пожарного');
+});
+
+router.get('/callScreen', (req, res) => {
+  res.send('экран вызова');
+});
+
+router.get('/reportScreen', (req, res) => {
+  res.send('экран отчётов');
+});
+
+router.get('/reportEditor', (req, res) => {
+  res.send('редактор отчётов');
 });
 
 
-router.get('/', (req, res) => {
-  res.send(`
-    <script>
-      async function checkStatus() {
-        try {
-          const response = await fetch('/status');
-          const data = await response.json();
-          if (data.dbReady) {
-            document.body.innerHTML = '<h1>Добро пожаловать! База данных успешно инициализирован.</h1>' +
-                                      '<p>Всего пользователей в системе: ' + data.userCount + '</p>';
-          } else {
-            setTimeout(checkStatus, 2000);
-          }
-        } catch (error) {
-          console.error('Ошибка проверки статуса:', error);
-        }
-      }
-      checkStatus();
-    </script>
-    <body>Сайт загружается, пожалуйста, подождите...</body>
-  `);
+//_________________для оператора_____________________
+router.get('/operatorProfile', (req, res) => {
+  res.send('профиль оператора');
+});
+
+router.get('/newForm', (req, res) => {
+  res.send('новая форма');
+});
+
+router.get('/operatorReports', (req, res) => {
+  res.send('отчёты оператора');
+});
+
+
+//_________________для админа_____________________
+router.get('/adminProfile', (req, res) => {
+  res.send('профиль админа');
+});
+
+router.get('/editor', (req, res) => {
+  res.send('редактор для админа (все варианты доступны, но с ограничениями)');
+});
+
+router.get('/addUser', (req, res) => {
+  res.send('добавить пользователя');
+});
+
+router.get('/editUser', (req, res) => {
+  res.send('редактировать пользователя');
+});
+
+router.get('/deleteUser', (req, res) => {
+  res.send('удалить пользователя');
+});
+
+router.get('/findDeleteReports', (req, res) => {
+  res.send('найти удалить отчёты');
 });
 
 module.exports = { router, setDbReady: (ready) => { dbReady = ready; } };
