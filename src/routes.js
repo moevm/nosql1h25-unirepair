@@ -1,29 +1,34 @@
-const express = require('express');
-const router = express.Router();
-const driver = require('./db');
+import express from "express";
+import driver from "./db.js";
 
-let dbReady = false; 
-let userCount = null; 
+export const router = express.Router();
+let userCount = null;
+let dbReady = false;
 
-router.get('/status', async (req, res) => {
+export function setDbReady() {
+  dbReady = true;
+}
+
+router.get("/status", async (req, res) => {
   if (dbReady && userCount === null) {
     const session = driver.session();
     try {
-      const result = await session.run(`MATCH (u:User) RETURN count(u) AS total`);
-      userCount = result.records[0].get('total'); 
-      userCount = parseInt(userCount, 10); 
+      const result = await session.run(
+        `MATCH (u:User) RETURN count(u) AS total`,
+      );
+      userCount = result.records[0].get("total");
+      userCount = parseInt(userCount, 10);
     } catch (error) {
-      console.error('Ошибка тестового запроса:', error);
+      console.error("Ошибка тестового запроса:", error);
     } finally {
       await session.close();
     }
   }
-  
+
   res.json({ dbReady, userCount });
 });
 
-
-router.get('/', (req, res) => {
+router.get("/", (req, res) => {
   res.send(`
     <script>
       async function checkStatus() {
@@ -45,6 +50,3 @@ router.get('/', (req, res) => {
     <body>Сайт загружается, пожалуйста, подождите...</body>
   `);
 });
-
-module.exports = { router, setDbReady: (ready) => { dbReady = ready; } };
-
