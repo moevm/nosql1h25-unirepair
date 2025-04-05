@@ -11,7 +11,7 @@ const __dirname = path.resolve();
 
 dotenv.config();
 
-const retryConnection = async (driver, retries = 10, delay = 10_000) => {
+const retryConnection = async (driver, retries = 10, delay = 5_000) => {
   while (retries > 0) {
     try {
       const session = driver.session();
