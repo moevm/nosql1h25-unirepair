@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
 import driver from "./db.js";
-import { default as router, setDbReady } from "./routes.js";
+import { router, setDbReady } from "./routes.js";
 
 const app = express();
 const PORT = 3000;
@@ -11,7 +11,7 @@ const __dirname = path.resolve();
 
 dotenv.config();
 
-const retryConnection = async (driver, retries = 10, delay = 10_000) => {
+const retryConnection = async (driver, retries = 10, delay = 5_000) => {
   while (retries > 0) {
     try {
       const session = driver.session();

@@ -10,7 +10,7 @@ class ApiRoute {
     this.handler = handler;
   }
 
-  apply(rawQuery) {
+  async apply(rawQuery, prehandledState) {
     assert.assertObject(rawQuery);
     const query = this.scheme.applyScheme(rawQuery);
     if (query.constructor === "".constructor) {
@@ -19,7 +19,7 @@ class ApiRoute {
       );
       return null;
     }
-    return this.handler(query);
+    return await this.handler(query, prehandledState);
   }
 }
 
@@ -45,9 +45,16 @@ export default class ApiRouter {
   toExpressRouter() {
     const result = express.Router();
     for (const [name, route] of Object.entries(this.apiRoutes)) {
-      result.get(`/${this.apiName}/${name}`, (req, res) => {
-        const answer = route.apply(req.query);
-        res.send(answer);
+      result.get(`/${this.apiName}/${name}`, async (req, res) => {
+        try {
+          let answer = await route.apply(req.query);
+          res.send(answer);
+        } catch (err) {
+          console.error(
+            `Error occured when proccessing route /${this.apiName}/${name}\nError: ${err}\nQuery: ${JSON.stringify(req.query)}`,
+          );
+          res.send(null);
+        }
       });
     }
     return result;
