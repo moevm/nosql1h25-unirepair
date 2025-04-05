@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
 import driver from "./db.js";
-import { router, setDbReady } from "./routes.js";
+import { default as router, setDbReady } from "./routes.js";
 
 const app = express();
 const PORT = 3000;

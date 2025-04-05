@@ -1,9 +1,12 @@
 import express from "express";
 import driver from "./db.js";
+import ApiRouter from "./api_router.js";
+import api_routes from "./api_routes.js";
 
-export const router = express.Router();
 let userCount = null;
 let dbReady = false;
+
+export let router = new ApiRouter("api", api_routes).toExpressRouter();
 
 export function setDbReady() {
   dbReady = true;
@@ -50,3 +53,5 @@ router.get("/", (req, res) => {
     <body>Сайт загружается, пожалуйста, подождите...</body>
   `);
 });
+
+export default router;
