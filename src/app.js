@@ -1,36 +1,44 @@
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
+import express from "express";
+import fs from "fs";
+import path from "path";
+import dotenv from "dotenv";
+import driver from "./db.js";
+import { router, setDbReady } from "./routes.js";
+
 const app = express();
 const PORT = 3000;
-const { router, setDbReady } = require('./routes');
-const driver = require('./db');
+const __dirname = path.resolve();
 
-require('dotenv').config();
-
+dotenv.config();
 
 const retryConnection = async (driver, retries = 10, delay = 10_000) => {
   while (retries > 0) {
     try {
       const session = driver.session();
-      await session.run('RETURN 1');
-      console.log('Успешное подключение к базе данных!');
+      await session.run("RETURN 1");
+      console.log("Успешное подключение к базе данных!");
       await session.close();
       return true;
     } catch (error) {
       retries--;
-      console.log(`Ошибка подключения. Повторная попытка через ${delay / 1000} секунд... (${retries} осталось)`);
+      console.log(
+        `Ошибка подключения. Повторная попытка через ${delay / 1000} секунд... (${retries} осталось)`,
+      );
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
-  console.error('Не удалось подключиться к базе данных после нескольких попыток.');
+  console.error(
+    "Не удалось подключиться к базе данных после нескольких попыток.",
+  );
   return false;
 };
 
-app.use('/', router);
+app.use("/", router);
 
 app.listen(PORT, () => {
-  console.log(`Сервер запущен на http://localhost:${PORT}, но ожидает подключение базы...`);
+  console.log(
+    `Сервер запущен на http://localhost:${PORT}, но ожидает подключение базы...`,
+  );
 });
 
 const createDatabaseStructure = async () => {
@@ -43,29 +51,34 @@ const createDatabaseStructure = async () => {
     `);
 
     if (result.records.length === 0) {
-      await session.run(`CREATE CONSTRAINT FOR (user:User) REQUIRE user.Login IS UNIQUE;`);
-      console.log('Ограничение на уникальность логина установлено.');
+      await session.run(
+        `CREATE CONSTRAINT FOR (user:User) REQUIRE user.Login IS UNIQUE;`,
+      );
+      console.log("Ограничение на уникальность логина установлено.");
     } else {
-      console.log('Ограничение на логин уже существует, пропускаем его создание.');
+      console.log(
+        "Ограничение на логин уже существует, пропускаем его создание.",
+      );
     }
   } catch (error) {
-    console.error('Ошибка при создании структуры базы данных:', error);
+    console.error("Ошибка при создании структуры базы данных:", error);
   } finally {
     await session.close();
   }
 };
 
 const loadJSON = (filename) => {
-  const filePath = path.join(__dirname, 'data', filename);
-  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  const filePath = path.join(__dirname, "src", "data", filename);
+  return JSON.parse(fs.readFileSync(filePath, "utf8"));
 };
 
 const importData = async () => {
   const session = driver.session();
   try {
-    const users = loadJSON('users.json');
+    const users = loadJSON("users.json");
     for (const user of users) {
-      await session.run(`
+      await session.run(
+        `
         CREATE (:User:${user.role}:${user.status} {
           familyName: $familyName,
           firstName: $firstName,
@@ -79,13 +92,16 @@ const importData = async () => {
           registeredAt: $registeredAt,
           modifiedAt: $modifiedAt
         });
-      `, user);
+      `,
+        user,
+      );
     }
-    console.log('Данные пользователей загружены.');
+    console.log("Данные пользователей загружены.");
 
-    const callForms = loadJSON('call_forms.json');
+    const callForms = loadJSON("call_forms.json");
     for (const cf of callForms) {
-      await session.run(`
+      await session.run(
+        `
         CREATE (:CallForm:${cf.status} {
           createdAt: $createdAt,
           modifiedAt: $modifiedAt,
@@ -99,21 +115,27 @@ const importData = async () => {
           assignedTo: $assignedTo,
           auto: $auto
         });
-      `, cf);
+      `,
+        cf,
+      );
     }
-    console.log('Данные о вызовах загружены.');
+    console.log("Данные о вызовах загружены.");
 
-    const inventoryItems = loadJSON('inventory.json');
+    const inventoryItems = loadJSON("inventory.json");
     for (const item of inventoryItems) {
-      await session.run(`
+      await session.run(
+        `
         CREATE (:Inventory { name: $name });
-      `, item);
+      `,
+        item,
+      );
     }
-    console.log('Данные инвентаря загружены.');
+    console.log("Данные инвентаря загружены.");
 
-    const reports = loadJSON('reports.json');
+    const reports = loadJSON("reports.json");
     for (const report of reports) {
-      await session.run(`
+      await session.run(
+        `
         CREATE (:Report:${report.status} {
           waterSpent: $waterSpent,
           foamSpent: $foamSpent,
@@ -122,36 +144,54 @@ const importData = async () => {
           additionalNotes: $additionalNotes,
           modifiedAt: $modifiedAt
         });
-      `, report);
+      `,
+        report,
+      );
     }
-    console.log('Данные отчётов загружены.');
+    console.log("Данные отчётов загружены.");
 
-    const relationships = loadJSON('relationships.json');
+    const relationships = loadJSON("relationships.json");
     for (const relation of relationships) {
-      await session.run(`
-        MATCH (start:${relation.startNode.label} { ${Object.keys(relation.startNode.properties).map(key => `${key}: $start_${key}`).join(', ')} }),
-              (end:${relation.endNode.label} { ${Object.keys(relation.endNode.properties).map(key => `${key}: $end_${key}`).join(', ')} })
+      await session.run(
+        `
+        MATCH (start:${relation.startNode.label} { ${Object.keys(
+          relation.startNode.properties,
+        )
+          .map((key) => `${key}: $start_${key}`)
+          .join(", ")} }),
+              (end:${relation.endNode.label} { ${Object.keys(
+                relation.endNode.properties,
+              )
+                .map((key) => `${key}: $end_${key}`)
+                .join(", ")} })
         CREATE (start)-[:${relation.relationshipType}]->(end);
-      `, 
-      {
-        ...Object.entries(relation.startNode.properties).reduce((acc, [key, value]) => ({ ...acc, [`start_${key}`]: value }), {}),
-        ...Object.entries(relation.endNode.properties).reduce((acc, [key, value]) => ({ ...acc, [`end_${key}`]: value }), {})
-      });
+      `,
+        {
+          ...Object.entries(relation.startNode.properties).reduce(
+            (acc, [key, value]) => ({ ...acc, [`start_${key}`]: value }),
+            {},
+          ),
+          ...Object.entries(relation.endNode.properties).reduce(
+            (acc, [key, value]) => ({ ...acc, [`end_${key}`]: value }),
+            {},
+          ),
+        },
+      );
     }
-    console.log('Связи между узлами загружены.');
+    console.log("Связи между узлами загружены.");
   } catch (error) {
-    console.error('Ошибка при импорте данных:', error);
+    console.error("Ошибка при импорте данных:", error);
   } finally {
     await session.close();
   }
 };
 
 const initializeDatabase = async () => {
-  console.log('Ожидание подключения к базе данных...');
-  
+  console.log("Ожидание подключения к базе данных...");
+
   const connected = await retryConnection(driver);
   if (!connected) {
-    console.error('Ошибка: база данных недоступна.');
+    console.error("Ошибка: база данных недоступна.");
     return;
   }
 
@@ -159,8 +199,7 @@ const initializeDatabase = async () => {
   await importData();
 
   setDbReady(true);
-  console.log('База данных готова! Теперь сервер начинает принимать запросы.');
+  console.log("База данных готова! Теперь сервер начинает принимать запросы.");
 };
 
 initializeDatabase();
-
