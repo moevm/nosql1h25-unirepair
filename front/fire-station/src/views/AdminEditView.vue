@@ -1,7 +1,9 @@
 <template>
     <div class="layout">
         <Sidebar :role="userRole" :fullName="userName" />
-        <AdminEditOptions />
+        <AdminEditOptions @component-change="activeComponent = $event" v-show="activeComponent === 'menu'"/>
+        
+        <!--Ниже будут остальные компоненты редактирования, которые будут переключаться между собой-->
     </div>
 </template>
 
@@ -15,7 +17,8 @@ export default {
     data (){
         return {
             userRole: 'admin',
-            userName: 'Величайший'
+            userName: 'Величайший',
+            activeComponent: 'menu'
         }
     }
 }
