@@ -85,6 +85,7 @@ export default {
 <style scoped>
 .sidebar__nav {
   padding-top: 30px;
+  box-sizing: border-box;
   min-width: 170px;
   width: 20vw;
   height: 100vh;

@@ -71,8 +71,10 @@ export default {
 <style scoped>
 .profile {
   position: relative;
+  box-sizing: border-box;
   margin: 24px;
   min-width: 70vw;
+  width: 100%;
   min-height: 90vh;
   background: #fff;
   padding: 24px;
