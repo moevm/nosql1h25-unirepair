@@ -1,21 +1,21 @@
 <template>
     <div class="edit-options">
-        <RouterLink to="edit/addUser" class="edit-options__link">
+        <button @click="$emit('component-change', 'addUser')" class="edit-options__link">
             <img class="sidebar__icon" src="/icons/addUser.svg" />
             Добавить пользователя
-        </RouterLink>
-        <RouterLink to="edit/editUser" class="edit-options__link">
+        </button>
+        <button @click="$emit('component-change', 'editUser')" class="edit-options__link">
             <img class="sidebar__icon" src="/icons/edit_User.svg" />
             Редактировать пользователя
-        </RouterLink>
-        <RouterLink to="edit/deleteUser" class="edit-options__link">
+        </button>
+        <button @click="$emit('component-change', 'deleteUser')" class="edit-options__link">
             <img class="sidebar__icon" src="/icons/deleteUser.svg" />
             Удалить пользователя
-        </RouterLink>
-        <RouterLink to="edit/downloadDeleteReport" class="edit-options__link">
+        </button>
+        <button @click="$emit('component-change', 'downloadDeleteReport')" class="edit-options__link">
             <img class="sidebar__icon" src="/icons/downloadDeleteReport.svg" />
             Скачать/удалить отчёт
-        </RouterLink>
+        </button>
     </div>
 </template>
 
@@ -41,12 +41,13 @@ export default {
     background-color: white;
     padding: 60px;
     border-radius: 20px;
-    width: 300px;
+    width: 450px;
     text-decoration: none;
     color: black;
     font-size: xx-large;
     text-align: center;
     gap: 60px;
+    border: none;
 }
 
 .edit-options__link>img {
