@@ -1,11 +1,11 @@
 <template>
   <nav class="sidebar__nav">
     <ul class="sidebar__list">
-      <li class="sidebar__item sidebar__item--active">
-        <a href="#" class="sidebar__link">
+      <li :class="activeRoute === '/userprofile' ? 'sidebar__item sidebar__item--active' : 'sidebar__item'">
+        <RouterLink to="/userprofile" class="sidebar__link">
           <img class="sidebar__icon" :src="userIcon" alt="account icon" />
           {{ fullName }}
-        </a>
+        </RouterLink>
       </li>
       <li
           v-for="(item, index) in menuItems"
@@ -30,21 +30,14 @@
 <script>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
 export default {
   name: 'Sidebar',
-  props: {
-    role: {
-      type: String,
-      required: true,
-    },
-    fullName: {
-      type: String,
-      required: true,
-    },
-  },
-  setup(props) {
+  setup() {
     const route = useRoute()
+    const userStore = useUserStore()
+    const user = computed(() => userStore.user)
 
     const userIcon = '/icons/account_circle.svg'
     const activeRoute = computed(() => route.path)
@@ -65,18 +58,21 @@ export default {
       ],
     }
 
-    const menuItems = computed(() => roleBasedMenu[props.role] || [])
+    const menuItems = computed(() => (user.value ? roleBasedMenu[user.value.role] || [] : []))
 
     const logout = () => {
       console.log('Выход...')
       // Тут вызвать реальный logout
     }
 
+    const fullName = computed(() => (user.value ? user.value.fullName : ''))
+
     return {
       menuItems,
       userIcon,
       activeRoute,
       logout,
+      fullName,
     }
   },
 }
