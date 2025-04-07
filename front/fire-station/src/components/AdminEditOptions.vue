@@ -48,6 +48,7 @@ export default {
     text-align: center;
     gap: 60px;
     border: none;
+    cursor: pointer;
 }
 
 .edit-options__link>img {
