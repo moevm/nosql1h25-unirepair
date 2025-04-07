@@ -29,9 +29,10 @@
             <input type="radio" v-model="role" value="Администратор" @click="info" class="userinfo__input"><span>Администратор</span>
             <br>
 
-            <span>Бригада</span><span style="color: red;">*</span><span>:</span>
-            <input type="number" v-model="brigade" class="userinfo__input">
-            <span v-show="!brigade && addUserAttempt" style="color: red; margin-left: 15px;">Назначьте бригаду</span>
+            <span :class="{'brigade-text__avaliable': role === 'Пожарный', 'brigade-text__unavaliable': role !== 'Пожарный'}">Бригада</span>
+            <span style="color: red;" v-show="role === 'Пожарный'">*</span><span>:</span>
+            <input min="1" type="number" v-model="brigade" class="userinfo__input" :disabled="role !== 'Пожарный'" @blur="correctBrigade">
+            <span v-show="!brigade && addUserAttempt && role === 'Пожарный'" style="color: red; margin-left: 15px;">Назначьте бригаду</span>
             <br>
             <span>Телефон:</span>
             <input type="text" v-model="phone" class="userinfo__input">
@@ -41,15 +42,15 @@
             <br>
             <span>Адрес</span><span style="color: red;">*</span><span>:</span>
             <input type="text" v-model="adress" class="userinfo__input">
-            <span v-show="!adress && addUserAttempt" style="color: red; margin-left: 15px;">Назначьте бригаду</span>
+            <span v-show="!adress && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
             <br>
             <span>Логин</span><span style="color: red;">*</span><span>:</span>
             <input type="text" v-model="login" class="userinfo__input">
-            <span v-show="!login && addUserAttempt" style="color: red; margin-left: 15px;">Назначьте бригаду</span>
+            <span v-show="!login && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
             <br>
             <span>Пароль</span><span style="color: red;">*</span><span>:</span>
             <input type="text" v-model="password" class="userinfo__input">
-            <span v-show="!password && addUserAttempt" style="color: red; margin-left: 15px;">Назначьте бригаду</span>
+            <span v-show="!password && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
             <br>
         
             <button @click="createNewUser" id="submit-button">Добавить пользователя</button>
@@ -72,15 +73,19 @@ export default {
             adress: '',
             login: '',
             password: '',
-            addUserAttempt: false
+            addUserAttempt: false,
         }
     },
     methods: {
         createNewUser(){
-            if(!this.name || !this.surname || !this.brigade || !this.adress || !this.login || !this.password){
+            if(!this.name || !this.surname || !this.role || (!this.brigade && this.role === "Пожарный") || !this.adress || !this.login || !this.password){
                 this.addUserAttempt = true;
+                console.log("QE")
                 return false;
             }
+
+            if(this.role !== "Пожарный") this.role = null;
+
             console.log("New user added: ", this.name, this.surname, this.patronymic, this.role, this.brigade, this.phone, this.email, this.adress, this.login, this.password);
 
             //Тут запрос к серверу на добавление записи в БД, не забываем про время регистрации, время изменения и статус
@@ -95,9 +100,15 @@ export default {
             this.adress = '';
             this.login = '';
             this.password = '';
+            this.addUserAttempt = false;
             
             this.$emit('component-change', 'menu');
             return true;
+        },
+        correctBrigade(){
+            if(this.brigade < 1){
+                this.brigade = ''
+            }
         }
     }
 }
@@ -141,7 +152,7 @@ export default {
 
 .userinfo__input, span {
     font-size: x-large;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
 }
 
 .userinfo__input {
@@ -166,7 +177,7 @@ input[type="radio"] {
     position: absolute;
     cursor: pointer;
     right: 60px;
-    bottom: 30px;
+    bottom: 50px;
     font-size: xx-large;
     border-radius: 20px;
     border: none;
@@ -176,5 +187,13 @@ input[type="radio"] {
 
 #submit-button:hover {
     background-color: #766EBF;
+}
+
+.brigade-text__avaliable {
+    color: black;
+}
+
+.brigade-text__unavaliable {
+    color: gray;
 }
 </style>
