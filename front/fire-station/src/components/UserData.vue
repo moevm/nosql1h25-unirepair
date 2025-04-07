@@ -1,11 +1,11 @@
 <template>
   <section class="profile">
-    <div class="profile__header">
+    <div v-if="user" class="profile__header">
       <div class="profile__avatar"></div>
       <div class="profile__info">
-        <p class="profile__name"><strong>ФИО:</strong> {{ fullName }}</p>
-        <p class="profile__position"><strong>Должность:</strong> {{ role }}</p>
-        <p class="profile__team"><strong>Бригада:</strong> №{{ teamNumber }}</p>
+        <p class="profile__name"><strong>ФИО:</strong> {{ user.fullName }}</p>
+        <p class="profile__position"><strong>Должность:</strong> {{ user.role }}</p>
+        <p class="profile__team"><strong>Бригада:</strong> №{{ user.brigadeNumber }}</p>
         <p
             class="profile__status"
             :class="isOnShift ? 'profile__status_active' : 'profile__status_inactive'"
@@ -15,15 +15,15 @@
       </div>
     </div>
 
-    <div class="profile__contact-settings">
+    <div v-if="user" class="profile__contact-settings">
       <h3 class="profile__contact-settings-header">Контактная информация:</h3>
-      <p class="profile__contact-settings-item"><strong>Тел.:</strong> {{ phone }}</p>
-      <p class="profile__contact-settings-item"><strong>Email:</strong> {{ email }}</p>
-      <p class="profile__contact-settings-item"><strong>Адрес:</strong> {{ address }}</p>
+      <p class="profile__contact-settings-item"><strong>Тел.:</strong> {{ user.phone }}</p>
+      <p class="profile__contact-settings-item"><strong>Email:</strong> {{ user.email }}</p>
+      <p class="profile__contact-settings-item"><strong>Адрес:</strong> {{ user.address }}</p>
       <h3 class="profile__contact-settings-header">Настройки:</h3>
-      <p class="profile__contact-settings-item"><strong>Логин:</strong> {{ login }}</p>
-      <p class="profile__contact-settings-item"><strong>Дата регистрации:</strong> {{ registeredAt }}</p>
-      <p class="profile__contact-settings-item"><strong>Последнее редактирование:</strong> {{ updatedAt }}</p>
+      <p class="profile__contact-settings-item"><strong>Логин:</strong> {{ user.login }}</p>
+      <p class="profile__contact-settings-item"><strong>Дата регистрации:</strong> {{ user.registeredAt }}</p>
+      <p class="profile__contact-settings-item"><strong>Последнее редактирование:</strong> {{ user.modifiedAt }}</p>
     </div>
 
     <div class="profile__buttons">
@@ -36,34 +36,27 @@
 </template>
 
 <script>
+import { computed, ref } from 'vue'
+import { useUserStore } from '@/stores/user'
+
 export default {
   name: 'UserData',
-  props: {
-    fullName: String,
-    role: String,
-    teamNumber: Number,
-    status: String,
-    phone: String,
-    email: String,
-    address: String,
-    login: String,
-    registeredAt: String,
-    updatedAt: String,
-    initialStatus: {
-      type: String,
-      default: 'не на смене',
-    },
-  },
-  data() {
-    return {
-      isOnShift: this.initialStatus === 'на смене',
+  setup(_, { emit }) {
+    const userStore = useUserStore()
+    const user = computed(() => userStore.user)
+
+    const isOnShift = ref(user.value?.status === 'на смене')
+
+    const toggleShift = () => {
+      isOnShift.value = !isOnShift.value
+      emit('status-changed', isOnShift.value ? 'на смене' : 'не на смене')
     }
-  },
-  methods: {
-    toggleShift() {
-      this.isOnShift = !this.isOnShift
-      this.$emit('status-changed', this.isOnShift ? 'на смене' : 'не на смене')
-    },
+
+    return {
+      user,
+      isOnShift,
+      toggleShift,
+    }
   },
 }
 </script>
@@ -85,7 +78,7 @@ export default {
 .profile__avatar {
   width: 80px;
   height: 80px;
-  background: #D9D9D9;
+  background: #d9d9d9;
   border-radius: 50%;
 }
 
@@ -117,7 +110,7 @@ export default {
 
 
 .profile__contact-settings {
-  background: #D9D9D9;
+  background: #d9d9d9;
   padding: 10px;
   border-radius: 8px;
   margin-bottom: 10px;
@@ -145,13 +138,13 @@ export default {
   position: absolute;
   bottom: 20px;
   right: 20px;
-  background-color: #B2FFBA;
+  background-color: #b2ffba;
 }
 
 .button_secondary {
   position: absolute;
   bottom: 20px;
   left: 20px;
-  background-color: #A7A3CC;
+  background-color: #a7a3cc;
 }
 </style>

@@ -13,6 +13,8 @@
 </template>
 
 <script>
+import { useUserStore } from '../stores/user';
+
 export default {
   name: 'LoginView',
   data() {
@@ -22,10 +24,19 @@ export default {
     };
   },
   methods: {
-    handleLogin() {
+    async handleLogin() {
       console.log('Попытка входа с логином:', this.login);
-    }
-  }
+      const userStore = useUserStore();
+
+      // Запросим данные пользователя с сервера
+      await userStore.fetchUserData(this.login, this.password);
+
+      if (userStore.user) {
+        console.log('Данные пользователя:', userStore.user);
+      }
+      this.$router.push('/userprofile');
+    },
+  },
 };
 </script>
 
