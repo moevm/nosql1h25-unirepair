@@ -23,5 +23,16 @@ const api_routes = {
         { orderBy: "u.name DESC" },
       );
     },
+    "get_calls/brigadeNumber:uint": async ({ brigadeNumber }) => {
+    const callForms = await query.match(
+      `(cf:CallForm) WHERE $brigadeNumber IN cf.assignedTo`, 
+      ["cf"],
+      { orderBy: "cf.createdAt DESC" }
+    );
+    if (!callForms.length) {
+      return { message: "No active calls" };
+    }
+    return callForms;
+  },
 };
 export default api_routes;
