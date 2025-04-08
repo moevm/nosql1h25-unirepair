@@ -10,7 +10,7 @@
     "fireType": "лесной пожар",
     "fireRank": "3",
     "victimsCount": 0,
-    "assignedTo": null,
+    "assignedTo": [1, 2],
     "auto": null
   },
   {
@@ -24,7 +24,7 @@
     "fireType": "заводской пожар",
     "fireRank": "2",
     "victimsCount": 3,
-    "assignedTo": 4,
+    "assignedTo": [1, 4],
     "auto": null
   }
 ]
