@@ -80,7 +80,6 @@ export default {
         createNewUser(){
             if(!this.name || !this.surname || !this.role || (!this.brigade && this.role === "Пожарный") || !this.adress || !this.login || !this.password){
                 this.addUserAttempt = true;
-                console.log("QE")
                 return false;
             }
 
@@ -137,9 +136,15 @@ export default {
 #exit-icon {
     position: absolute;
     cursor: pointer;
-    right: 40px;
-    top: 40px;
-    width: 25px;
+    padding: 10px;
+    right: 30px;
+    top: 30px;
+    height: auto;
+}
+
+#exit-icon:hover {
+    background-color: rgb(128, 128, 128, 0.2);
+    border-radius: 10px;
 }
 
 .component-userinfo__container {
@@ -179,7 +184,7 @@ input[type="radio"] {
     right: 60px;
     bottom: 50px;
     font-size: xx-large;
-    border-radius: 20px;
+    border-radius: 10px;
     border: none;
     padding: 20px;
     background-color: #A7A3CC;
