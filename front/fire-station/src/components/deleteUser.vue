@@ -217,7 +217,6 @@ export default {
 }
 
 .blured-content__container {
-    filter: blur(5px);
     pointer-events: none;
 }
 
