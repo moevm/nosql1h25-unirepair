@@ -4,8 +4,8 @@
             <img class="sidebar__icon" src="/icons/addUser.svg" />
             Добавить пользователя
         </button>
-        <button @click="$emit('component-change', 'editUser')" class="edit-options__link">
-            <img class="sidebar__icon" src="/icons/edit_User.svg" />
+        <button @click="$emit('component-change', 'searchUser')" class="edit-options__link">
+            <img class="sidebar__icon" src="/icons/searchUser.svg" />
             Редактировать пользователя
         </button>
         <button @click="$emit('component-change', 'deleteUser')" class="edit-options__link">
