@@ -57,12 +57,14 @@
                             <td style="width: 3%; text-align: center;">
                                 <img src="/icons/editUser.svg" style="cursor: pointer; transform: scale(1.2);" @click="goToEditUserData(index)">
                             </td>
-                            <td style="width: 50%">{{ user.name + ' ' + user.surname + ' ' + user.patronymic }}</td>
-                            <td>{{ user.role }}</td>
+                            <td style="width: 50%; padding-left: 10px;">{{ user.name + ' ' + user.surname + ' ' + user.patronymic }}</td>
+                            <td style="padding-left: 10px;">{{ user.role }}</td>
                             <td style="text-align: center; width: 8%">{{ user.brigade ? user.brigade : '-' }}</td>
                         </tr>    
                         <tr class="row__table" v-if="foundUsers.length < 4" v-for="index in (4 - foundUsers.length)">
-                            <td style="width: 3%;">Y</td>
+                            <td style="width: 3%; text-align: center;">
+                                <img src="/icons/editUser.svg" style="cursor: pointer; transform: scale(1.2);">
+                            </td>
                             <td style="width: 50%"></td>
                             <td></td>
                             <td style="width: 8%"></td>
@@ -262,8 +264,8 @@ input[type="radio"] {
 
 .table__container {
     width: 95%;
-    font-size: x-large;
-    max-height: 190px;
+    font-size: large;
+    max-height: 179px;
     overflow-y: scroll;
 }
 
@@ -275,6 +277,6 @@ input[type="radio"] {
 
 .row__table>td {
     border: 1px solid black;
-    padding: 5px;
+    height: 35px;
 }
 </style>
