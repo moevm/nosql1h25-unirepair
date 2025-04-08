@@ -80,6 +80,9 @@ export default{
             //Запрос на обновление данных о пользователе
             
             this.dropState();
+            this.$emit('component-change', 'searchUser');
+        },
+        dropState(){
             useEditedUser().updateData({
                 name: '',
                 surname: '',
@@ -91,10 +94,7 @@ export default{
                 adress: '',
                 login: '',
                 password: ''
-            })
-            this.$emit('component-change', 'searchUser');
-        },
-        dropState(){
+            });
             this.addUserAttempt = false;
         }
     }

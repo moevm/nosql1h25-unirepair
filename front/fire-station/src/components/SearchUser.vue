@@ -265,7 +265,7 @@ input[type="radio"] {
 .table__container {
     width: 95%;
     font-size: large;
-    max-height: 179px;
+    max-height: 185px;
     overflow-y: scroll;
 }
 
@@ -277,6 +277,10 @@ input[type="radio"] {
 
 .row__table>td {
     border: 1px solid black;
+    height: 33px;
+}
+
+th {
     height: 35px;
 }
 </style>
