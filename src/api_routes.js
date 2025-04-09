@@ -24,7 +24,18 @@ const api_routes = {
         { orderBy: "u.name DESC" },
       );
     },
-    "login_user/login:string password:string": async ({ login, password }) => {
+  "get_calls/brigadeNumber:uint": async ({ brigadeNumber }) => {
+    const callForms = await query.match(
+      `(cf:CallForm) WHERE $brigadeNumber IN cf.assignedTo`, 
+      ["cf"],
+      { orderBy: "cf.createdAt DESC" }
+    );
+    if (!callForms.length) {
+      return { message: "No active calls" };
+    }
+    return callForms;
+  },
+  "login_user/login:string password:string": async ({ login, password }) => {
     const hashedPassword =  crypto.createHash("sha256").update(password).digest("hex");
     const users = await query.match(
       `(u:User${query.props({ login })})`, 
