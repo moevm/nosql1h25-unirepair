@@ -6,6 +6,7 @@
       <p class="call-card_info"><strong>Характер пожара:</strong> {{ call.fireType }}</p>
       <p class="call-card_info"><strong>Пострадавшие:</strong> {{ call.victimsCount }}</p>
       <p class="call-card_info"><strong>Бригада и техника:</strong> {{ call.assignedTo }} | {{call.auto}}</p>
+      <span :class="['arrow', { 'arrow--up': !isHidden }]"></span>
     </div>
     <div ref="mapContainer" class="call-card_info call-card_info__map" :class="{ hidden: isHidden }"></div>
   </section>
@@ -62,6 +63,22 @@ onMounted(() => {
 
 .call-card_info {
   font-size: 16px;
+}
+
+.arrow {
+  width: 15px;
+  height: 15px;
+  display: inline-block;
+  margin-left: 8px;
+  border: solid #333;
+  border-width: 0 3px 3px 0;
+  padding: 3px;
+  transform: rotate(45deg);
+  transition: transform 0.3s ease;
+}
+
+.arrow--up {
+  transform: rotate(-135deg);
 }
 
 .call-card_info__map {
