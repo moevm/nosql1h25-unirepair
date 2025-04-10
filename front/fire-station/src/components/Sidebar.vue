@@ -47,6 +47,10 @@ export default {
         { label: 'Вызовы', icon: '/icons/alert.svg', route: '/calls' },
         { label: 'Отчёты', icon: '/icons/folder.svg', route: '/reports' },
       ],
+      Brigadier: [
+        { label: 'Вызовы', icon: '/icons/alert.svg', route: '/calls' },
+        { label: 'Отчёты', icon: '/icons/folder.svg', route: '/reports' },
+      ],
       dispatcher: [
         { label: 'Новая форма', icon: '/icons/add_form.svg', route: '/new-call' },
         { label: 'Текущие вызовы', icon: '/icons/calls.svg', route: '/active-calls' },
