@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useUserStore } from '@/stores/user.js'
+import { useUserStore } from '@/stores/user'
 
 import HomeView from '../views/LoginView.vue'
 import UserProfileView from "../views/UserProfileView.vue"
@@ -25,9 +25,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  console.log("index before")
   const user = useUserStore().user;
-  console.log(user);
 
   if(to.meta.requiredRole === user.role || !to.meta.requiredRole){
     next()
