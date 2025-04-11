@@ -4,6 +4,9 @@ import { useUserStore } from '@/stores/user'
 import HomeView from '../views/LoginView.vue'
 import UserProfileView from "../views/UserProfileView.vue"
 import AdminEditView from '../views/AdminEditView.vue'
+import AdminStatisticsView from '@/views/AdminStatisticsView.vue'
+// import FirefighterCallsView from '../views/FirefighterCallsView.vue'
+
 import FirefighterCallsView from '../views/FirefighterCallsView.vue'
 // import DispatcherReportsView from "@/views/DispatcherReportsView.vue";
 import DispatcherNewCall from "@/views/DispatcherNewCall.vue";
@@ -17,6 +20,7 @@ const routes = [
   {path: '/new-call', name: 'DispatcherNewCall', component: DispatcherNewCall},
   // {path: '/active-calls', name: 'DispatcherActiveCall', component: DispatcherActiveCall},
   { path: '/edit', name: 'AdminEdit', component: AdminEditView, meta: {requiredRole: 'admin'}},
+  { path: '/stats', name: 'Statistics', component: AdminStatisticsView, meta: {requiredRole: 'admin'}}
 ]
 
 const router = createRouter({
