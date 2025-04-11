@@ -4,6 +4,7 @@ import { useUserStore } from '@/stores/user'
 import HomeView from '../views/LoginView.vue'
 import UserProfileView from "../views/UserProfileView.vue"
 import AdminEditView from '../views/AdminEditView.vue'
+import AdminStatisticsView from '@/views/AdminStatisticsView.vue'
 // import FirefighterCallsView from '../views/FirefighterCallsView.vue'
 
 const routes = [
@@ -12,6 +13,7 @@ const routes = [
   //{ path: '/calls', name: 'FirefighterCalls', component: FirefighterCallsView },
   //{ path: '/reports', name: 'Reports', component: ReportsView },
   { path: '/edit', name: 'AdminEdit', component: AdminEditView, meta: {requiredRole: 'admin'}},
+  { path: '/stats', name: 'Statistics', component: AdminStatisticsView, meta: {requiredRole: 'admin'}}
 ]
 
 const router = createRouter({
