@@ -4,7 +4,7 @@ import path from "path";
 import dotenv from "dotenv";
 import driver from "./db.js";
 import { router, setDbReady } from "./routes.js";
-import generateData from "./generateData";
+import generateData from "./generateData.js";
 
 const app = express();
 const PORT = 3000;
