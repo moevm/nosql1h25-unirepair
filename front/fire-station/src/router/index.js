@@ -5,20 +5,18 @@ import HomeView from '../views/LoginView.vue'
 import UserProfileView from "../views/UserProfileView.vue"
 import AdminEditView from '../views/AdminEditView.vue'
 import AdminStatisticsView from '@/views/AdminStatisticsView.vue'
-// import FirefighterCallsView from '../views/FirefighterCallsView.vue'
-
 import FirefighterCallsView from '../views/FirefighterCallsView.vue'
-// import DispatcherReportsView from "@/views/DispatcherReportsView.vue";
+import DispatcherReportsView from "@/views/DispatcherReportsView.vue";
 import DispatcherNewCall from "@/views/DispatcherNewCall.vue";
-// import DispatcherActiveCall from "@/views/DispatcherActiveCall.vue";
+import DispatcherActiveCall from "@/views/DispatcherActiveCallView.vue";
 
 const routes = [
   { path: '/', name: 'Login', component: HomeView },
   { path: '/userprofile', name: 'UserProfile', component: UserProfileView },
   { path: '/calls', name: 'FirefighterCalls', component: FirefighterCallsView },
-  // { path: '/reports', name: 'DispatcherReports', component: DispatcherReportsView },
-  {path: '/new-call', name: 'DispatcherNewCall', component: DispatcherNewCall},
-  // {path: '/active-calls', name: 'DispatcherActiveCall', component: DispatcherActiveCall},
+  { path: '/reports', name: 'DispatcherReports', component: DispatcherReportsView, meta: {requiredRole: 'dispatcher'} },
+  {path: '/new-call', name: 'DispatcherNewCall', component: DispatcherNewCall, meta: {requiredRole: 'dispatcher'}},
+  {path: '/active-calls', name: 'DispatcherActiveCall', component: DispatcherActiveCall, meta: {requiredRole: 'dispatcher'}},
   { path: '/edit', name: 'AdminEdit', component: AdminEditView, meta: {requiredRole: 'admin'}},
   { path: '/stats', name: 'Statistics', component: AdminStatisticsView, meta: {requiredRole: 'admin'}}
 ]
