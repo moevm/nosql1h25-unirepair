@@ -6,6 +6,7 @@ import UserProfileView from "../views/UserProfileView.vue"
 import AdminEditView from '../views/AdminEditView.vue'
 import AdminStatisticsView from '@/views/AdminStatisticsView.vue'
 import FirefighterCallsView from '../views/FirefighterCallsView.vue'
+import FirefighterReports from "../views/FirefighterReports.vue";
 import DispatcherReportsView from "@/views/DispatcherReportsView.vue";
 import DispatcherNewCall from "@/views/DispatcherNewCall.vue";
 import DispatcherActiveCall from "@/views/DispatcherActiveCallView.vue";
@@ -14,6 +15,7 @@ const routes = [
   { path: '/', name: 'Login', component: HomeView },
   { path: '/userprofile', name: 'UserProfile', component: UserProfileView },
   { path: '/calls', name: 'FirefighterCalls', component: FirefighterCallsView },
+  { path: '/ff-reports', name: 'FirefighterReports', component: FirefighterReports },
   { path: '/reports', name: 'DispatcherReports', component: DispatcherReportsView, meta: {requiredRole: 'dispatcher'} },
   {path: '/new-call', name: 'DispatcherNewCall', component: DispatcherNewCall, meta: {requiredRole: 'dispatcher'}},
   {path: '/active-calls', name: 'DispatcherActiveCall', component: DispatcherActiveCall, meta: {requiredRole: 'dispatcher'}},
