@@ -27,7 +27,7 @@
     </div>
 
     <div class="profile__buttons">
-      <button class="button button_secondary" @click="$emit('edit')">Редактировать данные</button>
+      <button class="button button_secondary" @click="$emit('edit', user)">Редактировать данные</button>
       <button class="button button_primary" @click="toggleShift">
         {{ isOnShift ? 'Завершить смену' : 'Начать смену' }}
       </button>
