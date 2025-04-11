@@ -15,7 +15,10 @@ export const useCallsStore = defineStore('calls', {
       "fireRank": "3",
       "victimsCount": 0,
       "assignedTo": null,
-      "auto": null
+      "auto": null,
+      "departureTime": "2025-04-01T09:00:02Z",
+      "arrivalTime": null,
+      "callEndedAt": null,
     },
       {
         "status": "Incomplete",
@@ -29,7 +32,10 @@ export const useCallsStore = defineStore('calls', {
         "fireRank": "2",
         "victimsCount": 3,
         "assignedTo": 4,
-        "auto": "АЦ A123BC"
+        "auto": "АЦ A123BC",
+        "departureTime": "2025-03-20T15:00:02Z",
+        "arrivalTime": "2025-03-20T15:15:18Z",
+        "callEndedAt": "2025-03-20T15:15:30Z",
       }
       ] // массив вызовов
   }),
