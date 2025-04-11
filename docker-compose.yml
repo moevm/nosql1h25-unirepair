@@ -11,6 +11,8 @@ services:
       - .env
     depends_on:
       - db
+    volumes:
+      - ./src/data:/app/src/data
   db:
     image: neo4j:4.4.42-community
     container_name: neo4j-container
