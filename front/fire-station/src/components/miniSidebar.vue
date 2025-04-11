@@ -4,7 +4,6 @@
       <li :class="activeRoute === '/userprofile' ? 'sidebar__item sidebar__item--active' : 'sidebar__item'">
         <RouterLink to="/userprofile" class="sidebar__link">
           <img class="sidebar__icon" :src="userIcon" alt="account icon" />
-          {{ fullName }}
         </RouterLink>
       </li>
       <li
@@ -18,11 +17,6 @@
         </RouterLink>
       </li>
     </ul>
-    <div class="sidebar__logout">
-      <a href="#" class="sidebar__exit" @click="logout">
-        <img class="sidebar__icon" src="/icons/logout.svg" alt="logout icon" />
-      </a>
-    </div>
   </nav>
 
 </template>
@@ -33,7 +27,7 @@ import { useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
 export default {
-  name: 'Sidebar',
+  name: 'miniSidebar',
   setup() {
     const route = useRoute()
     const userStore = useUserStore()
@@ -43,40 +37,19 @@ export default {
     const activeRoute = computed(() => route.path)
 
     const roleBasedMenu = {
-      firefighter: [
-        { label: 'Вызовы', icon: '/icons/alert.svg', route: '/calls' },
-        { label: 'Отчёты', icon: '/icons/folder.svg', route: '/ff-reports' },
-      ],
-      Brigadier: [
-        { label: 'Вызовы', icon: '/icons/alert.svg', route: '/calls' },
-        { label: 'Отчёты', icon: '/icons/folder.svg', route: '/reports' },
-      ],
       dispatcher: [
-        { label: 'Новая форма', icon: '/icons/add_form.svg', route: '/new-call' },
-        { label: 'Текущие вызовы', icon: '/icons/calls.svg', route: '/active-calls' },
-        { label: 'Отчёты', icon: '/icons/folder.svg', route: '/reports' },
-      ],
-      admin: [
-        { label: 'Статистика', icon: '/icons/statistics.svg', route: '/stats' },
-        { label: 'Редактировать', icon: '/icons/edit.svg', route: '/edit' },
-      ],
+        { icon: '/icons/add_form.svg', route: '/new-call' },
+        { icon: '/icons/calls.svg', route: '/active-calls' },
+        {  icon: '/icons/folder.svg', route: '/reports' },
+      ]
     }
 
     const menuItems = computed(() => (user.value ? roleBasedMenu[user.value.role] || [] : []))
-
-    const logout = () => {
-      console.log('Выход...')
-      // Тут вызвать реальный logout
-    }
-
-    const fullName = computed(() => (user.value ? user.value.fullName : ''))
 
     return {
       menuItems,
       userIcon,
       activeRoute,
-      logout,
-      fullName,
     }
   },
 }
@@ -86,10 +59,9 @@ export default {
 .sidebar__nav {
   padding-top: 30px;
   box-sizing: border-box;
-  min-width: 170px;
-  width: 20vw;
-  height: 100vh;
-  background-color: #A7A3CC;
+  width: 6vw;
+  min-width: 80px;
+  background-color: #CED0E9;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -135,17 +107,6 @@ export default {
   padding-right: 10px;
   width: 50px;
   height: 50px;
-}
-
-.sidebar__logout {
-  margin-top: auto;
-  margin-right: auto;
-}
-
-.sidebar__exit {
-  display: block;
-  padding: 15px;
-  text-decoration: none;
 }
 
 </style>

@@ -5,7 +5,7 @@
       <div class="profile__info">
         <p class="profile__name"><strong>ФИО:</strong> {{ user.fullName }}</p>
         <p class="profile__position"><strong>Должность:</strong> {{ user.role }}</p>
-        <p class="profile__team"><strong>Бригада:</strong> №{{ user.brigadeNumber }}</p>
+        <p v-if="['firefighter', 'Brigadier'].includes(user.role)" class="profile__team"><strong>Бригада:</strong> №{{ user.brigadeNumber }}</p>
         <p
             class="profile__status"
             :class="isOnShift ? 'profile__status_active' : 'profile__status_inactive'"
