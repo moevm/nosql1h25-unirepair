@@ -61,7 +61,6 @@ export default {
   box-sizing: border-box;
   width: 6vw;
   min-width: 80px;
-  height: 100vh;
   background-color: #CED0E9;
   display: flex;
   flex-direction: column;
