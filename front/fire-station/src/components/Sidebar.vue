@@ -45,7 +45,7 @@ export default {
     const roleBasedMenu = {
       firefighter: [
         { label: 'Вызовы', icon: '/icons/alert.svg', route: '/calls' },
-        { label: 'Отчёты', icon: '/icons/folder.svg', route: '/reports' },
+        { label: 'Отчёты', icon: '/icons/folder.svg', route: '/ff-reports' },
       ],
       Brigadier: [
         { label: 'Вызовы', icon: '/icons/alert.svg', route: '/calls' },
