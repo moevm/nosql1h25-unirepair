@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import driver from "./db.js";
 import { router, setDbReady } from "./routes.js";
 import generateData from "./generateData.js";
+import { props } from "./query.js";
 
 const app = express();
 const PORT = 3000;
@@ -155,29 +156,9 @@ const importData = async () => {
     const relationships = loadJSON("relationships.json");
     for (const relation of relationships) {
       await session.run(
-        `
-        MATCH (start:${relation.startNode.label} { ${Object.keys(
-          relation.startNode.properties,
-        )
-          .map((key) => `${key}: $start_${key}`)
-          .join(", ")} }),
-              (end:${relation.endNode.label} { ${Object.keys(
-                relation.endNode.properties,
-              )
-                .map((key) => `${key}: $end_${key}`)
-                .join(", ")} })
-        CREATE (start)-[:${relation.relationshipType}]->(end);
-      `,
-        {
-          ...Object.entries(relation.startNode.properties).reduce(
-            (acc, [key, value]) => ({ ...acc, [`start_${key}`]: value }),
-            {},
-          ),
-          ...Object.entries(relation.endNode.properties).reduce(
-            (acc, [key, value]) => ({ ...acc, [`end_${key}`]: value }),
-            {},
-          ),
-        },
+        `MATCH (start${props(relation.startNode.properties, [relation.startNode.label])}),
+              (end${props(relation.endNode.properties, [relation.endNode.label])})
+        CREATE (start)-[:${relation.relationshipType}]->(end);`,
       );
     }
     console.log("Связи между узлами загружены.");

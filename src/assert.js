@@ -31,10 +31,7 @@ export function assertArray(a, message = "") {
 }
 
 export function assertString(a, message = "") {
-  assert(
-    a === "" || (a && a.constructor === "".constructor),
-    `${JSON.stringify(a)} is not String; ${message}`,
-  );
+  assertType(a, "string");
 }
 
 export function assertObject(a, message = "") {

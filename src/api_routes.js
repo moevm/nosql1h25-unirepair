@@ -19,9 +19,7 @@ const api_routes = {
     const users = await match(`(u:User${props({ login })})`, {
       results: ["u"],
     });
-    if (!users) {
-      return { error: "User does not exist" };
-    }
+    if (!users || users.length === 0) return { error: "User does not exist" };
     const user = users[0];
     if (user.passwordHash !== password.hash) {
       return { error: "Password is incorrect" };
@@ -31,12 +29,14 @@ const api_routes = {
   // 2. Current call forms on a brigade
   "get_callforms/brigadeNumber:uint": async ({ brigadeNumber }) => {
     const callForms = await match(
-      `(cf:CallForm) WHERE $brigadeNumber IN cf.assignedTo`,
-      { results: ["cf"], orderBy: "cf.createdAt DESC" },
+      `(cf:CallForm${props({ assignedTo: brigadeNumber })})`,
+      {
+        results: ["cf"],
+        orderBy: "cf.createdAt DESC",
+      },
     );
-    if (!callForms.length) {
+    if (!callForms || callForms.length === 0)
       return { message: "No active calls" };
-    }
     return callForms;
   },
   // 3. Reports on a brigade
@@ -87,7 +87,7 @@ const api_routes = {
           labels,
         ),
       );
-      return await match(`(u:User)`, { results: ["u"] });
+      return {};
     },
   // 8. User search
   "user_search/familyName? firstName? fatherName? role? brigadeNumber:uint?":
@@ -121,9 +121,10 @@ const api_routes = {
     let activeCalls = await match("(cf:CallForm:Incomplete)", {
       results: ["COLLECT(DISTINCT cf.assignedTo) AS busybodies"],
     });
-    activeCalls = activeCalls
-      ? `[ ${activeCalls[0].busybodies.join(", ")} ]`
-      : "[]";
+    activeCalls =
+      activeCalls && activeCalls.length
+        ? `[ ${activeCalls[0].join(", ")} ]`
+        : "[]";
     return {
       busyBrigades: await match(
         `(u:User:Brigadier)
@@ -132,8 +133,8 @@ const api_routes = {
       `,
         {
           results: [
-            "u.brigadeNumber as brigadeNumber",
-            "brigadeCf.createdAt as activeCallStartedAt",
+            "u.brigadeNumber AS brigadeNumber",
+            "brigadeCf.createdAt AS activeCallStartedAt",
           ],
           orderBy: "activeCallStartedAt DESC",
         },
@@ -145,8 +146,8 @@ const api_routes = {
       `,
         {
           results: [
-            "u.brigadeNumber as brigadeNumber",
-            "brigadeCf.modifiedAt as lastCallEndedAt",
+            "u.brigadeNumber AS brigadeNumber",
+            "brigadeCf.modifiedAt AS lastCallEndedAt",
           ],
           orderBy: "lastCallEndedAt DESC",
         },
@@ -154,9 +155,9 @@ const api_routes = {
     };
   },
   // 11. Create a new report based on complete callform
-  new_report: async () => {},
+  new_report: async () => {}, // TODO: implement
   "test_query/query": async ({ query }) => {
-    const result = await match(query);
+    const result = await match(query, { results: ["u"] });
     console.log(`Query: ${query};\nResult: ${JSON.stringify(result)}`);
     return result;
   },

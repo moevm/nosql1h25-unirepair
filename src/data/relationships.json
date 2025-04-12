@@ -1,38 +1,67 @@
 [
   {
     "relationshipType": "INVENTORY_USED",
-    "startNode": { "label": "CallForm", "properties": { "createdAt": "2025-04-01T09:00:00Z" } },
-    "endNode": { "label": "Inventory", "properties": { "name": "Пожарная машина" } }
+    "startNode": {
+      "label": "CallForm",
+      "properties": { "createdAt": "2025-04-01T09:00:00Z" }
+    },
+    "endNode": {
+      "label": "Inventory",
+      "properties": { "name": "Пожарная машина" }
+    }
   },
   {
     "relationshipType": "INVENTORY_USED",
-    "startNode": { "label": "CallForm", "properties": { "createdAt": "2025-03-20T15:00:00Z" } },
+    "startNode": {
+      "label": "CallForm",
+      "properties": { "createdAt": "2025-03-20T15:00:00Z" }
+    },
     "endNode": { "label": "Inventory", "properties": { "name": "Лестница" } }
   },
   {
     "relationshipType": "ON_CALL",
-    "startNode": { "label": "Report", "properties": { "modifiedAt": "2025-04-01T12:00:00Z" } },
-    "endNode": { "label": "CallForm", "properties": { "createdAt": "2025-04-01T09:00:00Z" } }
+    "startNode": {
+      "label": "Report",
+      "properties": { "modifiedAt": "2025-03-20T17:30:00Z" }
+    },
+    "endNode": {
+      "label": "CallForm",
+      "properties": { "createdAt": "2025-04-01T09:00:00Z" }
+    }
   },
   {
     "relationshipType": "DAMAGED",
-    "startNode": { "label": "Report", "properties": { "modifiedAt": "2025-03-20T17:30:00Z" } },
+    "startNode": {
+      "label": "Report",
+      "properties": { "modifiedAt": "2025-03-20T17:30:00Z" }
+    },
     "endNode": { "label": "Inventory", "properties": { "name": "Лестница" } }
   },
   {
     "relationshipType": "CREATED",
-    "startNode": { "label": "User", "properties": { "login": "ivanov" } },
-    "endNode": { "label": "CallForm", "properties": { "createdAt": "2025-04-01T09:00:00Z" } }
+    "startNode": {
+      "label": "User",
+      "properties": { "login": "operator_dmitriy" }
+    },
+    "endNode": {
+      "label": "CallForm",
+      "properties": { "createdAt": "2025-04-01T09:00:00Z" }
+    }
   },
   {
     "relationshipType": "CREATED_BY",
-    "startNode": { "label": "CallForm", "properties": { "createdAt": "2025-04-01T09:00:00Z" } },
+    "startNode": {
+      "label": "CallForm",
+      "properties": { "createdAt": "2025-04-01T09:00:00Z" }
+    },
     "endNode": { "label": "User", "properties": { "login": "ivanov" } }
   },
   {
     "relationshipType": "FILLED_IN",
-    "startNode": { "label": "User", "properties": { "role": "Brigadier" } },
-    "endNode": { "label": "Report", "properties": { "modifiedAt": "2025-03-20T17:30:00Z" } }
+    "startNode": { "label": "User:Brigadier", "properties": {} },
+    "endNode": {
+      "label": "Report",
+      "properties": { "modifiedAt": "2025-03-20T17:30:00Z" }
+    }
   }
 ]
-

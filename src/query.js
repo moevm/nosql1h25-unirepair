@@ -4,25 +4,28 @@ import driver from "./db.js";
 function makeNeo4jLiteral(value) {
   if (value && value.longitude && value.latitude)
     return `point({latitude: ${value.latitude}, longitude: ${value.longitude}})`;
-  if (value && value.password && value.hash) return value.hash;
-  return value;
+  if (value && value.password && value.hash) return `"${value.hash}"`;
+  if (typeof value === "number") return `${value}`;
+  return `"${value}"`;
 }
 
 export function props(conditions, labels = []) {
   assert.assertObject(conditions);
   assert.assertArray(labels);
-  return (
-    labels
-      .filter((label) => label !== null)
-      .map((label) => `:${label}`)
-      .join("") +
-    " { " +
-    Object.entries(conditions)
-      .filter(([key, cond]) => key !== null && cond !== null)
-      .map(([key, cond]) => `${key}: "${makeNeo4jLiteral(cond)}"`)
-      .join(", ") +
-    " }"
-  );
+  return labels
+    .filter((label) => label !== null)
+    .map((label) => `:${label}`)
+    .join("") + Object.keys(conditions).length
+    ? " { " +
+        Object.entries(conditions)
+          .filter(([key, cond]) => key !== null && cond !== null)
+          .map(
+            ([key, cond]) =>
+              `${key === "password" ? "passwordHash" : key}: ${makeNeo4jLiteral(cond)}`,
+          )
+          .join(", ") +
+        " }"
+    : "";
 }
 
 export async function create(value) {
@@ -93,21 +96,27 @@ export async function match(conditions, options = {}) {
               .join(",\n\t")
           : ""
       }
-      ${options.results ? "RETURN [" + options.results.map((r) => `"${r}"`).join(", ") + "]" : ""}
+      ${options.results ? "RETURN " + options.results.join(", ") : ""}
       ${options.orderBy ? "ORDER BY " + options.orderBy : ""}
       ${options.limit ? "LIMIT " + options.limit : ""};
     `;
     result = await session
-      .executeRead((tx) => tx.run(query))
+      .executeWrite((tx) => tx.run(query))
       .then((result) =>
         options.results
           ? result.records.map((record) => {
-              let records = [];
-              for (const r of options.results)
-                records.push(
-                  record.get(r.includes(" AS ") ? r.split(" AS ")[1] : r),
-                );
-              return records;
+              let records = {};
+              for (const r of options.results) {
+                const key = r.includes(" AS ") ? r.split(" AS ")[1] : r;
+                const tmp = record.get(key);
+                records[key] =
+                  tmp && tmp.identity
+                    ? { ...tmp.properties, labels: tmp.labels }
+                    : tmp;
+              }
+              return Object.keys(records).length > 1
+                ? records
+                : Object.values(records)[0];
             })
           : [],
       )
