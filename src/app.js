@@ -4,6 +4,7 @@ import path from "path";
 import dotenv from "dotenv";
 import driver from "./db.js";
 import { router, setDbReady } from "./routes.js";
+import generateData from "./generateData.js";
 
 const app = express();
 const PORT = 3000;
@@ -75,6 +76,7 @@ const loadJSON = (filename) => {
 const importData = async () => {
   const session = driver.session();
   try {
+    generateData(5, 5, 2, 10, 10, 10);
     const users = loadJSON("users.json");
     for (const user of users) {
       await session.run(
