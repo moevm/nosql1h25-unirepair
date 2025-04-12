@@ -19,7 +19,7 @@ const api_routes = {
     const users = await match(`(u:User${props({ login })})`, {
       results: ["u"],
     });
-    if (!users.length) {
+    if (!users) {
       return { error: "User does not exist" };
     }
     const user = users[0];
@@ -87,7 +87,7 @@ const api_routes = {
           labels,
         ),
       );
-      return {};
+      return await match(`(u:User)`, { results: ["u"] });
     },
   // 8. User search
   "user_search/familyName? firstName? fatherName? role? brigadeNumber:uint?":
@@ -118,49 +118,47 @@ const api_routes = {
     },
   // 10. Get currently free and busy brigades
   get_brigades: async () => {
-    const brigades = await match(`(b:User:Brigadier)`, {
-      results: ["b.brigadeNumber"],
+    let activeCalls = await match("(cf:CallForm:Incomplete)", {
+      results: ["COLLECT(DISTINCT cf.assignedTo) AS busybodies"],
     });
-
-    if (!brigades.length) {
-      return { message: "Бригады отсутствуют." };
-    }
-    const callForms = await match(`(cf:CallForm)`, {
-      results: ["cf.status", "cf.assignedTo", "cf.createdAt", "cf.modifiedAt"],
-      orderBy: "cf.createdAt DESC",
-    });
-
-    let freeBrigades = [];
-    let busyBrigades = [];
-
-    for (const { brigadeNumber } of brigades) {
-      const brigadeCalls = callForms.filter((cf) =>
-        cf.assignedTo.includes(brigadeNumber),
-      );
-      if (brigadeCalls.length === 0) {
-        freeBrigades.push({ brigadeNumber, lastCallEndedAt: null });
-      } else {
-        const lastCall = brigadeCalls[0];
-
-        if (lastCall.status === "Complete") {
-          freeBrigades.push({
-            brigadeNumber,
-            lastCallEndedAt: lastCall.modifiedAt,
-          });
-        } else {
-          busyBrigades.push({
-            brigadeNumber,
-            activeCallStartedAt: lastCall.createdAt,
-          });
-        }
-      }
-    }
-    freeBrigades.sort(
-      (a, b) => (a.lastCallEndedAt || 0) - (b.lastCallEndedAt || 0),
-    );
-    busyBrigades.sort((a, b) => b.activeCallStartedAt - a.activeCallStartedAt);
-
-    return [...freeBrigades, ...busyBrigades];
+    activeCalls = activeCalls
+      ? `[ ${activeCalls[0].busybodies.join(", ")} ]`
+      : "[]";
+    return {
+      busyBrigades: await match(
+        `(u:User:Brigadier)
+        WHERE u.brigadeNumber IN ${activeCalls}
+        MATCH (brigadeCf:CallForm:Incomplete { assignedTo: u.brigadeNumber })
+      `,
+        {
+          results: [
+            "u.brigadeNumber as brigadeNumber",
+            "brigadeCf.createdAt as activeCallStartedAt",
+          ],
+          orderBy: "activeCallStartedAt DESC",
+        },
+      ),
+      freeBrigades: await match(
+        `(u:User:Brigadier)
+        WHERE NOT u.brigadeNumber IN ${activeCalls}
+        OPTIONAL MATCH (brigadeCf:CallForm:Complete { assignedTo: u.brigadeNumber })
+      `,
+        {
+          results: [
+            "u.brigadeNumber as brigadeNumber",
+            "brigadeCf.modifiedAt as lastCallEndedAt",
+          ],
+          orderBy: "lastCallEndedAt DESC",
+        },
+      ),
+    };
+  },
+  // 11. Create a new report based on complete callform
+  new_report: async () => {},
+  "test_query/query": async ({ query }) => {
+    const result = await match(query);
+    console.log(`Query: ${query};\nResult: ${JSON.stringify(result)}`);
+    return result;
   },
 };
 export default api_routes;

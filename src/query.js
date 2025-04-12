@@ -29,7 +29,7 @@ export async function create(value) {
   assert.assertString(value);
   const session = driver.session();
   try {
-    const query = `CREATE (${conditions});`;
+    const query = `CREATE (${value});`;
     await session.run(query).catch((err) => {
       throw err;
     });
@@ -93,7 +93,7 @@ export async function match(conditions, options = {}) {
               .join(",\n\t")
           : ""
       }
-      ${options.results ? "RETURN [" + options.results.map((r) => `"r"`).join(", ") + "]" : ""}
+      ${options.results ? "RETURN [" + options.results.map((r) => `"${r}"`).join(", ") + "]" : ""}
       ${options.orderBy ? "ORDER BY " + options.orderBy : ""}
       ${options.limit ? "LIMIT " + options.limit : ""};
     `;
@@ -103,7 +103,10 @@ export async function match(conditions, options = {}) {
         options.results
           ? result.records.map((record) => {
               let records = [];
-              for (const r of options.results) records.push(record.get(r));
+              for (const r of options.results)
+                records.push(
+                  record.get(r.includes(" AS ") ? r.split(" AS ")[1] : r),
+                );
               return records;
             })
           : [],
@@ -111,6 +114,8 @@ export async function match(conditions, options = {}) {
       .catch((err) => {
         throw err;
       });
+  } catch (e) {
+    console.error(`Error during match(): ${e}`);
   } finally {
     await session.close();
     return result;

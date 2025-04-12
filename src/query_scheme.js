@@ -24,7 +24,8 @@ export class QueryParameter {
 export class QueryScheme {
   constructor(rawParametersStr) {
     assert.assertString(rawParametersStr);
-    const rawParameters = rawParametersStr.split(" ");
+    const rawParameters =
+      rawParametersStr === "" ? [] : rawParametersStr.split(" ");
     let parameters = [];
     for (const rawParam of rawParameters)
       parameters.push(new QueryParameter(rawParam));
