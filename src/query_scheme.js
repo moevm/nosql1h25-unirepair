@@ -1,17 +1,20 @@
+import crypto from "crypto";
 import * as assert from "./assert.js";
 
 export class QueryParameter {
   constructor(rawParam) {
     assert.assertString(rawParam);
     assert.assert(
-      /^([a-zA-Z_][a-zA-Z_0-9]*:(int|uint|float|string|bool)\??)$/.test(
+      /^([a-zA-Z_][a-zA-Z_0-9]*(:(int|uint|float|string|bool|point|password))?\??)$/.test(
         rawParam,
       ),
       `Wrong format of query scheme: ${rawParam}`,
     );
-    let [name, type] = rawParam.split(":");
-    const isOptional = type.includes("?");
-    if (isOptional) type = type.slice(0, -1);
+    const isOptional = rawParam.includes("?");
+    if (isOptional) rawParam = rawParam.slice(0, -1);
+    let [name, type] = rawParam.includes(":")
+      ? rawParam.split(":")
+      : [rawParam, "string"];
     this.name = name;
     this.type = type;
     this.isOptional = isOptional;
@@ -21,7 +24,8 @@ export class QueryParameter {
 export class QueryScheme {
   constructor(rawParametersStr) {
     assert.assertString(rawParametersStr);
-    const rawParameters = rawParametersStr.split(" ");
+    const rawParameters =
+      rawParametersStr === "" ? [] : rawParametersStr.split(" ");
     let parameters = [];
     for (const rawParam of rawParameters)
       parameters.push(new QueryParameter(rawParam));
@@ -73,6 +77,25 @@ export class QueryScheme {
           if (value !== "true" && value !== "false")
             return `${key} is expected to be bool, but got ${value}`;
           result[key] = value === "true";
+          break;
+        }
+        case "point": {
+          if (!value || !value.longitude || !value.latitude)
+            return `${key} is expected to be point, but got ${value}`;
+          result[key] = {
+            longitude: value.longitude,
+            latitude: value.latitude,
+          };
+          break;
+        }
+        case "password": {
+          const escapedChars = ["\\", '"', "\'"];
+          let asStr = decodeURIComponent(value);
+          for (const ec of escapedChars) asStr.replaceAll(ec, "\\" + ec);
+          result[key] = {
+            password: asStr,
+            hash: crypto.createHash("sha256").update(value).digest("hex"),
+          };
           break;
         }
       }

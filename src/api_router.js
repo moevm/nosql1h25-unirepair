@@ -31,11 +31,9 @@ export default class ApiRouter {
     for (const [route, handler] of Object.entries(routes)) {
       assert.assertString(route);
       assert.assertFunction(handler);
-      assert.assert(
-        route.includes("/"),
-        `Expected route in format <name>/<scheme>, got ${route}`,
-      );
-      const [name, scheme] = route.split("/");
+      const [name, scheme] = route.includes("/")
+        ? route.split("/")
+        : [route, ""];
       apiRoutes[name] = new ApiRoute(new QueryScheme(scheme), handler);
     }
     this.apiName = apiName;

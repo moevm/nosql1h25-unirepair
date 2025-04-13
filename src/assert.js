@@ -31,10 +31,7 @@ export function assertArray(a, message = "") {
 }
 
 export function assertString(a, message = "") {
-  assert(
-    a && a.constructor === "".constructor,
-    `${a} is not String; ${message}`,
-  );
+  assertType(a, "string");
 }
 
 export function assertObject(a, message = "") {
