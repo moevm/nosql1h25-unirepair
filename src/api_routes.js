@@ -1,4 +1,4 @@
-import { create, match, props } from "./query.js";
+import { create, match, props, byId } from "./query.js";
 
 function fishOut(obj, prop) {
   const result = obj[prop];
@@ -21,9 +21,8 @@ const api_routes = {
     });
     if (!users || users.length === 0) return { error: "User does not exist" };
     const user = users[0];
-    if (user.passwordHash !== password.hash) {
+    if (user.passwordHash !== password.hash)
       return { error: "Password is incorrect" };
-    }
     return user;
   },
   // 2. Current call forms on a brigade
@@ -50,10 +49,23 @@ const api_routes = {
         `(u:User:Brigadier${props({ brigadeNumber })})-[:FILLED_IN]->(r:Report:Incomplete)-[:ON_CALL]->(cf:CallForm:Complete)`,
         { results: ["r", "cf"], orderBy: "cf.createdAt DESC" },
       ),
+      new_reports: await match(
+        `(u:User:Brigadier${props({ brigadeNumber })})-[:FILLED_IN]->(r:Report:New)-[:ON_CALL]->(cf:CallForm:Complete)`,
+        { results: ["r", "cf"], orderBy: "cf.createdAt DESC" },
+      ),
     };
   },
   // 4. Fill in a report
-  "fill_report/callform:uint": async ({ callform }) => {},
+  "fill_report/reportId:uint waterSpent:uint foamSpent:uint allegedFireCause damage:uint additionalNotes":
+    async (args) => {
+      const reportId = fishOut(args, "reportId");
+      await match(`(r:Report:New)`, {
+        where: byId("r", reportId),
+        remove: { r: ["New"] },
+        set: { r: { labels: ["Complete"], props: args } },
+      });
+      return {};
+    },
   // 5. Create a new callform
   "create_callform/callSource:string? fireAddress:string? bottomLeft:point? topRight:point? fireType:string? fireRank:string? victimsCount:uint? assignedTo:uint? auto:string?":
     async (args) => {
@@ -78,7 +90,7 @@ const api_routes = {
   "user_spawn/familyName firstName fatherName role brigadeNumber:uint address phone email login password:password":
     async (args) => {
       const role = fishOut(args, "role");
-      const labels = ["User", role].concat(
+      const labels = ["User", "Active", role].concat(
         role === "Brigadier" ? ["Fireman"] : [],
       );
       await create(
@@ -155,7 +167,20 @@ const api_routes = {
     };
   },
   // 11. Create a new report based on complete callform
-  new_report: async () => {}, // TODO: implement
+  "new_report/callformId:uint": async ({ callformId }) => {
+    await match(`(cf:CallForm:Complete)`, {
+      where: byId("cf", callformId),
+      create: `(r:Report:New${props({
+        waterSpent: 0,
+        foamSpent: 0,
+        allegedFireCause: "неизвестно",
+        damage: 0,
+        additionalNotes: "Данные ещё не внесены, ожидается завершение отчёта.",
+        modifiedAt: "timestamp()",
+      })})\nCREATE (r)-[:ON_CALL]->(cf)`,
+    });
+    return {};
+  },
   "test_query/query": async ({ query }) => {
     const result = await match(query, { results: ["u"] });
     console.log(`Query: ${query};\nResult: ${JSON.stringify(result)}`);

@@ -9,6 +9,12 @@ function makeNeo4jLiteral(value) {
   return `"${value}"`;
 }
 
+export function byId(n, id) {
+  assert.assertString(n);
+  assert.assertType(id, "number");
+  return `id(${n}) = ${id}`;
+}
+
 export function props(conditions, labels = []) {
   assert.assertObject(conditions);
   assert.assertArray(labels);
@@ -45,6 +51,7 @@ export async function match(conditions, options = {}) {
   assert.assertString(conditions);
   assert.assertObject(options);
   if (options.where) assert.assertString(options.where);
+  if (options.create) assert.assertString(options.create);
   if (options.remove) {
     assert.assertObject(options.remove);
     for (const [k, v] of Object.entries(options.remove)) assert.assertArray(v);
@@ -64,42 +71,36 @@ export async function match(conditions, options = {}) {
   const session = driver.session();
   let result = null;
   try {
-    const query = `
-      MATCH ${conditions}
-      ${options.where ? "WHERE " + options.where : ""}
-      ${
-        options.remove
-          ? "REMOVE " +
-            Object.entries(options.remove)
-              .map(([k, v]) => v.map((x) => `${k} :${x}`).join(",\n\t"))
-              .join(",\n\t")
-          : ""
-      }
-      ${
-        options.set
-          ? "SET " +
-            Object.entries(options.set)
-              .map(
-                ([k, v]) =>
-                  (v.labels
-                    ? v.labels.map((x) => `${k} :${x}`).join(",\n\t")
-                    : "") +
-                  (v.props
-                    ? Object.entries(v.props)
-                        .map(
-                          ([field, value]) =>
-                            `${k}.${field} = ${makeNeo4jLiteral(value)}`,
-                        )
-                        .join(",\n\t")
-                    : ""),
-              )
-              .join(",\n\t")
-          : ""
-      }
-      ${options.results ? "RETURN " + options.results.join(", ") : ""}
-      ${options.orderBy ? "ORDER BY " + options.orderBy : ""}
-      ${options.limit ? "LIMIT " + options.limit : ""};
-    `;
+    const query =
+      `MATCH ${conditions}` +
+      (options.where ? "\nWHERE " + options.where : "") +
+      (options.create ? "\nCREATE " + options.create : "") +
+      (options.remove
+        ? "\nREMOVE " +
+          Object.entries(options.remove)
+            .map(([k, v]) => v.map((x) => `${k} :${x}`).join(",\n\t"))
+            .join(",\n\t")
+        : "") +
+      (options.set
+        ? "\nSET " +
+          Object.entries(options.set)
+            .map(([k, v]) =>
+              (v.labels ? v.labels.map((x) => `${k} :${x}`) : [])
+                .concat(
+                  v.props
+                    ? Object.entries(v.props).map(
+                        ([field, value]) =>
+                          `${k}.${field} = ${makeNeo4jLiteral(value)}`,
+                      )
+                    : [],
+                )
+                .join(",\n\t"),
+            )
+            .join(",\n\t")
+        : "") +
+      (options.results ? "\nRETURN " + options.results.join(", ") : "") +
+      (options.orderBy ? "\nORDER BY " + options.orderBy : "") +
+      (options.limit ? "\nLIMIT " + options.limit : "");
     result = await session
       .executeWrite((tx) => tx.run(query))
       .then((result) =>
@@ -111,7 +112,11 @@ export async function match(conditions, options = {}) {
                 const tmp = record.get(key);
                 records[key] =
                   tmp && tmp.identity
-                    ? { ...tmp.properties, labels: tmp.labels }
+                    ? {
+                        ...tmp.properties,
+                        labels: tmp.labels,
+                        id: tmp.elementId,
+                      }
                     : tmp;
               }
               return Object.keys(records).length > 1
