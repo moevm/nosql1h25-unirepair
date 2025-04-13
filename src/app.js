@@ -92,8 +92,8 @@ const importData = async () => {
           email: $email,
           login: $login,
           passwordHash: $passwordHash,
-          registeredAt: $registeredAt,
-          modifiedAt: $modifiedAt
+          registeredAt: datetime($registeredAt),
+          modifiedAt: datetime($modifiedAt)
         });
       `,
         user,
@@ -106,8 +106,8 @@ const importData = async () => {
       await session.run(
         `
         CREATE (:CallForm:${cf.status} {
-          createdAt: $createdAt,
-          modifiedAt: $modifiedAt,
+          createdAt: datetime($createdAt),
+          modifiedAt: datetime($modifiedAt),
           callSource: $callSource,
           fireAddress: $fireAddress,
           bottomLeft: point($bottomLeft),
@@ -145,7 +145,7 @@ const importData = async () => {
           allegedFireCause: $allegedFireCause,
           damage: $damage,
           additionalNotes: $additionalNotes,
-          modifiedAt: $modifiedAt
+          modifiedAt: datetime($modifiedAt)
         });
       `,
         report,

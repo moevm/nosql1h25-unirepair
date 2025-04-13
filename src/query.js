@@ -2,6 +2,7 @@ import * as assert from "./assert.js";
 import driver from "./db.js";
 
 function makeNeo4jLiteral(value) {
+  if (value && value.date) return `datetime("${value.date}")`;
   if (value && value.longitude && value.latitude)
     return `point({latitude: ${value.latitude}, longitude: ${value.longitude}})`;
   if (value && value.password && value.hash) return `"${value.hash}"`;
@@ -15,16 +16,33 @@ export function byId(n, id) {
   return `id(${n}) = ${id}`;
 }
 
+export function matches(n, fieldValues, contains = true) {
+  assert.assertString(n);
+  assert.assertBool(contains);
+  return Object.entries(fieldValues)
+    .filter(([k, v]) => k && v !== null && v !== undefined)
+    .map(([field, value]) =>
+      typeof value === "string"
+        ? `toLower(${n}.${field}) ${contains ? "CONTAINS" : "="} "${value.toLowerCase()}"`
+        : value && value.from && value.to
+          ? `datetime("${value.from}") <= ${n}.${field} <= datetime("${value.to}") `
+          : (() => {
+              throw new Error(`Unexpected value: ${value}`);
+            })(),
+    )
+    .join(" AND ");
+}
+
 export function props(conditions, labels = []) {
   assert.assertObject(conditions);
   assert.assertArray(labels);
   return labels
-    .filter((label) => label !== null)
+    .filter((label) => !!label)
     .map((label) => `:${label}`)
     .join("") + Object.keys(conditions).length
     ? " { " +
         Object.entries(conditions)
-          .filter(([key, cond]) => key !== null && cond !== null)
+          .filter(([key, cond]) => !!key && cond !== null && cond !== undefined)
           .map(
             ([key, cond]) =>
               `${key === "password" ? "passwordHash" : key}: ${makeNeo4jLiteral(cond)}`,
