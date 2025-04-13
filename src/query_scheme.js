@@ -1,11 +1,22 @@
 import crypto from "crypto";
 import * as assert from "./assert.js";
 
+function isISODateTime(value) {
+  if (typeof value !== "string") return false;
+  if (
+    /^\d{4}-(0[1-9]|10|11|12)-(0[1-9]|[12]\d|30|31)(T[0-2]\d:[0-5]\d(:[0-5]\d(\.\d+)?)?)?$/.test(
+      value,
+    ) === false
+  )
+    return false;
+  return !isNaN(new Date(value).valueOf());
+}
+
 export class QueryParameter {
   constructor(rawParam) {
     assert.assertString(rawParam);
     assert.assert(
-      /^([a-zA-Z_][a-zA-Z_0-9]*(:(int|uint|float|string|bool|point|password))?\??)$/.test(
+      /^([a-zA-Z_][a-zA-Z_0-9]*(:(int|uint|float|string|bool|point|password|datetime|daterange))?\??)$/.test(
         rawParam,
       ),
       `Wrong format of query scheme: ${rawParam}`,
@@ -80,12 +91,18 @@ export class QueryScheme {
           break;
         }
         case "point": {
-          if (!value || !value.longitude || !value.latitude)
+          if (!value || !value.includes(";"))
             return `${key} is expected to be point, but got ${value}`;
-          result[key] = {
-            longitude: value.longitude,
-            latitude: value.latitude,
-          };
+          const [from, to] = value.split(";").map((x) => new Date(x));
+          const [latitude, longitude] = value.split(";").map(parseFloat);
+          if (
+            isNaN(longitude) ||
+            !isFinite(longitude) ||
+            isNaN(latitude) ||
+            !isFinite(latitude)
+          )
+            return `${key} is expected to be point, but got ${value}`;
+          result[key] = { longitude, latitude };
           break;
         }
         case "password": {
@@ -96,6 +113,23 @@ export class QueryScheme {
             password: asStr,
             hash: crypto.createHash("sha256").update(value).digest("hex"),
           };
+          break;
+        }
+        case "datetime": {
+          if (!isISODateTime(value))
+            return `${key} is expected to be ISO datetime, but got ${value}`;
+          result[key] = { date: value };
+          break;
+        }
+        case "daterange": {
+          if (!value || !value.includes(";"))
+            return `${key} is expected to be daterange, but got ${value}`;
+          const tmp = value.split(";");
+          if (!isISODateTime(tmp[0]))
+            return `${key}.from is expected to be ISO datetime, but got ${tmp[0]}`;
+          if (!isISODateTime(tmp[1]))
+            return `${key}.to is expected to be ISO datetime, but got ${tmp[1]}`;
+          result[key] = { from: tmp[0], to: tmp[1] };
           break;
         }
       }

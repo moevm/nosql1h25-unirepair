@@ -1,4 +1,4 @@
-import { create, match, props, byId } from "./query.js";
+import { create, match, props, byId, matches } from "./query.js";
 
 function fishOut(obj, prop) {
   const result = obj[prop];
@@ -72,10 +72,10 @@ const api_routes = {
       if (Object.values(args).includes(null))
         return { error: "Incomplete callforms are not supported yet" };
       await create(
-        props(
-          { ...args, createdAt: "timestamp()", modifiedAt: "timestamp()" },
-          ["CallForm", "Complete"],
-        ),
+        props({ ...args, createdAt: "datetime()", modifiedAt: "datetime()" }, [
+          "CallForm",
+          "Complete",
+        ]),
       );
       return {};
     },
@@ -95,19 +95,22 @@ const api_routes = {
       );
       await create(
         props(
-          { ...args, registeredAt: "timestamp()", modifiedAt: "timestamp()" },
+          { ...args, registeredAt: "datetime()", modifiedAt: "datetime()" },
           labels,
         ),
       );
       return {};
     },
   // 8. User search
-  "user_search/familyName? firstName? fatherName? role? brigadeNumber:uint?":
-    async ({ familyName, firstName, fatherName, role, brigadeNumber }) => {
-      return await match(
-        `(u:User${props({ familyName, firstName, fatherName, brigadeNumber }, [role])})`,
-        { results: ["u"], orderBy: "u.name DESC" },
-      );
+  "user_search/familyName? firstName? fatherName? role? brigadeNumber:uint? address? phone? email? registeredAt:daterange? modifiedAt:daterange?":
+    async (args) => {
+      const role = fishOut(args, "role");
+      const brigadeNumber = fishOut(args, "brigadeNumber");
+      return await match(`(u:User${props({ brigadeNumber }, [role])})`, {
+        where: matches("u", args),
+        results: ["u"],
+        orderBy: "u.name DESC",
+      });
     },
   // 9. User modification
   "modify_user/familyName? firstName? fatherName? role? brigadeNumber:uint? address? phone? email? login password:password?":
@@ -124,7 +127,7 @@ const api_routes = {
         : undefined;
       await match(`(u:User${props({ login })})`, {
         remove,
-        set: { u: { labels, props: { ...args, modifiedAt: "timestamp()" } } },
+        set: { u: { labels, props: { ...args, modifiedAt: "datetime()" } } },
       });
       return {};
     },
@@ -176,7 +179,7 @@ const api_routes = {
         allegedFireCause: "неизвестно",
         damage: 0,
         additionalNotes: "Данные ещё не внесены, ожидается завершение отчёта.",
-        modifiedAt: "timestamp()",
+        modifiedAt: "datetime()",
       })})\nCREATE (r)-[:ON_CALL]->(cf)`,
     });
     return {};
