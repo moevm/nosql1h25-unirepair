@@ -36,11 +36,13 @@ export function matches(n, fieldValues, contains = true) {
 export function props(conditions, labels = []) {
   assert.assertObject(conditions);
   assert.assertArray(labels);
-  return labels
-    .filter((label) => !!label)
-    .map((label) => `:${label}`)
-    .join("") + Object.keys(conditions).length
-    ? " { " +
+  return (
+    labels
+      .filter((label) => !!label)
+      .map((label) => `:${label}`)
+      .join("") +
+    (Object.keys(conditions).length
+      ? " { " +
         Object.entries(conditions)
           .filter(([key, cond]) => !!key && cond !== null && cond !== undefined)
           .map(
@@ -49,7 +51,8 @@ export function props(conditions, labels = []) {
           )
           .join(", ") +
         " }"
-    : "";
+      : "")
+  );
 }
 
 export async function create(value) {
@@ -119,6 +122,7 @@ export async function match(conditions, options = {}) {
       (options.results ? "\nRETURN " + options.results.join(", ") : "") +
       (options.orderBy ? "\nORDER BY " + options.orderBy : "") +
       (options.limit ? "\nLIMIT " + options.limit : "");
+    console.log(`Query built: ${query}`);
     result = await session
       .executeWrite((tx) => tx.run(query))
       .then((result) =>
