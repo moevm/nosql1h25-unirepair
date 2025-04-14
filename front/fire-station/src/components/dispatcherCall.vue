@@ -37,7 +37,7 @@ const props = defineProps({
   call: Object
 })
 
-</script>
+</script scoped>
 
 <style>
 td, th {
