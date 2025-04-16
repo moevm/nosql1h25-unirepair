@@ -200,15 +200,24 @@ const api_routes = {
         orderBy: "cf.createdAt DESC",
       });
   },
+  //report search
   "report_search/status? modifiedAt:daterange? waterSpent:uint? foamSpent:uint? allegedFireCause? damage:uint? additionalNotes?":
   async (args) => {
-    // Извлекаем статус отчёта, если он указан
     const status = fishOut(args, "status");
 
     return await match(`(r:Report${props({}, [status])})`, {
       where: matches("r", args),
       results: ["r"],
-      orderBy: "r.modifiedAt DESC", // Сортируем по времени последнего изменения
+      orderBy: "r.modifiedAt DESC",
+    });
+  },
+  //inventory search
+  "inventory_search/name?":
+  async (args) => {
+    return await match(`(i:Inventory)`, {
+      where: matches("i", args),
+      results: ["i"],
+      orderBy: "i.name ASC", 
     });
   },
 };
