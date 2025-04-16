@@ -200,5 +200,16 @@ const api_routes = {
         orderBy: "cf.createdAt DESC",
       });
   },
+  "report_search/status? modifiedAt:daterange? waterSpent:uint? foamSpent:uint? allegedFireCause? damage:uint? additionalNotes?":
+  async (args) => {
+    // Извлекаем статус отчёта, если он указан
+    const status = fishOut(args, "status");
+
+    return await match(`(r:Report${props({}, [status])})`, {
+      where: matches("r", args),
+      results: ["r"],
+      orderBy: "r.modifiedAt DESC", // Сортируем по времени последнего изменения
+    });
+  },
 };
 export default api_routes;
