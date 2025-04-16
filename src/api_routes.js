@@ -189,5 +189,16 @@ const api_routes = {
     console.log(`Query: ${query};\nResult: ${JSON.stringify(result)}`);
     return result;
   },
+  //call forms search
+  "callform_search/status? createdAt:daterange? modifiedAt:daterange? callSource? fireAddress? fireType? fireRank? victimsCount:uint? assignedTo:uint?":
+    async (args) => {
+      const status = fishOut(args, "status");
+      const assignedTo = fishOut(args, "assignedTo");
+      return await match(`(cf:CallForm${props({ assignedTo }, [status])})`, {
+        where: matches("cf", args),
+        results: ["cf"],
+        orderBy: "cf.createdAt DESC",
+      });
+  },
 };
 export default api_routes;
