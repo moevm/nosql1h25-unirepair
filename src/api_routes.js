@@ -1,8 +1,19 @@
-import { create, match, props, byId, matches } from "./query.js";
+import { create, match, props, byId, now, matches } from "./query.js";
 
 function fishOut(obj, prop) {
   const result = obj[prop];
   delete obj[prop];
+  return result;
+}
+
+function fishOutDateRangesAndStrings(obj) {
+  let result = {};
+  for (const k in Object.keys(obj)) {
+    if (typeof obj[k] === "string" || (obj[k] && obj[k].from && obj[k].to)) {
+      result[k] = obj[k];
+      delete obj[k];
+    }
+  }
   return result;
 }
 
@@ -72,7 +83,7 @@ const api_routes = {
       if (Object.values(args).includes(null))
         return { error: "Incomplete callforms are not supported yet" };
       await create(
-        props({ ...args, createdAt: "datetime()", modifiedAt: "datetime()" }, [
+        props({ ...args, createdAt: now(), modifiedAt: now() }, [
           "CallForm",
           "Complete",
         ]),
@@ -94,10 +105,7 @@ const api_routes = {
         role === "Brigadier" ? ["Fireman"] : [],
       );
       await create(
-        props(
-          { ...args, registeredAt: "datetime()", modifiedAt: "datetime()" },
-          labels,
-        ),
+        props({ ...args, registeredAt: now(), modifiedAt: now() }, labels),
       );
       return {};
     },
@@ -127,7 +135,7 @@ const api_routes = {
         : undefined;
       await match(`(u:User${props({ login })})`, {
         remove,
-        set: { u: { labels, props: { ...args, modifiedAt: "datetime()" } } },
+        set: { u: { labels, props: { ...args, modifiedAt: now() } } },
       });
       return {};
     },
@@ -138,7 +146,7 @@ const api_routes = {
     });
     activeCalls =
       activeCalls && activeCalls.length
-        ? `[ ${activeCalls[0].join(", ")} ]`
+        ? `[ ${activeCalls[0].filter((x) => x !== 0).join(", ")} ]`
         : "[]";
     return {
       busyBrigades: await match(
@@ -156,7 +164,7 @@ const api_routes = {
       ),
       freeBrigades: await match(
         `(u:User:Brigadier)
-        WHERE NOT u.brigadeNumber IN ${activeCalls}
+        WHERE NOT u.brigadeNumber IN ${activeCalls} AND u.brigadeNumber <> 0
         OPTIONAL MATCH (brigadeCf:CallForm:Complete { assignedTo: u.brigadeNumber })
       `,
         {
@@ -179,7 +187,7 @@ const api_routes = {
         allegedFireCause: "неизвестно",
         damage: 0,
         additionalNotes: "Данные ещё не внесены, ожидается завершение отчёта.",
-        modifiedAt: "datetime()",
+        modifiedAt: now(),
       })})\nCREATE (r)-[:ON_CALL]->(cf)`,
     });
     return {};
@@ -189,35 +197,34 @@ const api_routes = {
     console.log(`Query: ${query};\nResult: ${JSON.stringify(result)}`);
     return result;
   },
-  //call forms search
+  // Сall forms search
   "callform_search/status? createdAt:daterange? modifiedAt:daterange? callSource? fireAddress? fireType? fireRank? victimsCount:uint? assignedTo:uint?":
     async (args) => {
       const status = fishOut(args, "status");
-      const assignedTo = fishOut(args, "assignedTo");
-      return await match(`(cf:CallForm${props({ assignedTo }, [status])})`, {
-        where: matches("cf", args),
+      const matchArgs = fishOutDateRangesAndStrings(args);
+      return await match(`(cf:CallForm${props(args, [status])})`, {
+        where: matches("cf", matchArgs),
         results: ["cf"],
         orderBy: "cf.createdAt DESC",
       });
-  },
-  //report search
+    },
+  // Report search
   "report_search/status? modifiedAt:daterange? waterSpent:uint? foamSpent:uint? allegedFireCause? damage:uint? additionalNotes?":
-  async (args) => {
-    const status = fishOut(args, "status");
-
-    return await match(`(r:Report${props({}, [status])})`, {
-      where: matches("r", args),
-      results: ["r"],
-      orderBy: "r.modifiedAt DESC",
-    });
-  },
-  //inventory search
-  "inventory_search/name?":
-  async (args) => {
+    async (args) => {
+      const status = fishOut(args, "status");
+      const matchArgs = fishOutDateRangesAndStrings(args);
+      return await match(`(r:Report${props(args, [status])})`, {
+        where: matches("r", matchArgs),
+        results: ["r"],
+        orderBy: "r.modifiedAt DESC",
+      });
+    },
+  // Inventory search
+  "inventory_search/name?": async (args) => {
     return await match(`(i:Inventory)`, {
       where: matches("i", args),
       results: ["i"],
-      orderBy: "i.name ASC", 
+      orderBy: "i.name ASC",
     });
   },
 };
