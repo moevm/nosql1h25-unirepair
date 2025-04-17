@@ -189,5 +189,36 @@ const api_routes = {
     console.log(`Query: ${query};\nResult: ${JSON.stringify(result)}`);
     return result;
   },
+  //call forms search
+  "callform_search/status? createdAt:daterange? modifiedAt:daterange? callSource? fireAddress? fireType? fireRank? victimsCount:uint? assignedTo:uint?":
+    async (args) => {
+      const status = fishOut(args, "status");
+      const assignedTo = fishOut(args, "assignedTo");
+      return await match(`(cf:CallForm${props({ assignedTo }, [status])})`, {
+        where: matches("cf", args),
+        results: ["cf"],
+        orderBy: "cf.createdAt DESC",
+      });
+  },
+  //report search
+  "report_search/status? modifiedAt:daterange? waterSpent:uint? foamSpent:uint? allegedFireCause? damage:uint? additionalNotes?":
+  async (args) => {
+    const status = fishOut(args, "status");
+
+    return await match(`(r:Report${props({}, [status])})`, {
+      where: matches("r", args),
+      results: ["r"],
+      orderBy: "r.modifiedAt DESC",
+    });
+  },
+  //inventory search
+  "inventory_search/name?":
+  async (args) => {
+    return await match(`(i:Inventory)`, {
+      where: matches("i", args),
+      results: ["i"],
+      orderBy: "i.name ASC", 
+    });
+  },
 };
 export default api_routes;
