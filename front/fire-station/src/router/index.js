@@ -28,15 +28,19 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, from, next) => {
-  const user = useUserStore().user;
+router.beforeEach(async (to, from, next) => {
+  const userStore = useUserStore();
 
-  if(to.meta.requiredRole === user.role || !to.meta.requiredRole){
-    next()
+//дожидаемся загрузки 
+  if (!userStore.user) {
+    await userStore.fetchUserData(); 
   }
-  else{
-    next('/userprofile')
+
+  if (userStore.user && (to.meta.requiredRole === userStore.user.role || !to.meta.requiredRole)) {
+    next();
+  } else {
+    next("/userprofile");
   }
-})
+});
 
 export default router
