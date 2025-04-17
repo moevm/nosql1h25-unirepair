@@ -7,7 +7,12 @@ function makeNeo4jLiteral(value) {
     return `point({latitude: ${value.latitude}, longitude: ${value.longitude}})`;
   if (value && value.password && value.hash) return `"${value.hash}"`;
   if (typeof value === "number") return `${value}`;
+  if (value && value.datetime) return "datetime()";
   return `"${value}"`;
+}
+
+export function now() {
+  return { datetime: true };
 }
 
 export function byId(n, id) {
