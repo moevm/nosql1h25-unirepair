@@ -14,4 +14,3 @@ RUN npm install --prefix ./front/fire-station
 COPY ./front/fire-station ./front/fire-station
 
 CMD ["sh", "-c", "node src/app.js & npm run dev --prefix front/fire-station"]
-
