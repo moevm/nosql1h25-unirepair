@@ -1,18 +1,16 @@
-# Используем легковесный базовый образ
 FROM node:alpine
 
-# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем package.json для установки зависимостей
-COPY ./src/package.json ./src/
+COPY ./src/package.json ./src/package-lock.json ./src/
 
-# Устанавливаем зависимости
 RUN npm install --prefix ./src
 
-# Копируем весь код из src
 COPY ./src ./src
 
-# Указываем команду для запуска сервера
-CMD ["node", "src/app.js"]
+COPY ./front/fire-station/package.json ./front/fire-station/package-lock.json ./front/fire-station/
+RUN npm install --prefix ./front/fire-station
 
+COPY ./front/fire-station ./front/fire-station
+
+CMD ["sh", "-c", "node src/app.js & npm run dev --prefix front/fire-station"]

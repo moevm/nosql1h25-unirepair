@@ -7,12 +7,14 @@ services:
     container_name: js-container
     ports:
       - 127.0.0.1:3000:3000
+      - 127.0.0.1:5173:5173
     env_file:
       - .env
     depends_on:
       - db
     volumes:
       - ./src/data:/app/src/data
+      - ./front/fire-station/build:/app/front/fire-station/build
   db:
     image: neo4j:4.4.42-community
     container_name: neo4j-container
