@@ -227,23 +227,23 @@ const api_routes = {
       orderBy: "i.name ASC",
     });
   },
-  //Find a report by author
-  "Find_reports_by_author/familyName? firstName? fatherName? role? brigadeNumber:uint? modifiedAt:daterange?":
-  async (args) => {
-    const role = fishOut(args, "role");
-    const brigadeNumber = fishOut(args, "brigadeNumber");
-    const modifiedAtRange = fishOut(args, "modifiedAt");
-    return await match(
-      `(u:User${props({ brigadeNumber }, [role])})-[:FILLED_IN]->(r:Report)`,
-      {
-        where: {
-          ...matches("u", args),  
-          ...matches("r", { modifiedAt: modifiedAtRange }) 
+  // Find a report by author
+  "report_search_by_author/familyName? firstName? fatherName? role? brigadeNumber:uint? modifiedAt:daterange?":
+    async (args) => {
+      const role = fishOut(args, "role");
+      const brigadeNumber = fishOut(args, "brigadeNumber");
+      const modifiedAtRange = fishOut(args, "modifiedAt");
+      return await match(
+        `(u:User${props({ brigadeNumber }, [role])})-[:FILLED_IN]->(r:Report)`,
+        {
+          where: {
+            ...matches("u", args),
+            ...matches("r", { modifiedAt: modifiedAtRange }),
+          },
+          results: ["r", "u"],
+          orderBy: "r.modifiedAt DESC",
         },
-        results: ["r", "u"],
-        orderBy: "r.modifiedAt DESC",
-      }
-    );
-  },
+      );
+    },
 };
 export default api_routes;
