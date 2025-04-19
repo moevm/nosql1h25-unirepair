@@ -51,7 +51,7 @@ function byId(n, id) {
 export function matches(fieldValues, contains = true) {
   assert.assertObject(fieldValues);
   assert.assertBool(contains);
-  Object.entries(fieldValues)
+  return Object.entries(fieldValues)
     .filter(
       ([k, v]) =>
         k && v !== null && v !== undefined && Object.keys(v).length > 0,
@@ -216,7 +216,7 @@ export async function match(what, conditions, options = {}) {
   const n = what.split(":")[0];
   const complexConds = fishOutComplexConds(conditions);
   if (Object.keys(complexConds).length > 0)
-    options.where = `${matches({ n: complexConds })}${options.where ? " AND " + options.where : ""}`;
+    options.where = `${matches({ [n]: complexConds })}${options.where ? " AND " + options.where : ""}`;
   if (options.results === undefined) options.results = [n];
   return rawMatch(`(${what}${props(conditions)})`, options);
 }

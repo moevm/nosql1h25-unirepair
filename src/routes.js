@@ -6,7 +6,8 @@ import api_routes from "./api_routes.js";
 let userCount = null;
 let dbReady = false;
 
-export let router = new ApiRouter("api", api_routes).toExpressRouter();
+export let apiRouter = new ApiRouter("api", api_routes);
+export let router = apiRouter.toExpressRouter();
 
 export function setDbReady() {
   dbReady = true;

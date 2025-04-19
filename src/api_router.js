@@ -43,6 +43,18 @@ export default class ApiRouter {
     this.apiRoutes = apiRoutes;
   }
 
+  runTestQuery(query) {
+    assert.assertString(query);
+    let [path, params] = query.split("?");
+    assert.assert(this.apiRoutes[path], `No such route: ${path}`);
+    let queryObj = {};
+    for (const p of params.split("&")) {
+      const [k, v] = p.split("=");
+      queryObj[k] = v;
+    }
+    return this.apiRoutes[path].apply(queryObj);
+  }
+
   toExpressRouter() {
     const result = express.Router();
     for (const [name, route] of Object.entries(this.apiRoutes)) {
