@@ -228,22 +228,24 @@ const api_routes = {
     });
   },
   // Find a report by author
-  "report_search_by_author/familyName? firstName? fatherName? role? brigadeNumber:uint? modifiedAt:daterange?":
-    async (args) => {
-      const role = fishOut(args, "role");
-      const brigadeNumber = fishOut(args, "brigadeNumber");
-      const modifiedAtRange = fishOut(args, "modifiedAt");
-      return await match(
-        `(u:User${props({ brigadeNumber }, [role])})-[:FILLED_IN]->(r:Report)`,
-        {
-          where: {
-            ...matches("u", args),
-            ...matches("r", { modifiedAt: modifiedAtRange }),
-          },
-          results: ["r", "u"],
-          orderBy: "r.modifiedAt DESC",
-        },
-      );
-    },
+  "report_search_by_author/familyName? firstName? fatherName? role? brigadeNumber:uint? callFormCreatedAt:daterange? modifiedAt:daterange?":
+  async (args) => {
+    const role = fishOut(args, "role");
+    const brigadeNumber = fishOut(args, "brigadeNumber");
+    const modifiedAtRange = fishOut(args, "modifiedAt");
+    const callFormCreatedAtRange = fishOut(args, "callFormCreatedAt");
+
+    let modifiedAtFilter = matches("r", { modifiedAt: modifiedAtRange });
+    let callFormCreatedAtFilter = matches("cf", { createdAt: callFormCreatedAtRange });
+
+    return await match(
+      `(u:User${props({ brigadeNumber }, [role])})-[:FILLED_IN]->(r:Report)-[:ON_CALL]->(cf:CallForm)`,
+      {
+        where: Object.assign({}, matches("u", args), callFormCreatedAtFilter, modifiedAtFilter),
+        results: ["r", "u", "cf"],
+        orderBy: "r.modifiedAt DESC",
+      }
+    );
+  },
 };
 export default api_routes;
