@@ -3,9 +3,10 @@ import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
 import driver from "./db.js";
-import { router, setDbReady } from "./routes.js";
+import { apiRouter, router, setDbReady } from "./routes.js";
 import generateData from "./generateData.js";
 import { props } from "./query.js";
+import { runTests } from "./api_tests.js";
 
 const app = express();
 const PORT = 3000;
@@ -183,6 +184,8 @@ const initializeDatabase = async () => {
 
   setDbReady(true);
   console.log("База данных готова! Теперь сервер начинает принимать запросы.");
+  console.log("Запуск авто-тестов...");
+  runTests(apiRouter);
 };
 
 initializeDatabase();
