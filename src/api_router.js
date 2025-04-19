@@ -13,6 +13,9 @@ class ApiRoute {
   async apply(rawQuery, prehandledState) {
     assert.assertObject(rawQuery);
     const query = this.scheme.applyScheme(rawQuery);
+    console.log(
+      `GET with query: ${JSON.stringify(rawQuery)} -> ${JSON.stringify(query)}`,
+    );
     if (query.constructor === "".constructor) {
       console.log(
         `Failed to process query: ${query}\nQuery was: ${JSON.stringify(rawQuery)}`,

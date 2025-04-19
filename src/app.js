@@ -156,8 +156,8 @@ const importData = async () => {
     const relationships = loadJSON("relationships.json");
     for (const relation of relationships) {
       await session.run(
-        `MATCH (start${props(relation.startNode.properties, [relation.startNode.label])}),
-              (end${props(relation.endNode.properties, [relation.endNode.label])})
+        `MATCH (start${props(relation.startNode)}),
+              (end${props(relation.endNode)})
         CREATE (start)-[:${relation.relationshipType}]->(end);`,
       );
     }
