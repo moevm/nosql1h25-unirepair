@@ -209,39 +209,16 @@ const api_routes = {
       });
     },
   // Report search
-  "report_search/status? modifiedAt:daterange? waterSpent:uint? foamSpent:uint? allegedFireCause? damage:uint? additionalNotes?":
-    async (args) => {
-      const status = fishOut(args, "status");
-      const matchArgs = fishOutDateRangesAndStrings(args);
-      return await match(`(r:Report${props(args, [status])})`, {
-        where: matches("r", matchArgs),
-        results: ["r"],
-        orderBy: "r.modifiedAt DESC",
-      });
-    },
-  // Inventory search
-  "inventory_search/name?": async (args) => {
-    return await match(`(i:Inventory)`, {
-      where: matches("i", args),
-      results: ["i"],
-      orderBy: "i.name ASC",
-    });
-  },
-  // Find a report by author
   "report_search_by_author/familyName? firstName? fatherName? role? brigadeNumber:uint? callFormCreatedAt:daterange? modifiedAt:daterange?":
   async (args) => {
     const role = fishOut(args, "role");
     const brigadeNumber = fishOut(args, "brigadeNumber");
-    const modifiedAtRange = fishOut(args, "modifiedAt");
-    const callFormCreatedAtRange = fishOut(args, "callFormCreatedAt");
-
-    let modifiedAtFilter = matches("r", { modifiedAt: modifiedAtRange });
-    let callFormCreatedAtFilter = matches("cf", { createdAt: callFormCreatedAtRange });
+    const matchArgs = fishOutDateRangesAndStrings(args);
 
     return await match(
       `(u:User${props({ brigadeNumber }, [role])})-[:FILLED_IN]->(r:Report)-[:ON_CALL]->(cf:CallForm)`,
       {
-        where: Object.assign({}, matches("u", args), callFormCreatedAtFilter, modifiedAtFilter),
+        where: matches("r", matchArgs), 
         results: ["r", "u", "cf"],
         orderBy: "r.modifiedAt DESC",
       }
