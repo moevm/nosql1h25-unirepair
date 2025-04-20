@@ -1,19 +1,21 @@
 <template>
   <div class="login-container">
-    <div class="login-box">
+    <form class="login-box" @submit.prevent="handleLogin">
       <label for="login">Введите логин:</label>
-      <input id="login" v-model="login" type="text" class="login-input" />
+      <input id="login" name="login" v-model="login" type="text" class="login-input" autocomplete="username" />
 
       <label for="password">Введите пароль:</label>
-      <input id="password" v-model="password" type="password" class="login-input" />
+      <input id="password" name="password" v-model="password" type="password" class="login-input"
+             autocomplete="current-password" />
 
-      <button class="login-button" @click="handleLogin">Войти</button>
-    </div>
+      <button class="button login-button" type="submit">Войти</button>
+    </form>
   </div>
 </template>
 
 <script>
-import { useUserStore } from '../stores/user';
+import axios from 'axios';
+import { useUserStore } from '@/stores/user';
 
 export default {
   name: 'LoginView',
@@ -25,18 +27,83 @@ export default {
   },
   methods: {
     async handleLogin() {
-      console.log('Попытка входа с логином:', this.login);
       const userStore = useUserStore();
+      try {
+        const response = await axios.get(`http://localhost:3000/api/login_user?${this.stringifyURLParams()}`);
+        const data = response.data;
 
-      // Запросим данные пользователя с сервера
-      await userStore.fetchUserData(this.login, this.password);
+        if (data?.error) {
+          alert('Ошибка: ' + data.error);
+          return;
+        }
 
-      if (userStore.user) {
-        console.log('Данные пользователя:', userStore.user);
+        const transformedUser = {
+          fullName: `${data.familyName} ${data.firstName} ${data.fatherName}`,
+          familyName: data.familyName,
+          firstName: data.firstName,
+          fatherName: data.fatherName,
+          role: this.getRoleFromLabels(data.labels),
+          status: this.getStatusFromLabels(data.labels),
+          brigadeNumber: data.brigadeNumber,
+          address: data.address,
+          phone: data.phone,
+          email: data.email,
+          login: data.login,
+          passwordHash: data.passwordHash,
+          registeredAt: this.convertDate(data.registeredAt),
+          modifiedAt: this.convertDate(data.modifiedAt)
+        };
+
+        userStore.setUser(transformedUser);
+        this.$router.push('/userprofile');
+
+      } catch (error) {
+        console.error('Ошибка при попытке входа:', error);
+        alert('Не удалось выполнить вход. Попробуйте позже.');
       }
-      this.$router.push('/userprofile');
     },
-  },
+    stringifyURLParams() {
+      let params = {
+        login: this.login,
+        password: this.password,
+      };
+      const flatParams = new URLSearchParams();
+      for (const key in params) {
+        if (typeof params[key] === 'object') {
+          for (const subKey in params[key]) {
+            flatParams.append(`${key}.${subKey}`, params[key][subKey]);
+          }
+        } else {
+          flatParams.append(key, params[key]);
+        }
+      }
+      return flatParams.toString();
+    },
+    getRoleFromLabels(labels) {
+      const roles = ['Firefighter', 'Brigadier', 'Operator', 'Admin'];
+      return labels.find(label => roles.includes(label))?.toLowerCase() || 'unknown';
+    },
+
+    getStatusFromLabels(labels) {
+      return labels.includes('Active') ? 'active' :
+          labels.includes('Blocked') ? 'blocked' :
+              'unknown';
+    },
+
+    convertDate(dateObj) {
+      if (!dateObj || !dateObj.year) return null;
+
+      const pad = (num) => String(num).padStart(2, '0');
+      const y = dateObj.year.low;
+      const m = pad(dateObj.month.low);
+      const d = pad(dateObj.day.low);
+      const h = pad(dateObj.hour.low);
+      const min = pad(dateObj.minute.low);
+      const s = pad(dateObj.second.low);
+
+      return `${y}-${m}-${d}T${h}:${min}:${s}Z`; // или в Date: new Date(`${y}-${m}-${d}T${h}:${min}:${s}Z`)
+    },
+  }
 };
 </script>
 
@@ -71,7 +138,7 @@ label {
   font-size: 16px;
 }
 
-.login-button {
+.button {
   background: #7a67c3;
   color: white;
   padding: 8px 16px;
@@ -82,7 +149,7 @@ label {
   border-radius: 4px;
 }
 
-.login-button:hover {
+.button:hover {
   background: #6757a3;
 }
 </style>

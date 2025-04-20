@@ -29,13 +29,14 @@
 
 <script>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
 export default {
   name: 'Sidebar',
   setup() {
     const route = useRoute()
+    const router = useRouter()
     const userStore = useUserStore()
     const user = computed(() => userStore.user)
 
@@ -47,11 +48,11 @@ export default {
         { label: 'Вызовы', icon: '/icons/alert.svg', route: '/calls' },
         { label: 'Отчёты', icon: '/icons/folder.svg', route: '/ff-reports' },
       ],
-      Brigadier: [
+      brigadier: [
         { label: 'Вызовы', icon: '/icons/alert.svg', route: '/calls' },
-        { label: 'Отчёты', icon: '/icons/folder.svg', route: '/reports' },
+        { label: 'Отчёты', icon: '/icons/folder.svg', route: '/ff-reports' },
       ],
-      dispatcher: [
+      operator: [
         { label: 'Новая форма', icon: '/icons/add_form.svg', route: '/new-call' },
         { label: 'Текущие вызовы', icon: '/icons/calls.svg', route: '/active-calls' },
         { label: 'Отчёты', icon: '/icons/folder.svg', route: '/reports' },
@@ -65,8 +66,15 @@ export default {
     const menuItems = computed(() => (user.value ? roleBasedMenu[user.value.role] || [] : []))
 
     const logout = () => {
-      console.log('Выход...')
-      // Тут вызвать реальный logout
+      const userStore = useUserStore();
+      console.log('Выход из профиля...');
+
+      userStore.setUser(null);  // Удаляем пользователя из хранилища
+      localStorage.removeItem('user');  // Если хранишь в localStorage
+      sessionStorage.removeItem('user');  // Если хранишь в sessionStorage
+
+      // Перенаправить на страницу входа
+      router.push('/')
     }
 
     const fullName = computed(() => (user.value ? user.value.fullName : ''))
