@@ -20,19 +20,21 @@
             <span>Должность</span><span style="color: red;">*</span><span>:</span>
             <span v-show="!role && addUserAttempt" style="color: red; margin-left: 15px;">Выберите должность</span>
             <br>
-            <input type="radio" v-model="role" value="Пожарный" @click="info" class="userinfo__input">
+            <input type="radio" v-model="role" value="Fireman" @click="info" class="userinfo__input">
             <span>Пожарный</span>
+            <input type="radio" v-model="role" value="Brigadier" @click="info" class="userinfo__input">
+            <span>Бригадир</span>
             <br>
-            <input type="radio" v-model="role" value="Оператор" @click="info" class="userinfo__input">
+            <input type="radio" v-model="role" value="Operator" @click="info" class="userinfo__input">
             <span>Оператор</span>
             <br>
-            <input type="radio" v-model="role" value="Администратор" @click="info" class="userinfo__input"><span>Администратор</span>
+            <input type="radio" v-model="role" value="Admin" @click="info" class="userinfo__input"><span>Администратор</span>
             <br>
 
-            <span :class="{'brigade-text__avaliable': role === 'Пожарный', 'brigade-text__unavaliable': role !== 'Пожарный'}">Бригада</span>
-            <span style="color: red;" v-show="role === 'Пожарный'">*</span><span>:</span>
-            <input min="1" type="number" v-model="brigade" class="userinfo__input" :disabled="role !== 'Пожарный'" @blur="correctBrigade">
-            <span v-show="!brigade && addUserAttempt && role === 'Пожарный'" style="color: red; margin-left: 15px;">Назначьте бригаду</span>
+            <span :class="{'brigade-text__avaliable': role === 'Fireman' || role === 'Brigadier', 'brigade-text__unavaliable': role !== 'Fireman' && role !== 'Brigadier'}">Бригада</span>
+            <span style="color: red;" v-show="role === 'Fireman' || role === 'Brigadier'">*</span><span>:</span>
+            <input min="1" type="number" v-model="brigade" class="userinfo__input" :disabled="role !== 'Fireman' && role !== 'Brigadier'" @blur="correctBrigade">
+            <span v-show="!brigade && addUserAttempt && (role === 'Fireman' || role === 'Brigadier')" style="color: red; margin-left: 15px;">Назначьте бригаду</span>
             <br>
             <span>Телефон:</span>
             <input type="text" v-model="phone" class="userinfo__input">
@@ -41,8 +43,8 @@
             <input type="text" v-model="email" class="userinfo__input">
             <br>
             <span>Адрес</span><span style="color: red;">*</span><span>:</span>
-            <input type="text" v-model="adress" class="userinfo__input">
-            <span v-show="!adress && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
+            <input type="text" v-model="address" class="userinfo__input">
+            <span v-show="!address && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
             <br>
             <span>Логин</span><span style="color: red;">*</span><span>:</span>
             <input type="text" v-model="login" class="userinfo__input">
@@ -59,6 +61,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
     name: "AddUserComponent",
     data() {
@@ -70,24 +74,23 @@ export default {
             brigade: '',
             phone: '',
             email: '',
-            adress: '',
+            address: '',
             login: '',
             password: '',
             addUserAttempt: false,
         }
     },
     methods: {
-        createNewUser(){
-            if(!this.name || !this.surname || !this.role || (!this.brigade && this.role === "Пожарный") || !this.adress || !this.login || !this.password){
+        async createNewUser(){
+            if(!this.name || !this.surname || !this.role || (!this.brigade && this.role === "Fireman") || !this.address || !this.login || !this.password){
                 this.addUserAttempt = true;
                 return false;
             }
 
-            if(this.role !== "Пожарный") this.role = null;
+            console.log("New user added: ", this.name, this.surname, this.patronymic, this.role, this.brigade, this.phone, this.email, this.address, this.login, this.password);
 
-            console.log("New user added: ", this.name, this.surname, this.patronymic, this.role, this.brigade, this.phone, this.email, this.adress, this.login, this.password);
-
-            //Тут запрос к серверу на добавление записи в БД, не забываем про время регистрации, время изменения и статус
+            console.log(`localhost:3000/api/user_spawn?${decodeURIComponent(this.stringifyURLParams())}`)   
+            await axios.get(`http://localhost:3000/api/user_spawn?${this.stringifyURLParams()}`)
 
             this.name = '';
             this.surname = '';
@@ -96,7 +99,7 @@ export default {
             this.brigade = '';
             this.phone = '';
             this.email = '';
-            this.adress = '';
+            this.address = '';
             this.login = '';
             this.password = '';
             this.addUserAttempt = false;
@@ -108,6 +111,26 @@ export default {
             if(this.brigade < 1){
                 this.brigade = ''
             }
+        },
+        stringifyURLParams(){
+            let params = {
+                familyName: this.surname,
+                firstName: this.name,
+                fatherName: this.patronymic,
+                role: this.role,
+                brigadeNumber: this.role === 'Fireman' || this.role === 'Brigadier' ? this.brigade : undefined,
+                address: this.address,
+                phone: this.phone,
+                email: this.email,
+                login: this.login,
+                password: this.password
+            }
+
+            params = new URLSearchParams(Object.fromEntries(
+                Object.entries(params).filter(([_, v]) => v !== undefined && v !== '' && v !== ';')
+            )).toString();
+
+            return params;
         }
     }
 }

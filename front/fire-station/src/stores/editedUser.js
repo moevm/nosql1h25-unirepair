@@ -10,22 +10,22 @@ export const useEditedUser = defineStore('editedUser', {
         brigade: '',
         phone: '',
         email: '',
-        adress: '',
+        address: '',
         login: '',
         password: ''
     },
     oldLogin: null
   }),
   actions: {
-    updateData(editedUser) {
-        this.user.name = editedUser.name;
-        this.user.surname = editedUser.surname;
-        this.user.patronymic = editedUser.patronymic;
-        this.user.role = editedUser.role;
-        this.user.brigade = editedUser.brigade;
+    updateData(editedUser, role) {
+        this.user.name = editedUser.firstName;
+        this.user.surname = editedUser.familyName;
+        this.user.patronymic = editedUser.fatherName;
+        this.user.role = role;
+        this.user.brigade = editedUser.brigadeNumber;
         this.user.phone = editedUser.phone;
         this.user.email = editedUser.email;
-        this.user.adress = editedUser.adress;
+        this.user.address = editedUser.address;
         this.user.login = editedUser.login;
         this.user.password = editedUser.password;
         

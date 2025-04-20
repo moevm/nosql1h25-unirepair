@@ -18,18 +18,20 @@
                 
                 <span>Должность:</span>
                 <br>
-                <input type="radio" v-model="role" value="Пожарный" @click="info" class="userinfo__input">
+                <input type="radio" v-model="role" value="Fireman" @click="info" class="userinfo__input">
                 <span>Пожарный</span>
+                <input type="radio" v-model="role" value="Brigadier" @click="info" class="userinfo__input">
+                <span>Бригадир</span>
                 <br>
-                <input type="radio" v-model="role" value="Оператор" @click="info" class="userinfo__input">
+                <input type="radio" v-model="role" value="Operator" @click="info" class="userinfo__input">
                 <span>Оператор</span>
                 <br>
-                <input type="radio" v-model="role" value="Администратор" @click="info" class="userinfo__input">
-                <span>Администратор</span>
+                <input type="radio" v-model="role" value="Admin" @click="info" class="userinfo__input"> 
+                <span>Администратор</span>  
                 <br>
 
-                <span :class="{'brigade-text__avaliable': role === 'Пожарный', 'brigade-text__unavaliable': role !== 'Пожарный'}">Бригада:</span>
-                <input min="1" type="number" v-model="brigade" class="userinfo__input" :disabled="role !== 'Пожарный'" @blur="correctBrigade">
+                <span :class="{'brigade-text__avaliable': role === 'Fireman' || role === 'Brigadier', 'brigade-text__unavaliable': role !== 'Fireman' && role !== 'Brigadier'}">Бригада:</span>
+                <input min="1" type="number" v-model="brigade" class="userinfo__input" :disabled="role !== 'Fireman' && role !== 'Brigadier'" @blur="correctBrigade">
                 <br>
 
                 <span>Дата вызова:</span>
@@ -64,11 +66,11 @@
                                 <td style="width: 3%; text-align: center;">
                                     <input type="checkbox" class="checkbox" v-model="selectedReports[index]" @click="handleCheckboxClick(index)">
                                 </td>
-                                <td style="width: 30%; padding-left: 10px">{{ report.reportName }}</td>
-                                <td style="width: 30%; padding-left: 10px;">{{ report.name + ' ' + report.surname + ' ' + report.patronymic }}</td>
-                                <td style="padding-left: 10px; width: 20%">role</td>
-                                <td style="text-align: center;">{{ report.brigade }}</td>
-                                <td style="width: 15%; text-align: center;">{{ report.createDate }}</td>
+                                <td style="width: 30%; padding-left: 10px">{{ formReportName(report.cf) }}</td>
+                                <td style="width: 30%; padding-left: 10px;">{{ report.u.firstName + ' ' + report.u.familyName + ' ' + report.u.fatherName }}</td>
+                                <td style="padding-left: 10px; width: 20%">{{ rolesTranslations[findRole(report.u)] }}</td>
+                                <td style="text-align: center;">{{ report.u.brigadeNumber }}</td>
+                                <td style="width: 15%; text-align: center;">{{ formData(report.r) }}</td>
                             </tr>    
                             <tr class="row__table" v-if="foundReports.length < 4" v-for="index in (4 - foundReports.length)">
                                 <td style="width: 3%; text-align: center;">
@@ -99,6 +101,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
     name: 'DownloadDeleteReportComponent',
     data() {
@@ -120,84 +124,20 @@ export default {
             selectedReports: [],
             showAlert: false,
             allSelected: false,
-            DBResult: [ // Нужен чисто для примера возвращаемого запроса из БД
-                {
-                    name: 'Виталий',
-                    surname: 'Цаль',
-                    patronymic: 'Величайший',
-                    brigade: '1',
-                    reportName: 'report1',
-                    waterUsage: '',
-                    foamUsage: '',
-                    fireReason: '',
-                    damageCost: '',
-                    additionalInfo: '',
-                    status: '',
-                    createDate: '2018-04-03'
-                },
-                {
-                    name: 'Александр',
-                    surname: '???',
-                    patronymic: 'Владимирович',
-                    brigade: '2',
-                    reportName: 'report2',
-                    waterUsage: '',
-                    foamUsage: '',
-                    fireReason: '',
-                    damageCost: '',
-                    additionalInfo: '',
-                    status: '',
-                    createDate: '2021-03-21'
-                },
-                {
-                    name: 'Edward',
-                    surname: 'Kenway',
-                    patronymic: '',
-                    brigade: '3',
-                    reportName: 'report3',
-                    waterUsage: '',
-                    foamUsage: '',
-                    fireReason: '',
-                    damageCost: '',
-                    additionalInfo: '',
-                    status: '',
-                    createDate: '2021-04-09'
-                },
-                {
-                    name: 'Edward',
-                    surname: 'Kenway',
-                    patronymic: '',
-                    brigade: '4',
-                    reportName: 'report4',
-                    waterUsage: '',
-                    foamUsage: '',
-                    fireReason: '',
-                    damageCost: '',
-                    additionalInfo: '',
-                    status: '',
-                    createDate: '2022-01-01'
-                },
-                {
-                    name: 'Edward',
-                    surname: 'Kenway',
-                    patronymic: '',
-                    brigade: '5',
-                    reportName: 'report5',
-                    waterUsage: '',
-                    foamUsage: '',
-                    fireReason: '',
-                    damageCost: '',
-                    additionalInfo: '',
-                    status: '',
-                    createDate: '2025-03-29'
-                }
-            ]
+            rolesTranslations: {
+                "Brigadier": "Бригадир",
+                "Fireman": "Пожарный",
+                "Operator": "Оператор",
+                "Admin": "Администратор"
+            }
         }
     },
     methods: {
-        searchReports(){
-            this.foundReports = this.DBResult; //Магический запрос к БД
+        async searchReports(){
+            await axios.get(`http://localhost:3000/api/report_search_by_author?${this.stringifyURLParams()}`)
+                .then(res => this.foundReports = res.data)
             this.selectedReports = Array(this.foundReports.length).fill(false);
+            this.allSelected = false;
         },
         deleteSelectedReports(){
             this.showAlert = false;
@@ -225,6 +165,54 @@ export default {
         },
         downloadSelectedReports(){
             console.log('404: DB is still unavailable :3');
+        },
+        stringifyURLParams(){
+            let params = {
+                familyName: this.surname,
+                firstName: this.name,
+                fatherName: this.patronymic,
+                role: this.role,
+                brigadeNumber: this.role === 'Fireman' || this.role === 'Brigadier' ? this.brigade : '',
+            }
+
+            params = new URLSearchParams(Object.fromEntries(
+                Object.entries(params).filter(([_, v]) => v !== undefined && v !== '' && v !== ';')
+            )).toString();
+
+            return params;
+        },
+        formReportName(r){
+            let day = r.createdAt.day.low.toString();
+            while(day.length < 2) day = '0' + day;
+
+            let month = r.createdAt.month.low.toString();
+            while(month.length < 2) month = '0' + month;
+
+            let year = r.createdAt.year.low.toString().slice(-2);
+            while(year.length < 2) year = '0' + year;
+
+            let hour = r.createdAt.hour.low.toString();
+            while(hour.length < 2) hour = '0' + hour
+
+            let minute = r.createdAt.minute.low.toString();
+            while(minute.length < 2) minute = '0' + minute
+
+            return `Rep_${day}.${month}.${year}_${hour}:${minute}_B-${r.assignedTo}`
+        },
+        findRole(user){
+            return user.labels.find(label => (label === "Brigadier" || label === "Fireman" || label === "Operator" || label === "Admin"))
+        },
+        formData(r){
+            let day = r.modifiedAt.day.low.toString();
+            while(day.length < 2) day = '0' + day
+
+            let month = r.modifiedAt.month.low.toString();
+            while(month.length < 2) month = '0' + month
+
+            let year = r.modifiedAt.year.low.toString();
+            while(year.length < 2) year = '0' + year
+
+            return `${year}-${month}-${day}`
         }
     }
 }
