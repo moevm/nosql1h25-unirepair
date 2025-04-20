@@ -7,8 +7,15 @@ import { apiRouter, router, setDbReady } from "./routes.js";
 import generateData from "./generateData.js";
 import { props } from "./query.js";
 import { runTests } from "./api_tests.js";
+import cors from "cors";
 
 const app = express();
+app.use(cors({
+  origin: 'http://127.0.0.1:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}))
 const PORT = 3000;
 const __dirname = path.resolve();
 

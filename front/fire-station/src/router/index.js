@@ -38,19 +38,4 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach(async (to, from, next) => {
-  const userStore = useUserStore();
-
-//дожидаемся загрузки 
-  if (!userStore.user) {
-    await userStore.fetchUserData(); 
-  }
-
-  if (userStore.user && (to.meta.requiredRole === userStore.user.role || !to.meta.requiredRole)) {
-    next();
-  } else {
-    next("/userprofile");
-  }
-});
-
 export default router
