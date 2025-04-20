@@ -2,7 +2,7 @@
     <div class="addUser__container">
         <div class="component-label__container">
             <img id="exit-icon" src="/icons/exit.svg" @click=" () => {$emit('component-change', 'searchUser'); dropState()}">
-            <label>Создание нового пользователя</label>
+            <label>Редактирование данных пользователя</label>
         </div>
         <div class="component-userinfo__container">
             <span>Фамилия:</span>
@@ -19,18 +19,18 @@
             
             <span>Должность:</span>
             <br>
-            <input type="radio" v-model="editedUser.user.role" value="Пожарный" class="userinfo__input">
+            <input type="radio" v-model="editedUser.user.role" value="Fireman" class="userinfo__input">
             <span>Пожарный</span>
             <br>
-            <input type="radio" v-model="editedUser.user.role" value="Оператор" class="userinfo__input">
+            <input type="radio" v-model="editedUser.user.role" value="Operator" class="userinfo__input">
             <span>Оператор</span>
             <br>
-            <input type="radio" v-model="editedUser.user.role" value="Администратор" class="userinfo__input"><span>Администратор</span>
+            <input type="radio" v-model="editedUser.user.role" value="Admin" class="userinfo__input"><span>Администратор</span>
             <br>
 
-            <span :class="{'brigade-text__avaliable': editedUser.user.role === 'Пожарный', 'brigade-text__unavaliable': editedUser.user.role !== 'Пожарный'}">Бригада:</span>
-            <input min="1" type="number" v-model="editedUser.user.brigade" class="userinfo__input" :disabled="editedUser.user.role !== 'Пожарный'" @blur="correctBrigade">
-            <span v-show="!editedUser.user.brigade && addUserAttempt && editedUser.user.role === 'Пожарный'" style="color: red; margin-left: 15px;">Назначьте бригаду</span>
+            <span :class="{'brigade-text__avaliable': editedUser.user.role === 'Fireman', 'brigade-text__unavaliable': editedUser.user.role !== 'Fireman'}">Бригада:</span>
+            <input min="1" type="number" v-model="editedUser.user.brigade" class="userinfo__input" :disabled="editedUser.user.role !== 'Fireman'" @blur="correctBrigade">
+            <span v-show="!editedUser.user.brigade && addUserAttempt && editedUser.user.role === 'Fireman'" style="color: red; margin-left: 15px;">Назначьте бригаду</span>
             <br>
             <span>Телефон:</span>
             <input type="text" v-model="editedUser.user.phone" class="userinfo__input">
@@ -39,16 +39,15 @@
             <input type="text" v-model="editedUser.user.email" class="userinfo__input">
             <br>
             <span>Адрес:</span>
-            <input type="text" v-model="editedUser.user.adress" class="userinfo__input">
-            <span v-show="!editedUser.user.adress && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
+            <input type="text" v-model="editedUser.user.address" class="userinfo__input">
+            <span v-show="!editedUser.user.address && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
             <br>
-            <span>Логин:</span>
-            <input type="text" v-model="editedUser.user.login" class="userinfo__input">
+            <span class="brigade-text__unavaliable">Логин:</span>
+            <input type="text" v-model="editedUser.user.login" disabled class="userinfo__input">
             <span v-show="!editedUser.user.login && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
             <br>
             <span>Пароль:</span>
             <input type="text" v-model="editedUser.user.password" class="userinfo__input">
-            <span v-show="!editedUser.user.password && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
             <br>
         
             <button @click="updateUser" id="submit-button">Сохранить изменения</button>
@@ -58,6 +57,7 @@
 
 <script>
 import { useEditedUser } from '@/stores/editedUser';
+import axios from 'axios';
 
 export default{
     name: 'EditUserComponent',
@@ -71,14 +71,16 @@ export default{
         }
     },
     methods: {
-        updateUser(){
+        async updateUser(){
             const user = useEditedUser().user;
-            if(!user.name || !user.surname || !user.role || (!user.brigade && user.role === "Пожарный") || !user.adress || !user.login || !user.password){
+            if(!user.name || !user.surname || !user.role || (!user.brigade && user.role === "Fireman") || !user.address || !user.login){    
                 this.addUserAttempt = true;
                 return false;
             }
-            //Запрос на обновление данных о пользователе
             
+            await axios.get(`http://localhost:3000/api/modify_user?${this.stringifyURLParams()}`);
+            console.log(`http://localhost:3000/api/modify_user?${decodeURIComponent(this.stringifyURLParams())}`)   
+
             this.dropState();
             this.$emit('component-change', 'searchUser');
         },
@@ -91,11 +93,32 @@ export default{
                 brigade: '',
                 phone: '',
                 email: '',
-                adress: '',
+                address: '',
                 login: '',
                 password: ''
             });
             this.addUserAttempt = false;
+        },
+        stringifyURLParams(){
+            const user = useEditedUser().user;
+            let params = {
+                familyName: user.surname,
+                firstName: user.name,
+                fatherName: user.patronymic,
+                role: user.role,
+                brigadeNumber: user.role === 'Fireman' || user.role === 'Brigadier' ? user.brigade : '',
+                phone: user.phone,
+                address: user.address,
+                email: user.email,
+                login: useEditedUser().oldLogin,
+                password: user.password
+            }
+            
+            params = new URLSearchParams(Object.fromEntries(
+                Object.entries(params).filter(([_, v]) => v !== undefined && v !== '' && v !== ',')
+            )).toString();
+
+            return params;
         }
     }
 }

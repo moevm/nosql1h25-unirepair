@@ -17,18 +17,20 @@
             
             <span>Должность:</span>
             <br>
-            <input type="radio" v-model="role" value="Пожарный" @click="info" class="userinfo__input">
+            <input type="radio" v-model="role" value="Fireman" @click="info" class="userinfo__input">
             <span>Пожарный</span>
+            <input type="radio" v-model="role" value="Brigadier" @click="info" class="userinfo__input">
+            <span>Бригадир</span>
             <br>
-            <input type="radio" v-model="role" value="Оператор" @click="info" class="userinfo__input">
+            <input type="radio" v-model="role" value="Operator" @click="info" class="userinfo__input">
             <span>Оператор</span>
             <br>
-            <input type="radio" v-model="role" value="Администратор" @click="info" class="userinfo__input">
+            <input type="radio" v-model="role" value="Admin" @click="info" class="userinfo__input">
             <span>Администратор</span>
             <br>
 
-            <span :class="{'brigade-text__avaliable': role === 'Пожарный', 'brigade-text__unavaliable': role !== 'Пожарный'}">Бригада:</span>
-            <input min="1" type="number" v-model="brigade" class="userinfo__input" :disabled="role !== 'Пожарный'" @blur="correctBrigade">
+            <span :class="{'brigade-text__avaliable': role === 'Fireman' || role === 'Brigadier', 'brigade-text__unavaliable': role !== 'Fireman' && role !== 'Brigadier'}">Бригада:</span>
+            <input min="1" type="number" v-model="brigade" class="userinfo__input" :disabled="role !== 'Fireman' && role !== 'Brigadier'" @blur="correctBrigade">
             <br>
 
             <span>Дата регистрации:</span>
@@ -57,9 +59,9 @@
                             <td style="width: 3%; text-align: center;">
                                 <img src="/icons/editUser.svg" style="cursor: pointer; transform: scale(1.2);" @click="goToEditUserData(index)">
                             </td>
-                            <td style="width: 50%; padding-left: 10px;">{{ user.name + ' ' + user.surname + ' ' + user.patronymic }}</td>
-                            <td style="padding-left: 10px;">{{ user.role }}</td>
-                            <td style="text-align: center; width: 8%">{{ user.brigade ? user.brigade : '-' }}</td>
+                            <td style="width: 50%; padding-left: 10px;">{{ user.familyName + ' ' + user.firstName + ' ' + user.fatherName }}</td>
+                            <td style="padding-left: 10px;">{{ rolesTranslations[findRole(user)] }}</td>
+                            <td style="text-align: center; width: 8%">{{ user.brigadeNumber ? user.brigadeNumber : '-' }}</td>
                         </tr>    
                         <tr class="row__table" v-if="foundUsers.length < 4" v-for="index in (4 - foundUsers.length)">
                             <td style="width: 3%; text-align: center;">
@@ -78,6 +80,7 @@
 
 <script>
 import { useEditedUser } from '@/stores/editedUser';
+import axios from 'axios';
 
 export default {
     name: 'SearchUserComponent',
@@ -95,78 +98,44 @@ export default {
             changeDate_end: '',
 
             foundUsers: [],
-            DBResult: [ // Нужен чисто для примера возвращаемого запроса из БД
-                {
-                    name: 'Виталий',
-                    surname: 'Цаль',
-                    patronymic: 'Величайший',
-                    role: 'Администратор',
-                    brigade: null,
-                    phone: '+123456789',
-                    email: 'bogdan@gmail.com',
-                    adress: 'Винница',
-                    login: 'EvilArthas',
-                    password: '11111111'
-                },
-                {
-                    name: 'Александр',
-                    surname: '???',
-                    patronymic: 'Владимирович',
-                    role: 'Пожарный',
-                    brigade: '1',
-                    phone: '7862134678',
-                    email: 'ne_objshnik@gmail.com',
-                    adress: 'Russia',
-                    login: 'rkgj4823f',
-                    password: 'zlodeybosinn'
-                },
-                {
-                    name: 'Edward',
-                    surname: 'Kenway',
-                    patronymic: '',
-                    role: 'Оператор',
-                    brigade: null,
-                    phone: '7862134678',
-                    email: 'pirate@mail.ru',
-                    adress: 'Russian Federation, Surgut',
-                    login: 'quququeu',
-                    password: '1z2x3c4v'
-                },
-                {
-                    name: 'Edward',
-                    surname: 'Kenway',
-                    patronymic: '',
-                    role: 'Оператор',
-                    brigade: null,
-                    phone: '7862134678',
-                    email: 'pirate@mail.ru',
-                    adress: 'Russian Federation, Surgut',
-                    login: 'truepirate',
-                    password: 'adsasdq314'
-                },
-                {
-                    name: 'Edward',
-                    surname: 'Kenway',
-                    patronymic: '',
-                    role: 'Оператор',
-                    brigade: null,
-                    phone: '7862134678',
-                    email: 'pirate@mail.ru',
-                    adress: 'Russian Federation, Surgut',
-                    login: 'meow',
-                    password: '14warttg3456t'
-                }
-            ]
+            rolesTranslations: {
+                "Brigadier": "Бригадир",
+                "Fireman": "Пожарный",
+                "Operator": "Оператор",
+                "Admin": "Администратор"
+            }
         }
     },
     methods: {
-        searchUsers(){
-            this.foundUsers = this.DBResult; //Магический запрос к БД
+        async searchUsers(){
+            await axios.get(`http://localhost:3000/api/user_search?${this.stringifyURLParams()}`)
+                .then(res => this.foundUsers = res.data);
         },
         goToEditUserData(index){
             const editedUser = useEditedUser();
-            editedUser.updateData(this.foundUsers[index]);
+            editedUser.updateData(this.foundUsers[index], this.findRole(this.foundUsers[index]), index);
             this.$emit('component-change', 'editUser');
+            this.foundUsers = [];
+        },
+        findRole(user){
+            return user.labels.find(label => (label === "Brigadier" || label === "Fireman" || label === "Operator" || label === "Admin"))
+        },
+        stringifyURLParams(){
+            let params = {
+                familyName: this.surname,
+                firstName: this.name,
+                fatherName: this.patronymic,
+                role: this.role,
+                brigadeNumber: this.role === 'Fireman' || this.role === 'Brigadier' ? this.brigade : '',
+                registeredAt: `${this.registrationDate_begin};${this.registrationDate_end}`,
+                modifiedAt: `${this.changeDate_begin};${this.changeDate_end}`
+            }
+
+            params = new URLSearchParams(Object.fromEntries(
+                Object.entries(params).filter(([_, v]) => v !== undefined && v !== '' && v !== ';')
+            )).toString();
+
+            return params;
         }
     }
 }

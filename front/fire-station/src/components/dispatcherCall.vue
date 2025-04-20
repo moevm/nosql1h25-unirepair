@@ -39,7 +39,7 @@ const props = defineProps({
 
 </script>
 
-<style>
+<style scoped>
 td, th {
   width: 33.33%;
 }
