@@ -11,7 +11,7 @@
     "fireRank": "3",
     "victimsCount": 2,
     "assignedTo": 2,
-    "auto": null
+    "auto": "Пожарная машина 1"
   },
   {
     "status": "Complete",
@@ -25,7 +25,7 @@
     "fireRank": "1",
     "victimsCount": 5,
     "assignedTo": 1,
-    "auto": null
+    "auto": "Пожарная машина 2"
   },
   {
     "status": "Complete",
@@ -39,7 +39,7 @@
     "fireRank": "2",
     "victimsCount": 3,
     "assignedTo": 1,
-    "auto": null
+    "auto": "Пожарная машина 3"
   },
   {
     "status": "Complete",
@@ -53,7 +53,7 @@
     "fireRank": "1",
     "victimsCount": 0,
     "assignedTo": 2,
-    "auto": null
+    "auto": "Пожарная машина 4"
   },
   {
     "status": "Incomplete",
@@ -67,6 +67,6 @@
     "fireRank": "2",
     "victimsCount": 3,
     "assignedTo": 1,
-    "auto": null
+    "auto": "Пожарная машина 5"
   }
 ]
