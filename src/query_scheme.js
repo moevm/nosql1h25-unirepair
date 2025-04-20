@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import * as assert from "./assert.js";
+import { raw } from "express";
 
 function isISODateTime(value) {
   if (typeof value !== "string") return false;
@@ -16,19 +17,35 @@ export class QueryParameter {
   constructor(rawParam) {
     assert.assertString(rawParam);
     assert.assert(
-      /^([a-zA-Z_][a-zA-Z_0-9]*(:(int|uint|float|id|substring|string|label|bool|point|password|datetime|daterange))?\??)$/.test(
+      /^([a-zA-Z_][a-zA-Z_0-9]*(:(int|uint|float|id|substring|string|label|bool|point|password|datetime|daterange))?(\?(=\d+)?)?)$/.test(
         rawParam,
       ),
       `Wrong format of query scheme: ${rawParam}`,
     );
+    const hasDefaultValue = rawParam.includes("=");
     const isOptional = rawParam.includes("?");
+    let defaultValue = null;
+    if (hasDefaultValue) [rawParam, defaultValue] = rawParam.split("=");
     if (isOptional) rawParam = rawParam.slice(0, -1);
     let [name, type] = rawParam.includes(":")
       ? rawParam.split(":")
       : [rawParam, "substring"];
+    if (hasDefaultValue) {
+      assert.assert(
+        isOptional,
+        `Parameter ${rawParam} has default value, so must be optional, but it is not`,
+      );
+      assert.assertOneOf(
+        type,
+        ["int", "uint", "float"],
+        "Only numeric types can have default values, but encountered " +
+          rawParam,
+      );
+    }
     this.name = name;
     this.type = type;
     this.isOptional = isOptional;
+    this.defaultValue = defaultValue;
   }
 }
 
@@ -41,7 +58,10 @@ export class QueryScheme {
     for (const rawParam of rawParameters)
       parameters.push(new QueryParameter(rawParam));
     let sampleObject = {};
-    for (const param of parameters) sampleObject[param.name] = null;
+    for (const param of parameters)
+      sampleObject[param.name] = param.defaultValue
+        ? { value: param.defaultValue, type: param.type }
+        : null;
     this.parameters = parameters;
     this.sampleObject = sampleObject;
   }

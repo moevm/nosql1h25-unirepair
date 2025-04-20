@@ -74,7 +74,7 @@ const api_routes = {
     );
   },
   // 7. Spawn user
-  "user_spawn/familyName firstName fatherName role:label brigadeNumber:uint address phone email login:string password:password":
+  "user_spawn/familyName firstName fatherName? role:label brigadeNumber:uint?=0 address phone? email? login:string password:password":
     async (args) => {
       return await create(
         ":User:Active" + (args.role === "Brigadier" ? ":Fireman" : ""),
