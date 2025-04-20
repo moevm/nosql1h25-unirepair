@@ -1,8 +1,8 @@
 [
   {
     "status": "Complete",
-    "createdAt": "2025-04-01T09:00:00Z",
-    "modifiedAt": "2025-04-01T10:30:00Z",
+    "createdAt": "2025-01-01T09:00:00Z",
+    "modifiedAt": "2025-01-01T10:30:00Z",
     "callSource": "телефонный звонок",
     "fireAddress": "г. Санкт-Петербург, ул. Ленина, д. 1",
     "bottomLeft": { "latitude": 55.7558, "longitude": 37.6173 },
@@ -11,6 +11,20 @@
     "fireRank": "3",
     "victimsCount": 0,
     "assignedTo": 2,
+    "auto": null
+  },
+  {
+    "status": "Complete",
+    "createdAt": "2025-02-01T09:00:00Z",
+    "modifiedAt": "2025-02-01T10:30:00Z",
+    "callSource": "телефонный звонок",
+    "fireAddress": "г. Санкт-Петербург, ул. Ленина, д. 2",
+    "bottomLeft": { "latitude": 55.7558, "longitude": 37.6173 },
+    "topRight": { "latitude": 55.756, "longitude": 37.618 },
+    "fireType": "лесной пожар",
+    "fireRank": "1",
+    "victimsCount": 0,
+    "assignedTo": 1,
     "auto": null
   },
   {
@@ -24,7 +38,7 @@
     "fireType": "заводской пожар",
     "fireRank": "2",
     "victimsCount": 3,
-    "assignedTo": 4,
+    "assignedTo": 1,
     "auto": null
   }
 ]
