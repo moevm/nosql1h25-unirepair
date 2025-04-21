@@ -35,7 +35,7 @@ const stringifyURLParams = (paramsObj) => {
 const fetchCalls = async () => {
   const brigadeNumber = userStore.user?.brigadeNumber;
   if (!brigadeNumber) {
-    console.warn('Нет ID пользователя для запроса вызовов')
+    console.warn('Нет номера бригады пользователя для запроса вызовов')
     return
   }
 

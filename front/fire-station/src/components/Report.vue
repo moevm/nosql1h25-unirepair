@@ -1,7 +1,7 @@
 <template>
   <div class="report">
     <button class="close-btn" @click="$emit('close')">✖</button>
-    <h2 class="report__title">Отчет №{{ reportData.number }}</h2>
+    <h2 class="report__title">Отчет №{{ reportData.id }}</h2>
 
     <section class="report__block">
       <div><b>Бригадир:</b> {{ reportData.brigadier }}</div>
@@ -11,44 +11,56 @@
     </section>
 
     <section class="report__block">
-      <div><b>Адрес:</b> {{ reportData.address }}</div>
-      <div><b>Категория:</b> {{ reportData.category }}</div>
-      <div><b>Пострадавшие:</b> {{ reportData.victims }}</div>
+      <div><b>Адрес:</b> {{ reportData.fireAddress }}</div>
+      <div><b>Категория:</b> {{ reportData.fireType }}</div>
+      <div><b>Пострадавшие:</b> {{ reportData.victimsCount }}</div>
 
       <div>
         <b>Бригада и техника:</b>
         <ul>
-          <li v-for="(item, index) in reportData.team" :key="index">{{ item }}</li>
+          <li> {{ reportData.auto }}</li>
+          <li> Что-то еще </li>
         </ul>
       </div>
     </section>
 
     <div class="report__form">
-      <label>Расход воды:</label>
-      <input type="number" v-model="reportData.waterSpent" />
+      <template v-if="reportData.status === 'complete'">
+        <p class="report__data"><b>Расход воды:</b> {{ reportData.waterSpent }} л</p>
+        <p class="report__data"><b>Расход пены:</b> {{ reportData.foamSpent || 0 }} л</p>
+        <p class="report__data"><b>Повреждения оборудования:</b> {{ reportData.equipmentDamage || 'оборудование не повреждено' }}</p>
+        <p class="report__data"><b>Возможная причина пожара:</b> {{ reportData.allegedFireCause || '—' }}</p>
+        <p class="report__data"><b>Оценка ущерба:</b> {{ reportData.damage || '—' }}</p>
+        <p class="report__data"><b>Дополнительная информация:</b> {{ reportData.additionalNotes || '—' }}</p>
+      </template>
 
-      <label>Расход пены:</label>
-      <input type="number" v-model="reportData.foamSpent" />
+      <template v-else>
+        <label for="waterSpent">Расход воды:</label>
+        <input id="waterSpent" name="waterSpent" type="number" v-model="reportData.waterSpent" />
 
-      <label>Повреждения оборудования:</label>
-      <textarea class="report_textarea" v-model="reportData.equipmentDamage" />
+        <label for="foamSpent">Расход пены:</label>
+        <input id="foamSpent" name="foamSpent" type="number" v-model="reportData.foamSpent" />
 
-      <label>
-        <input type="checkbox" v-model="reportData.noDamage" />
-        оборудование не повреждено
-      </label>
+        <label for="equipmentDamage">Повреждения оборудования:</label>
+        <textarea id="equipmentDamage" name="equipmentDamage" class="report_textarea" v-model="reportData.equipmentDamage" />
 
-      <label>Возможная причина пожара:</label>
-      <textarea class="report_textarea" v-model="reportData.fireReason" />
+        <label for="noDamage">
+          <input id="noDamage" name="noDamage" type="checkbox" v-model="reportData.noDamage" />
+          оборудование не повреждено
+        </label>
 
-      <label>Оценка ущерба:</label>
-      <textarea class="report_textarea" v-model="reportData.damageAssessment" />
+        <label for="allegedFireCause">Возможная причина пожара:</label>
+        <textarea id="allegedFireCause" name="allegedFireCause" class="report_textarea" v-model="reportData.allegedFireCause" />
 
-      <label>Дополнительная информация:</label>
-      <textarea class="report_textarea" v-model="reportData.additionalInfo" />
+        <label for="damageAssessment">Оценка ущерба:</label>
+        <textarea id="damageAssessment" name="damageAssessment" class="report_textarea" v-model="reportData.damage" />
+
+        <label for="additionalNotes">Дополнительная информация:</label>
+        <textarea id="additionalNotes" name="additionalNotes" class="report_textarea" v-model="reportData.additionalNotes" />
+      </template>
     </div>
 
-    <div class="buttons">
+    <div class="buttons" v-if="reportData.status !== 'complete'">
       <button class="button button_primary" @click="saveDraft">Сохранить черновик</button>
       <button class="button button_secondary" @click="sendReport">Отправить отчет</button>
     </div>
@@ -56,16 +68,49 @@
 </template>
 
 <script setup>
-defineProps({
-  reportData: Object
+import axios from 'axios'
+
+const props = defineProps({
+  reportData: Object,
 })
 
+const emit = defineEmits(['close'])
+
 function saveDraft() {
-  console.log('Черновик сохранен', reportData.value)
+  props.reportData.status = 'incomplete'
+  // console.log('Черновик сохранен', props.reportData)
 }
 
-function sendReport() {
-  console.log('Отправка отчета', reportData.value)
+function stringifyURLParams(params) {
+  return Object.entries(params)
+      .map(([key, val]) => `${encodeURIComponent(key)}=${encodeURIComponent(val)}`)
+      .join('&')
+}
+
+async function sendReport() {
+  try {
+    const report = props.reportData
+
+    const queryParams = {
+      reportId: report.id,
+      waterSpent: report.waterSpent ?? 0,
+      foamSpent: report.foamSpent ?? 0,
+      allegedFireCause: report.allegedFireCause ?? '',
+      damage: report.damage ?? '',
+      additionalNotes: report.additionalNotes ?? '',
+    }
+
+    const response = await axios.get(
+        `http://localhost:3000/api/fill_report?${stringifyURLParams(queryParams)}`
+    )
+
+    console.log('Отчёт успешно отправлен', response.data)
+    props.reportData.status = 'complete'
+    emit('close')
+
+  } catch (error) {
+    console.error('Ошибка при отправке отчета:', error)
+  }
 }
 </script>
 
@@ -119,6 +164,10 @@ function sendReport() {
 .report_textarea {
   font-size: 16px;
   min-height: 60px;
+}
+
+.report__data {
+  margin: 0;
 }
 
 .buttons {

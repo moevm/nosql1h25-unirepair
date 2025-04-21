@@ -32,7 +32,7 @@
           class="reports__file"
       >
         <img class="icon-file" src="/icons/file-text.svg" alt="file-text" />
-        <span class="file_name">{{ report.name }}</span>
+        <span class="file_name">{{ report.modifiedAt }}</span>
       </div>
     </div>
   </div>
@@ -40,56 +40,40 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useReportsStore } from '../stores/reports.js'
 
-const reports = ref([
-  {
-    id: 2,
-    name: 'Rep_22.02.24_08:51_5-2',
-    number: '15.12.24_02:36_6-2',
-    brigadier: 'Иванов И. И.',
-    operator: 'Петров П. П.',
-    callTime: '02:36 15.12.24',
-    endTime: '04:10 15.12.24',
-    address: 'Ул. Ленина, д. 12, 3-й этаж',
-    category: 'Квартира (многоквартирный дом)',
-    victims: '1 человек (эвакуирован)',
-    team: [
-      'Бригада 1 (5 человек)',
-      'Автомобиль Л-41',
-      'Лестница 10 м',
-      'Генератор пены'
-    ],
-    waterSpent: '',
-    foamSpent: '',
-    equipmentDamage: '',
-    noDamage: false,
-    fireReason: '',
-    damageAssessment: '',
-    additionalInfo: ''
-  },
-])
+const reportsStore = useReportsStore()
+
+const reports = computed(() =>
+    reportsStore.reports.filter(report => report.status === 'complete')
+)
 
 const isListView = ref(false)
 const showFilter = ref(false)
 const searchQuery = ref('')
+const sortOrder = ref(null)
 
 const toggleView = () => {
   isListView.value = !isListView.value
 }
 
 const sortReports = (order) => {
-  if (order === 'asc') {
-    reports.value.sort((a, b) => a.name.localeCompare(b.name))
-  } else if (order === 'desc') {
-    reports.value.sort((a, b) => b.name.localeCompare(a.name))
-  }
+  sortOrder.value = order
   showFilter.value = false
 }
 
 const filteredReports = computed(() => {
-  return reports.value.filter(report =>
-      report.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  const filtered = reports.value.filter(report =>
+      report.modifiedAt.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
+
+  if (sortOrder.value === 'asc') {
+    return [...filtered].sort((a, b) => a.modifiedAt.localeCompare(b.modifiedAt))
+  } else if (sortOrder.value === 'desc') {
+    return [...filtered].sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt))
+  }
+
+  return filtered
 })
 </script>
 

@@ -80,7 +80,7 @@ export default {
       return flatParams.toString();
     },
     getRoleFromLabels(labels) {
-      const roles = ['Firefighter', 'Brigadier', 'Operator', 'Admin'];
+      const roles = ['Fireman', 'Brigadier', 'Operator', 'Admin'];
       return labels.find(label => roles.includes(label))?.toLowerCase() || 'unknown';
     },
 

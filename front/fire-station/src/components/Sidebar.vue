@@ -44,7 +44,7 @@ export default {
     const activeRoute = computed(() => route.path)
 
     const roleBasedMenu = {
-      firefighter: [
+      fireman: [
         { label: 'Вызовы', icon: '/icons/alert.svg', route: '/calls' },
         { label: 'Отчёты', icon: '/icons/folder.svg', route: '/ff-reports' },
       ],
