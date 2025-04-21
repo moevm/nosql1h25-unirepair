@@ -26,6 +26,8 @@
       <p class="profile__contact-settings-item"><strong>Последнее редактирование:</strong> {{ user.modifiedAt }}</p>
     </div>
 
+    <RouterLink to="/db" class="button DB_button" >База данных</RouterLink>
+    
     <div class="profile__buttons">
       <button class="button button_secondary" @click="$emit('edit', user)">Редактировать данные</button>
       <button class="button button_primary" @click="toggleShift">
@@ -146,5 +148,18 @@ export default {
   bottom: 20px;
   left: 20px;
   background-color: #a7a3cc;
+}
+
+.DB_button {
+  position: absolute;
+  bottom: 60px;
+  left: 20px;
+  background-color: #a7a3cc;
+  text-decoration: none;
+  color: black;
+}
+
+.DB_button:hover{
+  background-color: #766EBF;
 }
 </style>
