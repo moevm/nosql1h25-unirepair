@@ -126,7 +126,7 @@ export async function rawQuery(query, resultHandler = (x) => x) {
 export async function create(what, values) {
   assert.assertString(what);
   assert.assertObject(values);
-  rawQuery(`CREATE (${what}${props(values)});`);
+  await rawQuery(`CREATE (${what}${props(values)});`);
   return {};
 }
 
@@ -146,7 +146,7 @@ export async function rawMatch(conditionsStr, options = {}) {
   if (options.results) assert.assertArray(options.results);
   if (options.orderBy) assert.assertString(options.orderBy);
   if (options.limit) assert.assertString(options.limit);
-  return rawQuery(
+  return await rawQuery(
     `MATCH ${conditionsStr}` +
       (options.where ? "\nWHERE " + options.where : "") +
       (options.create ? "\nCREATE " + options.create : "") +
@@ -218,5 +218,5 @@ export async function match(what, conditions, options = {}) {
   if (Object.keys(complexConds).length > 0)
     options.where = `${matches({ [n]: complexConds })}${options.where ? " AND " + options.where : ""}`;
   if (options.results === undefined) options.results = [n];
-  return rawMatch(`(${what}${props(conditions)})`, options);
+  return await rawMatch(`(${what}${props(conditions)})`, options);
 }

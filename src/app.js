@@ -10,12 +10,14 @@ import { runTests } from "./api_tests.js";
 import cors from "cors";
 
 const app = express();
-app.use(cors({
-  origin: 'http://localhost:5173',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}))
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  }),
+);
 const PORT = 3000;
 const __dirname = path.resolve();
 
@@ -192,7 +194,7 @@ const initializeDatabase = async () => {
   setDbReady(true);
   console.log("База данных готова! Теперь сервер начинает принимать запросы.");
   console.log("Запуск авто-тестов...");
-  runTests(apiRouter);
+  await runTests(apiRouter);
 };
 
 initializeDatabase();
