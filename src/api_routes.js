@@ -201,5 +201,16 @@ const api_routes = {
         },
       );
     },
+  // Find brigade members
+  "brigade_members/brigadeNumber:uint": async (args) => {
+    return await match("u:User", args);
+  },
+  // Get auto's state
+  "auto_state/auto:string": async (args) => {
+    const cfs = await match("cf:CallForm:Incomplete", args);
+    return {
+      occupied: cfs && cfs.length > 0,
+    };
+  },
 };
 export default api_routes;
