@@ -42,6 +42,10 @@ export function now() {
   return { datetime: true };
 }
 
+export function makeLabel(l) {
+  return { value: l, type: "label" };
+}
+
 function byId(n, id) {
   assert.assertString(n);
   assert.assertType(id, "number");
@@ -162,7 +166,7 @@ export async function rawMatch(conditionsStr, options = {}) {
             .map(([k, v]) => {
               const labels = fishOutLabels(v);
               return labels
-                .map((x) => `${k} :${x.value}`)
+                .map((x) => `${k} :${x}`)
                 .concat(
                   v
                     ? Object.entries(v)

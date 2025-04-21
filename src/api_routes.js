@@ -8,6 +8,7 @@ import {
   rawQuery,
   matches,
   fishOutComplexConds,
+  makeLabel,
 } from "./query.js";
 
 const api_routes = {
@@ -49,9 +50,9 @@ const api_routes = {
   // 4. Fill in a report
   "fill_report/reportId:id waterSpent:uint foamSpent:uint allegedFireCause damage:uint additionalNotes":
     async (args) => {
-      await match("(r:Report:New)", fishOutTypes(args, ["id"]), {
+      await match("r:Report:New", fishOutTypes(args, ["id"]), {
         remove: { r: ["New"] },
-        set: { r: { labels: ["Complete"], props: args } },
+        set: { r: { ...args, label: makeLabel("Complete") } },
       });
       return {};
     },
