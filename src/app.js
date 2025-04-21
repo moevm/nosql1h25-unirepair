@@ -84,6 +84,18 @@ const loadJSON = (filename) => {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 };
 
+const clearDB = async () => {
+  const session = driver.session();
+  try {
+    await session.run("MATCH (n) DETACH DELETE n;");
+    console.log("База данных очищена.");
+  } catch (error) {
+    console.error("Ошибка при очистке данных: ", error);
+  } finally {
+    await session.close();
+  }
+};
+
 const importData = async () => {
   const session = driver.session();
   try {
@@ -189,6 +201,7 @@ const initializeDatabase = async () => {
   }
 
   await createDatabaseStructure();
+  await clearDB();
   await importData();
 
   setDbReady(true);
