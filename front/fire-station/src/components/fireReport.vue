@@ -123,6 +123,7 @@
 <script>
 // import { onMounted, ref } from 'vue'
 // import L from 'leaflet'
+import axios from 'axios';
 export default {
   name: 'CreateFireReportComponent',
 
@@ -146,12 +147,7 @@ export default {
         { value: '4', label: '4' }
       ],
 
-      availableBrigades: [
-        { number: 1, size: 9, lastCallTime: '12:35 12.12.24', callsCount: 1, status: 'Свободна', selected: false },
-        { number: 2, size: 5, lastCallTime: '11:35 12.12.24', callsCount: 2, status: 'Свободна', selected: false },
-        { number: 4, size: 8, lastCallTime: '13:50 12.12.24', callsCount: 1, status: 'На вызове', selected: false },
-        { number: 3, size: 7, lastCallTime: '13:25 12.12.24', callsCount: 3, status: 'На вызове', selected: false }
-      ],
+      availableBrigades: [],
 
       availableVehicles: [
         { type: 'Автоцистерна (АЦ)', status: 'Свободна', number: 'A123BC' },
@@ -161,7 +157,32 @@ export default {
       ]
     }
   },
+  created() {
+    this.fetchAvailableBrigades();
+  },
   methods: {
+    async fetchAvailableBrigades() {
+      try {
+        const response = await axios.get('http://localhost:3000/api/brigades');
+        this.availableBrigades = response.data.map(brigade => ({
+          ...brigade,
+          selected: false,
+          size: brigade.memberCount || 0,
+          lastCallTime: this.formatLastCallTime(brigade.lastCall),
+          callsCount: brigade.callCount || 0,
+          status: brigade.isAvailable ? 'Свободна' : 'На вызове'
+        }));
+      } catch (error) {
+        console.error('Ошибка при загрузке бригад:', error);
+      }
+    },
+
+    formatLastCallTime(timestamp) {
+      if (!timestamp) return 'Нет данных';
+      const date = new Date(timestamp);
+      return `${date.getHours()}:${date.getMinutes()} ${date.getDate()}.${date.getMonth()+1}.${date.getFullYear()}`;
+    },
+
     sendToBrigades() {
       const selectedBrigades = this.availableBrigades.filter(b => b.selected);
       if (selectedBrigades.length === 0) {
@@ -174,7 +195,14 @@ export default {
         return;
       }
 
-      // Здесь будет логика отправки данных выбранным бригадам
+      this.sendReportToServer({
+        incidentAddress: this.incidentAddress,
+        fireType: this.fireType,
+        fireRank: this.fireRank,
+        brigades: selectedBrigades.map(b => b.number),
+        vehicle: this.selectedVehicle
+      });
+
       console.log('Отправка бригадам:', {
         incidentAddress: this.incidentAddress,
         fireType: this.fireType,
@@ -185,9 +213,16 @@ export default {
 
       alert('Информация отправлена выбранным бригадам');
     },
+    async sendReportToServer(reportData) {
+      try {
+        await axios.post('http://localhost:3000/api/fire_reports', reportData);
+      } catch (error) {
+        console.error('Ошибка при отправке отчета:', error);
+        alert('Произошла ошибка при отправке отчета');
+      }
+    },
 
     confirmSave() {
-      // Здесь будет логика сохранения формы
       console.log('Сохранение формы:', {
         incidentAddress: this.incidentAddress,
         fireType: this.fireType,
