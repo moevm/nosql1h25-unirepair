@@ -11,6 +11,11 @@ import {
   makeLabel,
 } from "./query.js";
 
+import path from 'path';
+import fs from 'fs';
+
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+
 const api_routes = {
   // 1. All information on user from their login and password
   "login_user/login:string password:password": async ({ login, password }) => {
@@ -77,14 +82,72 @@ const api_routes = {
   // 7. Spawn user
   "user_spawn/familyName firstName fatherName? role:label brigadeNumber:uint?=0 address phone? email? login:string password:password":
     async (args) => {
-      return await create(
-        ":User:Active" + (args.role === "Brigadier" ? ":Fireman" : ""),
-        {
-          ...args,
-          registeredAt: now(),
-          modifiedAt: now(),
-        },
-      );
+        const existingInDB = await match("u:User", { login: args.login });
+        if (existingInDB?.length > 0) {
+            return { error: "User with this login already exists in database" };
+        }
+
+        const currentDate = new Date().toISOString();
+        const userData = {
+            role: args.role.value,
+            familyName: args.familyName.value,
+            firstName: args.firstName.value,
+            fatherName: args.fatherName?.value || null,
+            brigadeNumber: parseInt(args.brigadeNumber?.value) || 0,
+            address: args.address?.value || null,
+            phone: args.phone?.value || null,
+            email: args.email?.value || null,
+            login: args.login.value,
+            passwordHash: args.password.value.hash,
+            registeredAt: currentDate,
+            modifiedAt: currentDate,
+            status: "Active"
+        };
+
+        const dataDir = path.join(__dirname, "data");
+        const usersPath = path.join(dataDir, "users.json");
+
+        try {
+            if (!fs.existsSync(dataDir)) {
+                fs.mkdirSync(dataDir, { recursive: true });
+            }
+
+            let users = [];
+            if (fs.existsSync(usersPath)) {
+                users = JSON.parse(fs.readFileSync(usersPath, 'utf8'));
+            }
+
+            if (users.some(u => u.login === userData.login)) {
+                return { error: "User with this login already exists in JSON" };
+            }
+
+            users.push(userData);
+            fs.writeFileSync(usersPath, JSON.stringify(users, null, 2));
+        } catch (err) {
+            console.error('Error updating users.json:', err);
+            return { error: "Failed to update user data file" };
+        }
+
+        try {
+            return await create(
+                `:User:Active${args.role.value === "Brigadier" ? ":Fireman" : ""}`,
+                {
+                    ...userData,
+                    registeredAt: now(),
+                    modifiedAt: now()
+                }
+            );
+        } catch (dbError) {
+            console.error('Database error:', dbError);
+            try {
+                const users = JSON.parse(fs.readFileSync(usersPath, 'utf8'));
+                const updatedUsers = users.filter(u => u.login !== userData.login);
+                fs.writeFileSync(usersPath, JSON.stringify(updatedUsers, null, 2));
+            } catch (rollbackError) {
+                console.error('Rollback failed:', rollbackError);
+            }
+            return { error: "Failed to create user in database" };
+        }
     },
   // 8. User search
   "user_search/familyName? firstName? fatherName? role:label? brigadeNumber:uint? address? phone? email? registeredAt:daterange? modifiedAt:daterange?":
