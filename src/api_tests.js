@@ -16,6 +16,21 @@ const tests = {
     }
     return "ok";
   },
+  "brigade_members?brigadeNumber=1": (result) => {
+    if (!result || result.length !== 3)
+      return `Expected 3 members in brigade 1, but got ${result.length} members`;
+    return "ok";
+  },
+  [`auto_state?auto=${encodeURIComponent("Пожарная машина 5")}`]: (result) => {
+    if (!result || !result.occupied)
+      return "The auto is expected to be occupied, yet it is not";
+    return "ok";
+  },
+  [`auto_state?auto=${encodeURIComponent("Пожарная машина 4")}`]: (result) => {
+    if (!result || result.occupied)
+      return "The auto is expected not to be occupied, yet it is";
+    return "ok";
+  },
 };
 
 export async function runTests(router) {
