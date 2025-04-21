@@ -1,42 +1,41 @@
 <template>
   <div class="buttons">
     <button class="button button__reports-btn"
-            @click="showReports = !showReports; showEditReports = false"></button>
+            @click="showNewReports = !showNewReports; showEditReports = false"></button>
 
-    <div v-if="showReports" class="reports-dropdown">
-      <div v-for="report in reports" :key="report.id">
-        {{ report.name }}
+    <div v-if="showNewReports && new_reports.length" class="reports-dropdown">
+      <div v-for="report in new_reports" :key="report.id"  @click="$emit('openReport', report)">
+        {{ report.modifiedAt }}
       </div>
     </div>
 
     <button class="button button__edit-reports-btn"
-            @click="showEditReports = !showEditReports; showReports = false"></button>
+            @click="showEditReports = !showEditReports; showNewReports = false"></button>
 
-    <div v-if="showEditReports" class="edit-reports-dropdown">
-      <div>Rep_12.02.25_14:23_5-2</div>
-      <div>Rep_15.03.25_18:20_5-2</div>
+    <div v-if="showEditReports && incomplete_reports.length" class="edit-reports-dropdown">
+      <div v-for="report in incomplete_reports" :key="report.id" @click="$emit('openReport', report)">
+        {{ report.modifiedAt }}
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useReportsStore } from '../stores/reports.js'
 
-const showReports = ref(false)
+const reportsStore = useReportsStore()
+
+const new_reports = computed(() =>
+    reportsStore.reports.filter(report => report.status === 'new')
+)
+
+const incomplete_reports = computed(() =>
+    reportsStore.reports.filter(report => report.status === 'incomplete')
+)
+
+const showNewReports = ref(false)
 const showEditReports = ref(false)
-const reports = ref([])
-
-function updateReports(newReports) {
-  reports.value = newReports
-}
-
-setTimeout(() => {
-  updateReports([
-    { id: 1, name: 'Rep_12.02.25_14:23_5-2' },
-    { id: 2, name: 'Rep_15.03.25_18:20_5-2' },
-    { id: 3, name: 'Rep_01.04.25_10:11_5-2' },
-  ])
-}, 1000)
 
 </script>
 

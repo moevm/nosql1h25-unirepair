@@ -21,9 +21,9 @@ const routes = [
   { path: '/userprofile', name: 'UserProfile', component: UserProfileView },
   { path: '/calls', name: 'FirefighterCalls', component: FirefighterCallsView },
   { path: '/ff-reports', name: 'FirefighterReports', component: FirefighterReports },
-  { path: '/reports', name: 'DispatcherReports', component: DispatcherReportsView, meta: {requiredRole: 'dispatcher'} },
-  {path: '/new-call', name: 'DispatcherNewCall', component: DispatcherNewCall, meta: {requiredRole: 'dispatcher'}},
-  {path: '/active-calls', name: 'DispatcherActiveCall', component: DispatcherActiveCall, meta: {requiredRole: 'dispatcher'}},
+  { path: '/reports', name: 'DispatcherReports', component: DispatcherReportsView, meta: {requiredRole: 'operator'} },
+  {path: '/new-call', name: 'DispatcherNewCall', component: DispatcherNewCall, meta: {requiredRole: 'operator'}},
+  {path: '/active-calls', name: 'DispatcherActiveCall', component: DispatcherActiveCall, meta: {requiredRole: 'operator'}},
   { path: '/edit', name: 'AdminEdit', component: AdminEditView, meta: {requiredRole: 'admin'}},
   { path: '/stats', name: 'Statistics', component: AdminStatisticsView, meta: {requiredRole: 'admin'}},
   { path: '/db', name: 'DataBase', component: DBView, meta: {requiredRole: 'admin'}},
@@ -36,6 +36,23 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+})
+
+router.beforeEach(async (to, from, next) => {
+  const userStore = useUserStore()
+  const isAuthorized = !!userStore.user
+  const requiredRole = to.meta.requiredRole
+
+  if (isAuthorized && (!requiredRole || userStore.user.role === requiredRole)) {
+    return next()
+  }
+
+  const publicPages = ['/', '/login', '/register']
+  if (!isAuthorized && publicPages.includes(to.path)) {
+    return next()
+  }
+
+  return next('/')
 })
 
 export default router
