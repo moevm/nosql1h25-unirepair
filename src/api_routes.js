@@ -33,16 +33,16 @@ const api_routes = {
   "brigade_reports/brigadeNumber:uint": async (args) => {
     return {
       complete_reports: await rawMatch(
-        `(u:User:Brigadier${props(args)})-[:FILLED_IN]->(r:Report:Complete)-[:ON_CALL]->(cf:CallForm:Complete)`,
-        { results: ["r", "cf"], orderBy: "cf.createdAt DESC" },
+        `(u:User:Brigadier${props(args)})-[:FILLED_IN]->(r:Report:Complete)-[:ON_CALL]->(cf:CallForm:Complete)-[:CREATED_BY]->(o:User:Operator)`,
+        { results: ["u", "o", "r", "cf"], orderBy: "cf.createdAt DESC" },
       ),
       incomplete_reports: await rawMatch(
-        `(u:User:Brigadier${props(args)})-[:FILLED_IN]->(r:Report:Incomplete)-[:ON_CALL]->(cf:CallForm:Complete)`,
-        { results: ["r", "cf"], orderBy: "cf.createdAt DESC" },
+        `(u:User:Brigadier${props(args)})-[:FILLED_IN]->(r:Report:Incomplete)-[:ON_CALL]->(cf:CallForm:Complete)-[:CREATED_BY]->(o:User:Operator)`,
+        { results: ["u", "o", "r", "cf"], orderBy: "cf.createdAt DESC" },
       ),
       new_reports: await rawMatch(
-        `(u:User:Brigadier${props(args)})-[:FILLED_IN]->(r:Report:New)-[:ON_CALL]->(cf:CallForm:Complete)`,
-        { results: ["r", "cf"], orderBy: "cf.createdAt DESC" },
+        `(u:User:Brigadier${props(args)})-[:FILLED_IN]->(r:Report:New)-[:ON_CALL]->(cf:CallForm:Complete)-[:CREATED_BY]->(o:User:Operator)`,
+        { results: ["u", "o", "r", "cf"], orderBy: "cf.createdAt DESC" },
       ),
     };
   },
