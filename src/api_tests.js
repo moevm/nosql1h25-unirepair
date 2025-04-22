@@ -12,8 +12,23 @@ const tests = {
       result.incomplete_reports.length !== 1 ||
       result.new_reports.length !== 0
     ) {
-      return "Expected 1 complete and 1 incomplete to be found for brigade 1";
+      return "Expected 1 complete and 1 incomplete report to be found for brigade 1";
     }
+    return "ok";
+  },
+  "brigade_members?brigadeNumber=1;": (result) => {
+    if (!result || result.length !== 6)
+      return `Expected 6 members in brigades 1;, but got ${result.length} members`;
+    return "ok";
+  },
+  "brigade_members?brigadeNumber=;": (result) => {
+    if (!result || result.length !== 10)
+      return `Expected 10 members in brigades ;, but got ${result.length} members`;
+    return "ok";
+  },
+  "brigade_members?brigadeNumber=;4": (result) => {
+    if (!result || result.length !== 10)
+      return `Expected 10 members in brigades ;4, but got ${result.length} members`;
     return "ok";
   },
   "brigade_members?brigadeNumber=1": (result) => {

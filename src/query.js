@@ -1,8 +1,20 @@
 import * as assert from "./assert.js";
 import driver from "./db.js";
 
+function optcat(prefix, value) {
+  return value ? `${prefix}${value}` : "";
+}
+
+function optpostcat(value, postfix) {
+  return value ? `${value}${postfix}` : "";
+}
+
 function typeOf(value) {
   return value ? value.type : null;
+}
+
+function isRange(value) {
+  return value && value.from !== undefined && value.to !== undefined;
 }
 
 export function fishOutTypes(obj, types) {
@@ -18,8 +30,20 @@ export function fishOutTypes(obj, types) {
   return result;
 }
 
+function fishOutRanges(obj) {
+  assert.assertObject(obj);
+  let result = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (isRange(value)) {
+      result[key] = value;
+      delete obj[key];
+    }
+  }
+  return result;
+}
+
 export function fishOutComplexConds(obj) {
-  return fishOutTypes(obj, ["substring", "daterange", "id"]);
+  return { ...fishOutTypes(obj, ["substring", "id"]), ...fishOutRanges(obj) };
 }
 
 export function fishOutLabels(obj) {
@@ -28,6 +52,7 @@ export function fishOutLabels(obj) {
 
 function makeNeo4jLiteral(value) {
   assert.assert(value !== null);
+  assert.assert(!isRange(value));
   if (value && typeOf(value) === "datetime")
     return `datetime("${value.value}")`;
   if (value && typeOf(value) === "point")
@@ -62,18 +87,34 @@ export function matches(fieldValues, contains = true) {
     )
     .map(([n, fields]) =>
       Object.entries(fields)
+        .filter(([field, value]) => value.from !== null || value.to !== null)
         .map(([field, value]) => {
-          switch (typeOf(value)) {
-            case "substring":
-              return `toLower(${n}.${field}) ${contains ? "CONTAINS" : "="} "${value.value.toLowerCase()}"`;
-            case "daterange":
-              return `datetime("${value.value.from}") <= ${n}.${field} <= datetime("${value.value.to}") `;
-            case "id":
-              return byId(n, value.value);
-            default:
-              throw new Error(
-                `Unexpected value: ${value.value} of type ${typeOf(value)}`,
-              );
+          if (isRange(value)) {
+            switch (typeOf(value)) {
+              case "int":
+              case "uint":
+              case "float":
+                return `${optpostcat(value.from, " <= ")}${n}.${field}${optcat(" <= ", value.to)}`;
+              case "datetime":
+                return `${value.from ? `datetime("${value.from}") <= ` : ""}${n}.${field}${value.to ? `<= datetime("${value.to}")` : ""}`;
+              case "id":
+                return `${optpostcat(value.from, " <= ")}id(${n})${optcat(" <= ", value.to)}`;
+              default:
+                throw new Error(
+                  `Unexpected value range: ${value.from}..${value.to} of type ${typeOf(value)}`,
+                );
+            }
+          } else {
+            switch (typeOf(value)) {
+              case "substring":
+                return `toLower(${n}.${field}) ${contains ? "CONTAINS" : "="} "${value.value.toLowerCase()}"`;
+              case "id":
+                return `id(${n}) = ${value.value}`;
+              default:
+                throw new Error(
+                  `Unexpected value: ${value.value} of type ${typeOf(value)}`,
+                );
+            }
           }
         })
         .join(" AND "),
@@ -84,8 +125,8 @@ export function matches(fieldValues, contains = true) {
 export function props(conditions) {
   assert.assertObject(conditions);
   assert.assert(
-    Object.keys(fishOutTypes(conditions, ["daterange"])).length === 0,
-    "Date ranges cannot be used in props, probably you meant matches()?",
+    Object.keys(fishOutRanges(conditions)).length === 0,
+    "Ranges cannot be used in props, probably you meant matches()?",
   );
   for (const key of Object.keys(conditions)) {
     if (conditions[key] === null) delete conditions[key];
@@ -152,8 +193,8 @@ export async function rawMatch(conditionsStr, options = {}) {
   if (options.limit) assert.assertString(options.limit);
   return await rawQuery(
     `MATCH ${conditionsStr}` +
-      (options.where ? "\nWHERE " + options.where : "") +
-      (options.create ? "\nCREATE " + options.create : "") +
+      optcat("\nWHERE ", options.where) +
+      optcat("\nCREATE ", options.create) +
       (options.remove
         ? "\nREMOVE " +
           Object.entries(options.remove)
@@ -172,7 +213,8 @@ export async function rawMatch(conditionsStr, options = {}) {
                     ? Object.entries(v)
                         .filter(
                           ([field, value]) =>
-                            !["id", "daterange", null].includes(typeOf(value)),
+                            !["id", null].includes(typeOf(value)) &&
+                            !isRange(value),
                         )
                         .map(
                           ([field, value]) =>
@@ -185,8 +227,8 @@ export async function rawMatch(conditionsStr, options = {}) {
             .join(",\n\t")
         : "") +
       (options.results ? "\nRETURN " + options.results.join(", ") : "") +
-      (options.orderBy ? "\nORDER BY " + options.orderBy : "") +
-      (options.limit ? "\nLIMIT " + options.limit : ""),
+      optcat("\nORDER BY ", options.orderBy) +
+      optcat("\nLIMIT ", options.limit),
     (result) =>
       options.results
         ? result.records.map((record) => {
@@ -219,8 +261,12 @@ export async function match(what, conditions, options = {}) {
   }
   const n = what.split(":")[0];
   const complexConds = fishOutComplexConds(conditions);
-  if (Object.keys(complexConds).length > 0)
-    options.where = `${matches({ [n]: complexConds })}${options.where ? " AND " + options.where : ""}`;
+  if (
+    Object.values(complexConds).filter(
+      (val) => val.from !== null || val.to !== null,
+    ).length > 0
+  )
+    options.where = `${matches({ [n]: complexConds })}${optcat(" AND ", options.where)}`;
   if (options.results === undefined) options.results = [n];
   return await rawMatch(`(${what}${props(conditions)})`, options);
 }

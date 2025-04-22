@@ -22,7 +22,7 @@ const api_routes = {
     return user;
   },
   // 2. Current call forms on a brigade
-  "get_callforms/assignedTo:uint": async (args) => {
+  "get_callforms/assignedTo:uint..": async (args) => {
     const callForms = await match("cf:CallForm", args, {
       orderBy: "cf.createdAt DESC",
     });
@@ -48,7 +48,7 @@ const api_routes = {
     };
   },
   // 4. Fill in a report
-  "fill_report/reportId:id waterSpent:uint foamSpent:uint allegedFireCause damage:uint additionalNotes":
+  "fill_report/reportId:id.. waterSpent:uint foamSpent:uint allegedFireCause damage:uint additionalNotes":
     async (args) => {
       await match("r:Report:New", fishOutTypes(args, ["id"]), {
         remove: { r: ["New"] },
@@ -87,7 +87,7 @@ const api_routes = {
       );
     },
   // 8. User search
-  "user_search/familyName? firstName? fatherName? role:label? brigadeNumber:uint? address? phone? email? registeredAt:daterange? modifiedAt:daterange?":
+  "user_search/familyName? firstName? fatherName? role:label? brigadeNumber:uint..? address? phone? email? registeredAt:datetime..? modifiedAt:datetime..?":
     async (args) => {
       return await match("u:User", args, { orderBy: "u.name DESC" });
     },
@@ -170,14 +170,14 @@ const api_routes = {
     return result;
   },
   // Сall forms search
-  "callform_search/status:label? createdAt:daterange? modifiedAt:daterange? callSource? fireAddress? fireType? fireRank? victimsCount:uint? assignedTo:uint?":
+  "callform_search/status:label? createdAt:datetime..? modifiedAt:datetime..? callSource? fireAddress? fireType? fireRank? victimsCount:uint..? assignedTo:uint..?":
     async (args) => {
       return await match("cf:CallForm", args, {
         orderBy: "cf.createdAt DESC",
       });
     },
   // Report search
-  "report_search/status:label? modifiedAt:daterange? waterSpent:uint? foamSpent:uint? allegedFireCause? damage:uint? additionalNotes?":
+  "report_search/status:label? modifiedAt:datetime..? waterSpent:uint..? foamSpent:uint..? allegedFireCause? damage:uint..? additionalNotes?":
     async (args) => {
       return await match("r:Report", args, {
         orderBy: "r.modifiedAt DESC",
@@ -188,10 +188,10 @@ const api_routes = {
     return await match("i:Inventory", args, { orderBy: "i.name ASC" });
   },
   // Find a report by author
-  "report_search_by_author/familyName? firstName? fatherName? role:label? brigadeNumber:uint? createdAt:daterange? modifiedAt:daterange?":
+  "report_search_by_author/familyName? firstName? fatherName? role:label? brigadeNumber:uint..? createdAt:datetime..? modifiedAt:datetime..?":
     async (args) => {
       const matchArgs = fishOutComplexConds(args);
-      const rArgs = fishOutTypes(matchArgs, ["daterange"]);
+      const rArgs = fishOutTypes(matchArgs, ["datetime"]);
       return await rawMatch(
         `(u:User${props(args)})-[:FILLED_IN]->(r:Report)-[:ON_CALL]->(cf:CallForm)`,
         {
@@ -202,7 +202,7 @@ const api_routes = {
       );
     },
   // Find brigade members
-  "brigade_members/brigadeNumber:uint": async (args) => {
+  "brigade_members/brigadeNumber:uint..": async (args) => {
     return await match("u:User", args);
   },
   // Get auto's state

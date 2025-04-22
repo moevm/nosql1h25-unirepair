@@ -13,11 +13,79 @@ function isISODateTime(value) {
   return !isNaN(new Date(value).valueOf());
 }
 
+function parseValue(expectedType, key, value) {
+  assert.assertString(expectedType);
+  assert.assertString(key);
+  assert.assertString(value);
+  switch (expectedType) {
+    case "int": {
+      const asInt = parseInt(value);
+      if (isNaN(asInt) || !isFinite(asInt))
+        return `${key} is expected to be int, but got ${value}`;
+      return asInt;
+    }
+    case "id":
+    case "uint": {
+      const asInt = parseInt(value);
+      if (isNaN(asInt) || !isFinite(asInt) || asInt < 0)
+        return `${key} is expected to be uint, but got ${value}`;
+      return asInt;
+    }
+    case "float": {
+      const asFloat = parseFloat(value);
+      if (isNaN(asFloat) || !isFinite(asFloat))
+        return `${key} is expected to be float, but got ${value}`;
+      return asFloat;
+    }
+    case "substring":
+    case "string":
+    case "label": {
+      const escapedChars = ["\\", '"', "\'"];
+      let asStr = decodeURIComponent(value);
+      for (const ec of escapedChars) asStr.replaceAll(ec, "\\" + ec);
+      return asStr;
+    }
+    case "bool": {
+      if (value !== "true" && value !== "false")
+        return `${key} is expected to be bool, but got ${value}`;
+      return value === "true";
+    }
+    case "point": {
+      if (!value || !value.includes(";"))
+        return `${key} is expected to be point, but got ${value}`;
+      const [from, to] = value.split(";").map((x) => new Date(x));
+      const [latitude, longitude] = value.split(";").map(parseFloat);
+      if (
+        isNaN(longitude) ||
+        !isFinite(longitude) ||
+        isNaN(latitude) ||
+        !isFinite(latitude)
+      )
+        return `${key} is expected to be point, but got ${value}`;
+      return { longitude, latitude };
+    }
+    case "password": {
+      const escapedChars = ["\\", '"', "\'"];
+      let asStr = decodeURIComponent(value);
+      for (const ec of escapedChars) asStr.replaceAll(ec, "\\" + ec);
+      return {
+        password: asStr,
+        hash: crypto.createHash("sha256").update(value).digest("hex"),
+      };
+    }
+    case "datetime": {
+      if (!isISODateTime(value))
+        return `${key} is expected to be ISO datetime, but got ${value}`;
+      return value;
+    }
+  }
+}
+
 export class QueryParameter {
   constructor(rawParam) {
     assert.assertString(rawParam);
     assert.assert(
-      /^([a-zA-Z_][a-zA-Z_0-9]*(:(int|uint|float|id|substring|string|label|bool|point|password|datetime|daterange))?(\?(=\d+)?)?)$/.test(
+      /^([a-zA-Z_][a-zA-Z_0-9]*(:((int|uint|float|id|substring|string|label|bool|point|password|datetime)(\.\.)?))?(\?(=\d+)?)?)$/.test(
         rawParam,
       ),
       `Wrong format of query scheme: ${rawParam}`,
@@ -27,6 +95,8 @@ export class QueryParameter {
     let defaultValue = null;
     if (hasDefaultValue) [rawParam, defaultValue] = rawParam.split("=");
     if (isOptional) rawParam = rawParam.slice(0, -1);
+    const isRange = rawParam.endsWith("..");
+    if (isRange) rawParam = rawParam.slice(0, -2);
     let [name, type] = rawParam.includes(":")
       ? rawParam.split(":")
       : [rawParam, "substring"];
@@ -42,9 +112,12 @@ export class QueryParameter {
           rawParam,
       );
     }
+    if (isRange)
+      assert.assertOneOf(type, ["int", "uint", "float", "id", "datetime"]);
     this.name = name;
     this.type = type;
     this.isOptional = isOptional;
+    this.isRange = isRange;
     this.defaultValue = defaultValue;
   }
 }
@@ -72,90 +145,19 @@ export class QueryScheme {
     let keys = Object.keys(result);
     for (const [key, value] of Object.entries(query)) {
       if (!keys.includes(key)) return `Unknown parameter: ${key}`;
-      const expectedType = this.parameters.find(
-        (param) => param.name === key,
-      ).type;
-      const makeValue = (value) => ({ value, type: expectedType });
-      switch (expectedType) {
-        case "int": {
-          const asInt = parseInt(value);
-          if (isNaN(asInt) || !isFinite(asInt))
-            return `${key} is expected to be int, but got ${value}`;
-          result[key] = makeValue(asInt);
-          break;
-        }
-        case "id":
-        case "uint": {
-          const asInt = parseInt(value);
-          if (isNaN(asInt) || !isFinite(asInt) || asInt < 0)
-            return `${key} is expected to be uint, but got ${value}`;
-          result[key] = makeValue(asInt);
-          break;
-        }
-        case "float": {
-          const asFloat = parseFloat(value);
-          if (isNaN(asFloat) || !isFinite(asFloat))
-            return `${key} is expected to be float, but got ${value}`;
-          result[key] = makeValue(asFloat);
-          break;
-        }
-        case "substring":
-        case "string":
-        case "label": {
-          const escapedChars = ["\\", '"', "\'"];
-          let asStr = decodeURIComponent(value);
-          for (const ec of escapedChars) asStr.replaceAll(ec, "\\" + ec);
-          result[key] = makeValue(asStr);
-          break;
-        }
-        case "bool": {
-          if (value !== "true" && value !== "false")
-            return `${key} is expected to be bool, but got ${value}`;
-          result[key] = makeValue(value === "true");
-          break;
-        }
-        case "point": {
-          if (!value || !value.includes(";"))
-            return `${key} is expected to be point, but got ${value}`;
-          const [from, to] = value.split(";").map((x) => new Date(x));
-          const [latitude, longitude] = value.split(";").map(parseFloat);
-          if (
-            isNaN(longitude) ||
-            !isFinite(longitude) ||
-            isNaN(latitude) ||
-            !isFinite(latitude)
-          )
-            return `${key} is expected to be point, but got ${value}`;
-          result[key] = makeValue({ longitude, latitude });
-          break;
-        }
-        case "password": {
-          const escapedChars = ["\\", '"', "\'"];
-          let asStr = decodeURIComponent(value);
-          for (const ec of escapedChars) asStr.replaceAll(ec, "\\" + ec);
-          result[key] = makeValue({
-            password: asStr,
-            hash: crypto.createHash("sha256").update(value).digest("hex"),
-          });
-          break;
-        }
-        case "datetime": {
-          if (!isISODateTime(value))
-            return `${key} is expected to be ISO datetime, but got ${value}`;
-          result[key] = makeValue(value);
-          break;
-        }
-        case "daterange": {
-          if (!value || !value.includes(";"))
-            return `${key} is expected to be daterange, but got ${value}`;
-          const tmp = value.split(";");
-          if (!isISODateTime(tmp[0]))
-            return `${key}.from is expected to be ISO datetime, but got ${tmp[0]}`;
-          if (!isISODateTime(tmp[1]))
-            return `${key}.to is expected to be ISO datetime, but got ${tmp[1]}`;
-          result[key] = makeValue({ from: tmp[0], to: tmp[1] });
-          break;
-        }
+      const param = this.parameters.find((param) => param.name === key);
+      if (!param.isRange || !value.includes(";")) {
+        result[key] = {
+          value: parseValue(param.type, key, value),
+          type: param.type,
+        };
+      } else {
+        const [from, to] = value.split(";");
+        result[key] = {
+          from: from ? parseValue(param.type, key, from) : null,
+          to: to ? parseValue(param.type, key, to) : null,
+          type: param.type,
+        };
       }
     }
     for (const p of this.parameters) {
