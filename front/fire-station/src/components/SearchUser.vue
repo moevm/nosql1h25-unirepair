@@ -121,14 +121,27 @@ export default {
             return user.labels.find(label => (label === "Brigadier" || label === "Fireman" || label === "Operator" || label === "Admin"))
         },
         stringifyURLParams(){
+            const processDateRange = (from, to) => {
+                const today = new Date().toISOString().split('T')[0];
+                const defaultFrom = '1990-01-01';
+                
+                if (from && to) return `${from};${to}`;
+
+                if (from && !to) return `${from};${today}`;
+
+                if (!from && to) return `${defaultFrom};${to}`;
+
+                return '';
+            };
+            
             let params = {
                 familyName: this.surname,
                 firstName: this.name,
                 fatherName: this.patronymic,
                 role: this.role,
                 brigadeNumber: this.role === 'Fireman' || this.role === 'Brigadier' ? this.brigade : '',
-                registeredAt: `${this.registrationDate_begin};${this.registrationDate_end}`,
-                modifiedAt: `${this.changeDate_begin};${this.changeDate_end}`
+                registeredAt: processDateRange(this.registrationDate_begin, this.registrationDate_end),
+                modifiedAt: processDateRange(this.changeDate_begin, this.changeDate_end)
             }
 
             params = new URLSearchParams(Object.fromEntries(
