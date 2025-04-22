@@ -237,8 +237,11 @@ const api_routes = {
 
         const newItem = await create(":Inventory", {
             name: { value: trimmedName, type: 'string' }
-
-            data: { name: trimmedName }, 
+        });
+        
+        return {
+            success: true,
+            data: { name: trimmedName },
             message: "Инвентарь успешно добавлен",
             status: 200
         };
