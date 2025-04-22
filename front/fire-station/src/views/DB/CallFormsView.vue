@@ -124,10 +124,24 @@ export default {
             console.log(this.stringifyURLParams())
         },
         stringifyURLParams(){
+            
+            const processDateRange = (from, to) => {
+                const today = new Date().toISOString().split('T')[0];
+                const defaultFrom = '1990-01-01'; 
+
+                if (from && to) return `${from};${to}`;
+
+                if (from && !to) return `${from};${today}`;
+  
+                if (!from && to) return `${defaultFrom};${to}`;
+                
+                return '';
+            };
+            
             let params = {
                 status: this.useStatus ? this.status : '',
-                createdAt: `${this.created.from};${this.created.to}`,
-                modifiedAt: `${this.lastUpdate.from};${this.lastUpdate.to}`,
+                createdAt: processDateRange(this.created.from, this.created.to),
+                modifiedAt: processDateRange(this.lastUpdate.from, this.lastUpdate.to),
                 callSource: this.callSource,
                 fireAddress: this.fireAddress,
                 fireType: this.fireDescription,

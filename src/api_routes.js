@@ -212,44 +212,75 @@ const api_routes = {
       occupied: cfs && cfs.length > 0,
     };
   },
-  "complete_callform_and_create_report/status:label? createdAt:daterange? modifiedAt:daterange? callSource? fireAddress? fireType? fireRank? victimsCount:uint? assignedTo:uint?":
-    async (args) => {
-        const callForms = await match("cf:CallForm:Incomplete", args, {
-            orderBy: "cf.createdAt DESC",
-        });
+  //add inventory
+    "inventory_add/name:string": async (args) => {
+        const nameValue = args.name?.value;
 
-        if (!callForms || callForms.length === 0) {
+        if (!nameValue || typeof nameValue !== 'string' || nameValue.trim() === '') {
             return {
                 success: false,
-                message: "Вы еще не отправили форму бригадам",
-                status: 404
+                message: "Название инвентаря не может быть пустым",
+                status: 400
             };
         }
 
-        const callform = callForms[0];
+        const trimmedName = nameValue.trim();
 
-        await match("cf:CallForm:Incomplete", { id: callform.id }, {
-            remove: { cf: ["Incomplete"] },
-            set: { cf: { label: makeLabel("Complete"), modifiedAt: now() } }
-        });
+        const existing = await match("i:Inventory", { name: { value: trimmedName, type: 'string' } });
+        if (existing?.length > 0) {
+            return {
+                success: false,
+                message: "Инвентарь с таким названием уже существует",
+                status: 409
+            };
+        }
 
-        await match("cf:CallForm:Complete", { id: callform.id }, {
-            create: `(r:Report:New {
-                        waterSpent: 0,
-                        foamSpent: 0,
-                        allegedFireCause: "неизвестно",
-                        damage: 0,
-                        additionalNotes: "Данные ещё не внесены, ожидается завершение отчёта.",
-                        modifiedAt: datetime()
-                        })\nCREATE (r)-[:ON_CALL]->(cf)`
-        });
+        const newItem = await create(":Inventory", {
+            name: { value: trimmedName, type: 'string' }
 
-        return {
-            success: true,
-            message: "Форма вызова завершена и отчет создан",
-            status: 200,
-            callformId: callform.id
+            data: { name: trimmedName }, 
+            message: "Инвентарь успешно добавлен",
+            status: 200
         };
     },
+    "complete_callform_and_create_report/status:label? createdAt:daterange? modifiedAt:daterange? callSource? fireAddress? fireType? fireRank? victimsCount:uint? assignedTo:uint?":
+  async (args) => {
+      const callForms = await match("cf:CallForm:Incomplete", args, {
+          orderBy: "cf.createdAt DESC",
+      });
+
+      if (!callForms || callForms.length === 0) {
+          return {
+              success: false,
+              message: "Вы еще не отправили форму бригадам",
+              status: 404
+          };
+      }
+
+      const callform = callForms[0];
+
+      await match("cf:CallForm:Incomplete", { id: callform.id }, {
+          remove: { cf: ["Incomplete"] },
+          set: { cf: { label: makeLabel("Complete"), modifiedAt: now() } }
+      });
+
+      await match("cf:CallForm:Complete", { id: callform.id }, {
+          create: `(r:Report:New {
+                      waterSpent: 0,
+                      foamSpent: 0,
+                      allegedFireCause: "неизвестно",
+                      damage: 0,
+                      additionalNotes: "Данные ещё не внесены, ожидается завершение отчёта.",
+                      modifiedAt: datetime()
+                      })\nCREATE (r)-[:ON_CALL]->(cf)`
+      });
+
+      return {
+          success: true,
+          message: "Форма вызова завершена и отчет создан",
+          status: 200,
+          callformId: callform.id
+      };
+  },
 };
 export default api_routes;

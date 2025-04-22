@@ -103,6 +103,19 @@ export default {
             console.log(this.foundReports)
         },
         stringifyURLParams(){
+            const processDateRange = (from, to) => {
+                const today = new Date().toISOString().split('T')[0];
+                const defaultFrom = '1990-01-01'; 
+
+                if (from && to) return `${from};${to}`;
+
+                if (from && !to) return `${from};${today}`;
+
+                if (!from && to) return `${defaultFrom};${to}`;
+
+                return '';
+            };
+            
             let params = {
                 status: this.useStatus ? this.status : '',
                 waterSpent: this.waterSpent,
@@ -110,7 +123,7 @@ export default {
                 allegedFireCause: this.allegedFireCause,
                 damage: this.damage,
                 additionalNotes: this.additionalNotes,
-                modifiedAt: `${this.modifiedAt.from};${this.modifiedAt.to}`
+                modifiedAt: processDateRange(this.modifiedAt.from, this.modifiedAt.to)
             }
 
             params = new URLSearchParams(Object.fromEntries(

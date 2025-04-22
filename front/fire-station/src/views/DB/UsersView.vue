@@ -129,6 +129,20 @@ export default {
             console.log(this.foundUsers)
         },
         stringifyURLParams(){
+
+            const processDateRange = (from, to) => {
+                const today = new Date().toISOString().split('T')[0]; 
+                const defaultFrom = '1990-01-01'; 
+                
+                if (from && to) return `${from};${to}`;
+                
+                if (from && !to) return `${from};${today}`;
+                
+                if (!from && to) return `${defaultFrom};${to}`;
+                
+                return '';
+            };
+
             let params = {
                 familyName: this.surname,
                 firstName: this.name,
@@ -139,8 +153,8 @@ export default {
                 address: this.address,
                 login: this.login,
                 status: this.status,
-                registeredAt: `${this.registeredAt.from};${this.registeredAt.to}`,
-                modifiedAt: `${this.modifiedAt.from};${this.modifiedAt.to}`
+                registeredAt: processDateRange(this.registeredAt.from, this.registeredAt.to),
+                modifiedAt: processDateRange(this.modifiedAt.from, this.modifiedAt.to)
             }
 
             params = new URLSearchParams(Object.fromEntries(
