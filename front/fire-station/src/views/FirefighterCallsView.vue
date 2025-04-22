@@ -32,6 +32,11 @@ const stringifyURLParams = (paramsObj) => {
   ).toString()
 }
 
+const getStatusFromLabels = (labels) => {
+  const status = ['Incomplete', 'Complete']
+  return labels.find(label => status.includes(label)) || 'unknown'
+}
+
 const fetchCalls = async () => {
   const brigadeNumber = userStore.user?.brigadeNumber;
   if (!brigadeNumber) {
@@ -49,6 +54,7 @@ const fetchCalls = async () => {
       callsStore.calls = [];
     } else {
       const transformedCalls = data.map((call) => ({
+        status: getStatusFromLabels(call.labels),
         fireAddress: call.fireAddress,
         bottomLeft: {
           latitude: call.bottomLeft.y,
@@ -64,7 +70,7 @@ const fetchCalls = async () => {
         assignedTo: call.assignedTo ?? null,
         auto: call.auto ?? null,
       }));
-      callsStore.setCalls(transformedCalls);
+      callsStore.setCalls(transformedCalls.filter(report => report.status === 'Incomplete'));
     }
   } catch (error) {
     console.error('Ошибка при получении вызовов:', error);
