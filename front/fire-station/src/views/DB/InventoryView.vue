@@ -11,11 +11,17 @@
 
             <div class="table-field__container">
                 <div>
-                    <span>Наименование инвентаря:</span>
-                    <input type="text" class="text__input" v-model="name">
+                    <!-- Поле для добавления нового инвентаря -->
+                    <span>Добавить инвентарь:</span>
+                    <input type="text" class="text__input" v-model="newInventoryName">
+                    <button @click="addInventory" class="submit-button">Добавить</button>
                     <br>
-                    <button @click="search" id="submit-button">Найти</button>
-                    <button @click="reset" id="submit-button" style="margin-left: 10px;">Сбросить</button>
+                    
+                    <!-- Поле для поиска существующего инвентаря -->
+                    <span>Поиск инвентаря:</span>
+                    <input type="text" class="text__input" v-model="searchName">
+                    <button @click="search" class="submit-button">Найти</button>
+                    <button @click="reset" class="submit-button" style="margin-left: 10px;">Сбросить</button>
                 </div>
 
                 <div class="table__container">
@@ -46,19 +52,49 @@ export default {
     components: { Sidebar },
     data(){
         return {
-            name: '',
-            foundInventory: []
+            newInventoryName: '', 
+            searchName: '',      
+            foundInventory: []   
         }
     },
     methods: {
         async search(){
-            await axios.get(`http://localhost:3000/api/inventory_search?${this.stringifyURLParams()}`)
+            await axios.get(`http://localhost:3000/api/inventory_search?${this.stringifySearchParams()}`)
                 .then(res => this.foundInventory = res.data);
-            console.log(this.stringifyURLParams())
         },
-        stringifyURLParams(){
+        
+        async addInventory() {
+            const name = this.newInventoryName.trim();
+            
+            if (!name) {
+                alert('Введите название инвентаря');
+                return;
+            }
+
+            try {
+                const url = `http://localhost:3000/api/inventory_add?name=${encodeURIComponent(name)}`;
+                
+                const response = await axios.get(url);
+                
+                if (response.data.success) {
+                this.newInventoryName = '';
+                this.search();
+                } else {
+                alert(response.data.message || 'Ошибка при добавлении');
+                }
+            } catch (error) {
+                console.error('Полная ошибка:', error);
+                if (error.response) {
+                alert(error.response.data?.message || 'Ошибка сервера');
+                } else {
+                alert('Не удалось подключиться к серверу');
+                }
+            }
+        },
+        
+        stringifySearchParams(){
             let params = {
-                name: this.name
+                name: this.searchName
             }
 
             params = new URLSearchParams(Object.fromEntries(
@@ -67,8 +103,10 @@ export default {
 
             return params;
         },
+        
         reset(){
-            this.name = '';
+            this.searchName = '';
+            this.search();
         }
     }
 }
@@ -80,7 +118,7 @@ export default {
   background-color: #CED0E9;
 }
 
-#submit-button {
+.submit-button {
     cursor: pointer;
     font-size: x-large;
     border-radius: 10px;
@@ -89,7 +127,7 @@ export default {
     background-color: #A7A3CC;
 }
 
-#submit-button:hover {
+.submit-button:hover {
     background-color: #766EBF;
 }
 
