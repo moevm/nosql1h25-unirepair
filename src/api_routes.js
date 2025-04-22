@@ -212,5 +212,39 @@ const api_routes = {
       occupied: cfs && cfs.length > 0,
     };
   },
+  //add inventory
+    "inventory_add/name:string": async (args) => {
+        const nameValue = args.name?.value;
+
+        if (!nameValue || typeof nameValue !== 'string' || nameValue.trim() === '') {
+            return {
+                success: false,
+                message: "Название инвентаря не может быть пустым",
+                status: 400
+            };
+        }
+
+        const trimmedName = nameValue.trim();
+
+        const existing = await match("i:Inventory", { name: { value: trimmedName, type: 'string' } });
+        if (existing?.length > 0) {
+            return {
+                success: false,
+                message: "Инвентарь с таким названием уже существует",
+                status: 409
+            };
+        }
+
+        const newItem = await create(":Inventory", {
+            name: { value: trimmedName, type: 'string' }
+        });
+
+        return {
+            success: true,
+            data: { name: trimmedName }, 
+            message: "Инвентарь успешно добавлен",
+            status: 200
+        };
+    }
 };
 export default api_routes;
