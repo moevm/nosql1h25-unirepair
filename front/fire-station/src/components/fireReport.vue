@@ -1,227 +1,539 @@
 <template>
-    <div class="addUser__container">
-        <div class="component-label__container">
-            <img id="exit-icon" src="/icons/exit.svg" @click="$emit('component-change', 'menu')">
-            <label>Создание нового пользователя</label>
-        </div>
-        <div class="component-userinfo__container">
-            <span>Фамилия</span><span style="color: red;">*</span><span>:</span>
-            <input type="text" v-model="surname" class="userinfo__input">
-            <span v-show="!surname && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
-            <br>
-            <span>Имя</span><span style="color: red;">*</span><span>:</span>
-            <input type="text" v-model="name" class="userinfo__input">
-            <span v-show="!name && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
-            <br>
-            <span>Отчество:</span>
-            <input type="text" v-model="patronymic" class="userinfo__input">
-            <br> 
-            
-            <span>Должность</span><span style="color: red;">*</span><span>:</span>
-            <span v-show="!role && addUserAttempt" style="color: red; margin-left: 15px;">Выберите должность</span>
-            <br>
-            <input type="radio" v-model="role" value="Fireman" @click="info" class="userinfo__input">
-            <span>Пожарный</span>
-            <input type="radio" v-model="role" value="Brigadier" @click="info" class="userinfo__input">
-            <span>Бригадир</span>
-            <br>
-            <input type="radio" v-model="role" value="Operator" @click="info" class="userinfo__input">
-            <span>Оператор</span>
-            <br>
-            <input type="radio" v-model="role" value="Admin" @click="info" class="userinfo__input"><span>Администратор</span>
-            <br>
+  <div class="fireReport__container">
+    <div class="report-form__container">
+      <div class="form-group">
+        <label>Адрес происшествия:</label>
+        <input type="text" v-model="incidentAddress" class="form-input">
+      </div>
+      <!--      карта будет позже-->
+      <img src="../../public/map.png">
 
-            <span :class="{'brigade-text__avaliable': role === 'Fireman' || role === 'Brigadier', 'brigade-text__unavaliable': role !== 'Fireman' && role !== 'Brigadier'}">Бригада</span>
-            <span style="color: red;" v-show="role === 'Fireman' || role === 'Brigadier'">*</span><span>:</span>
-            <input min="1" type="number" v-model="brigade" class="userinfo__input" :disabled="role !== 'Fireman' && role !== 'Brigadier'" @blur="correctBrigade">
-            <span v-show="!brigade && addUserAttempt && (role === 'Fireman' || role === 'Brigadier')" style="color: red; margin-left: 15px;">Назначьте бригаду</span>
-            <br>
-            <span>Телефон:</span>
-            <input type="text" v-model="phone" class="userinfo__input">
-            <br>
-            <span>Эл. почта:</span>
-            <input type="text" v-model="email" class="userinfo__input">
-            <br>
-            <span>Адрес</span><span style="color: red;">*</span><span>:</span>
-            <input type="text" v-model="address" class="userinfo__input">
-            <span v-show="!address && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
-            <br>
-            <span>Логин</span><span style="color: red;">*</span><span>:</span>
-            <input type="text" v-model="login" class="userinfo__input">
-            <span v-show="!login && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
-            <br>
-            <span>Пароль</span><span style="color: red;">*</span><span>:</span>
-            <input type="text" v-model="password" class="userinfo__input">
-            <span v-show="!password && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
-            <br>
-        
-            <button @click="createNewUser" id="submit-button">Добавить пользователя</button>
+      <div class="form-group">
+        <label>Характер пожара:</label>
+        <input type="text" v-model="fireType" class="form-input">
+      </div>
+
+      <div class="form-group">
+        <label>Есть пострадавшие?</label>
+        <div class="radio-group">
+          <label>
+            <input type="radio" v-model="hasCasualties" value="no"> Нет
+          </label>
+          <label>
+            <input type="radio" v-model="hasCasualties" value="yes"> Да
+          </label>
         </div>
+      </div>
+
+      <div class="form-group" v-if="hasCasualties === 'yes'">
+        <label>Количество пострадавших:</label>
+        <input type="number" v-model="casualtiesCount" min="1" class="form-input">
+      </div>
+
+      <div class="form-group">
+        <label>Источник звонка:</label>
+        <div class="radio-group">
+          <label>
+            <input type="radio" v-model="callSource" value="witness"> Звонок очевидца
+          </label>
+          <label>
+            <input type="radio" v-model="callSource" value="alarm"> Автоматическая сигнализация
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Ранг пожара:</label>
+        <div class="radio-group">
+          <label v-for="(rank, index) in fireRanks" :key="index">
+            <input type="radio" v-model="fireRank" :value="rank.value"> {{ rank.label }}
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Выбор бригад:</label>
+        <table class="selection-table">
+          <thead>
+          <tr>
+            <th>Выбрать</th>
+            <th>Номер бр.</th>
+            <th>Размер бр.</th>
+            <th>Время последнего вызова</th>
+            <th>Кол-во вызовов за смену</th>
+            <th>Статус</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="(brigade, index) in availableBrigades" :key="index">
+            <td><input type="checkbox" v-model="brigade.selected"></td>
+            <td>{{ brigade.number }}</td>
+            <td>{{ brigade.size }}</td>
+            <td>{{ brigade.lastCallTime }}</td>
+            <td>{{ brigade.callsCount }}</td>
+            <td :class="{'status-available': brigade.status === 'Свободна', 'status-busy': brigade.status === 'На вызове'}">
+              {{ brigade.status }}
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="form-group">
+        <label>Выбор пожарной машины:</label>
+        <table class="selection-table">
+          <thead>
+          <tr>
+            <th>Выбрать</th>
+            <th>Тип машины</th>
+            <th>Статус</th>
+            <th>Номер машины</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="(vehicle, index) in availableVehicles" :key="index">
+            <td><input type="radio" v-model="selectedVehicle" :value="vehicle.number"></td>
+            <td>{{ vehicle.type }}</td>
+            <td :class="{'status-available': vehicle.status === 'Свободна', 'status-busy': vehicle.status === 'Занята'}">
+              {{ vehicle.status }}
+            </td>
+            <td>{{ vehicle.number }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="form-actions">
+        <button class="send-button" @click="sendToBrigades">Отправить бригадам</button>
+        <button class="save-button" @click="showSaveAlert = true">Сохранить форму</button>
+      </div>
+      <div v-if="showSaveAlert" class="alert__container">
+        <img src="/icons/exit.svg" id="exit-icon-alert" @click="showSaveAlert = false">
+        <div class="alert-message" >
+          Внимание!<br>
+          При сохранении форму нельзя будет редактировать.<br>
+          Вы действительно хотите сохранить форму?
+        </div>
+        <button class="confirm-button" @click="confirmSave">Сохранить форму</button>
+      </div>
     </div>
+  </div>
 </template>
 
 <script>
+// import { onMounted, ref } from 'vue'
+// import L from 'leaflet'
 import axios from 'axios';
-
 export default {
-    name: "AddUserComponent",
-    data() {
-        return {
-            name: '',
-            surname: '',
-            patronymic: '',
-            role: '',
-            brigade: '',
-            phone: '',
-            email: '',
-            address: '',
-            login: '',
-            password: '',
-            addUserAttempt: false,
-        }
-    },
-    methods: {
-        async createNewUser(){
-            if(!this.name || !this.surname || !this.role || (!this.brigade && this.role === "Fireman") || !this.address || !this.login || !this.password){
-                this.addUserAttempt = true;
-                return false;
-            }
+  name: 'CreateFireReportComponent',
 
-            console.log("New user added: ", this.name, this.surname, this.patronymic, this.role, this.brigade, this.phone, this.email, this.address, this.login, this.password);
+  data() {
+    return {
+      showSaveAlert: false,
+      incidentAddress: '',
+      fireType: '',
+      hasCasualties: 'no',
+      casualtiesCount: 0,
+      callSource: 'witness',
+      fireRank: '1',
+      selectedBrigades: [],
+      selectedVehicle: '',
 
-            console.log(`localhost:3000/api/user_spawn?${decodeURIComponent(this.stringifyURLParams())}`)   
-            await axios.get(`http://localhost:3000/api/user_spawn?${this.stringifyURLParams()}`)
+      fireRanks: [
+        { value: '1', label: '1' },
+        { value: '1-БИС', label: '1-БИС' },
+        { value: '2', label: '2' },
+        { value: '3', label: '3' },
+        { value: '4', label: '4' }
+      ],
 
-            this.name = '';
-            this.surname = '';
-            this.patronymic = '';
-            this.role = '';
-            this.brigade = '';
-            this.phone = '';
-            this.email = '';
-            this.address = '';
-            this.login = '';
-            this.password = '';
-            this.addUserAttempt = false;
-            
-            this.$emit('component-change', 'menu');
-            return true;
-        },
-        correctBrigade(){
-            if(this.brigade < 1){
-                this.brigade = ''
-            }
-        },
-        stringifyURLParams(){
-            let params = {
-                familyName: this.surname,
-                firstName: this.name,
-                fatherName: this.patronymic,
-                role: this.role,
-                brigadeNumber: this.role === 'Fireman' || this.role === 'Brigadier' ? this.brigade : undefined,
-                address: this.address,
-                phone: this.phone,
-                email: this.email,
-                login: this.login,
-                password: this.password
-            }
-
-            params = new URLSearchParams(Object.fromEntries(
-                Object.entries(params).filter(([_, v]) => v !== undefined && v !== '' && v !== ';')
-            )).toString();
-
-            return params;
-        }
+      availableBrigades: [],
+      availableVehicles: []
     }
+  },
+  async created() {
+    await this.fetchAvailableBrigades();
+    await this.fetchAvailableVehicles();
+  },
+  methods: {
+    async fetchAvailableBrigades() {
+      try {
+        const response = await axios.get('http://localhost:3000/api/get_brigades');
+
+        console.log('Полученные данные о бригадах:', response.data);
+
+        const brigadeInfo = await Promise.all(
+            response.data.freeBrigades.concat(response.data.busyBrigades).map(async brigade => {
+              const membersResponse = await axios.get('http://localhost:3000/api/brigade_members', {
+                params: { brigadeNumber: brigade.brigadeNumber }
+              });
+
+        const lastCallResponse = await axios.get('http://localhost:3000/api/callform_search', {
+                params: {
+                  assignedTo: brigade.brigadeNumber,
+                  status: 'Complete',
+                }
+              });
+              const lastCallTime = lastCallResponse.data[0]?.modifiedAt
+                  ? this.neo4jDateToTime(lastCallResponse.data[0].modifiedAt)
+                  : 0;
+
+              return {
+                brigadeNumber: brigade.brigadeNumber,
+                size: membersResponse.data.length,
+                lastCallTime: lastCallTime
+              };
+            })
+        );
+        this.availableBrigades = this.formatBrigadeData(response.data, brigadeInfo);
+
+      } catch (error) {
+        console.error('Ошибка при получении бригад:', error);
+        this.error = this.getErrorMessage(error);
+      } finally {
+      }
+    },
+
+    formatBrigadeData(data, brigadeInfo) {
+      const getInfo = (brigadeNumber) => {
+        const info = brigadeInfo.find(b => b.brigadeNumber === brigadeNumber);
+        return info || { size: 0, lastCallTime: 0 };
+      };
+
+      const freeBrigades = data.freeBrigades?.map(brigade => ({
+        number: brigade.brigadeNumber || 0,
+        size: getInfo(brigade.brigadeNumber).size || 0,
+        lastCallTime: getInfo(brigade.brigadeNumber).lastCallTime,
+        callsCount: 0,
+        status: 'Свободна',
+        selected: false
+      })) || [];
+
+      const busyBrigades = data.busyBrigades?.map(brigade => ({
+        number: brigade.brigadeNumber  || 0,
+        size: getInfo(brigade.brigadeNumber).size || 0,
+        lastCallTime: getInfo(brigade.brigadeNumber).lastCallTime,
+        callsCount: 0,
+        status: 'На вызове',
+        selected: false
+      })) || [];
+
+      return [...freeBrigades, ...busyBrigades].sort((a, b) => a.number - b.number);
+    },
+    getErrorMessage(error) {
+      if (error.response) {
+        return `Ошибка сервера: ${error.response.status} ${error.response.statusText}`;
+      } else if (error.request) {
+        return 'Нет ответа от сервера';
+      } else {
+        return `Ошибка запроса: ${error.message}`;
+      }
+    },
+
+    neo4jDateToTime(neo4jDate) {
+      if (!neo4jDate || !neo4jDate.year) return 0;
+      return new Date(
+          neo4jDate.year.low,
+          neo4jDate.month.low,
+          neo4jDate.day.low,
+          neo4jDate.hour.low,
+          neo4jDate.minute.low,
+          neo4jDate.second.low
+      ).toLocaleString()
+    },
+
+    async fetchAvailableVehicles() {
+      try {
+        const response = await axios.get('http://localhost:3000/api/inventory_search');
+        console.log( response.data);
+
+        const vehicles = response.data.filter(item =>
+            item.labels.includes('Inventory') &&
+            item.name.includes('машина')
+        );
+        this.availableVehicles = await Promise.all(
+            vehicles.map(async vehicle => {
+              try {
+                const stateResponse = await axios.get('http://localhost:3000/api/auto_state', {
+                  params: {
+                    auto: vehicle.id
+                  }
+                });
+
+                return {
+                  id: vehicle.id,
+                  type: vehicle.name.split(/\s\d+$/)[0] || 'Пожарная машина',
+                  number: vehicle.name.match(/\d+$/)?.[0] || 'н/д',
+                  status: stateResponse.data.occupied ? 'На вызове' : 'Доступна',
+                  selected: false
+                };
+              } catch (error) {
+                console.error(`Ошибка получения статуса для машины ${vehicle.id}:`, error);
+                return {
+                  id: vehicle.id,
+                  type: vehicle.name.split(/\s\d+$/)[0] || 'Пожарная машина',
+                  number: vehicle.name.match(/\d+$/)?.[0] || 'н/д',
+                  status: 'Статус неизвестен',
+                  selected: false
+                };
+              }
+            })
+        );
+      } catch (error) {
+        console.error('Ошибка загрузки транспорта:', error.response?.data || error.message);
+        this.availableVehicles = [];
+      }
+    },
+
+    async sendToBrigades() {
+        if (!this.incidentAddress) {
+          alert('Укажите адрес происшествия');
+          return false;
+        }
+      const selectedBrigades = this.getSelectedBrigades();
+      if (selectedBrigades.length === 0) {
+        alert('Выберите хотя бы одну бригаду!');
+        return false;
+      }
+        console.log(`Отправка запроса на: localhost:3000/api/create_callform?${this.stringifyURLParams()}`);
+
+        await axios.get(`http://localhost:3000/api/create_callform?${this.stringifyURLParams()}`);
+
+
+        this.resetForm();
+        return true;
+
+    },
+
+    getSelectedBrigades() {
+      return this.availableBrigades
+          .filter(brigade => brigade.selected)
+          .map(brigade => brigade.number);
+    },
+
+    stringifyURLParams(){
+      const selectedBrigades = this.getSelectedBrigades();
+      const formatCoords = (point) => {
+        return `(${point.x || 0};${point.y || 0})`;
+      };
+      let params = {
+        callSource: this.callSource,
+        fireAddress: this.incidentAddress,
+        bottomLeft: null,
+        topRight:null,
+        fireType: this.fireType,
+        fireRank: this.fireRank,
+        victimsCount: this.hasCasualties === 'yes' ? this.casualtiesCount : 0,
+        assignedTo: selectedBrigades.length > 0 ? selectedBrigades[0] : undefined,
+        auto: this.selectedVehicle
+      }
+      console.log("stringifyURLParams:", params);
+
+      params = new URLSearchParams(Object.fromEntries(
+          Object.entries(params).filter(([_, v]) => v !== undefined && v !== '' && v !== ';')
+      )).toString();
+      return params;
+    },
+
+    //
+    // confirmSave() {
+    //   // Здесь будет логика сохранения формы
+    //   console.log('Сохранение формы:', {
+    //     incidentAddress: this.incidentAddress,
+    //     fireType: this.fireType,
+    //     hasCasualties: this.hasCasualties,
+    //     casualtiesCount: this.casualtiesCount,
+    //     callSource: this.callSource,
+    //     fireRank: this.fireRank,
+    //     selectedBrigades: this.availableBrigades.filter(b => b.selected),
+    //     selectedVehicle: this.selectedVehicle
+    //   });
+    //   this.showSaveAlert = false;
+    //   this.resetForm();
+    //
+    // },
+    resetForm() {
+      this.incidentAddress = '';
+      this.fireType = '';
+      this.hasCasualties = 'no';
+      this.casualtiesCount = 0;
+      this.callSource = 'witness';
+      this.fireRank = '1';
+      this.selectedBrigades = [];
+      this.selectedVehicle = '';}
+  }
 }
 </script>
 
 <style scoped>
-.addUser__container {
-    width: 100%;
-    margin: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+img{
+  padding-left: 150px;
+  height: 400px;
+  width: 400px;
+}
+.report-form__container{
+  width: 95%;
+}
+.fireReport__container {
+  padding: 20px 20px 20px 0;
+  margin: 0;
+  background-color: #CED0E9;
+  width: 100vw;
 }
 
-.component-label__container {
-    text-align: center;
-    border-radius: 20px 20px 0 0;
-    padding: 10px;
-    background-color: white;
+.component-label__container label {
+  font-size: 24px;
+  font-weight: bold;
 }
 
-.component-label__container>label {
-    font-size: xx-large;
+.report-form__container {
+  background-color: #f5f5f5;
+  padding: 20px;
+  border-radius: 8px;
 }
 
-#exit-icon {
-    position: absolute;
-    cursor: pointer;
-    padding: 10px;
-    right: 30px;
-    top: 30px;
-    height: auto;
+.form-group {
+  margin-bottom: 20px;
 }
 
-#exit-icon:hover {
-    background-color: rgb(128, 128, 128, 0.2);
-    border-radius: 10px;
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
 }
 
-.component-userinfo__container {
-    border-radius: 0 0 20px 20px;
-    background-color: white;
-    height: 100%;
-    padding-left: 80px;
-    padding-top: 40px;
+.form-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 
-.userinfo__input, span {
-    font-size: x-large;
-    margin-bottom: 25px;
+.radio-group {
+  display: flex;
+  gap: 20px;
 }
 
-.userinfo__input {
-    margin-left: 20px;
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: normal;
+  cursor: pointer;
 }
 
-input[type="text"]{
-    width: 600px;
+.selection-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
 }
 
-input[type="number"]{
-    width: 50px;
+.selection-table th, .selection-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
 }
 
-input[type="radio"] {
-    cursor: pointer;
-    transform: scale(3);
-    margin: 30px;
+.selection-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
 }
 
-#submit-button {
-    position: absolute;
-    cursor: pointer;
-    right: 60px;
-    bottom: 50px;
-    font-size: xx-large;
-    border-radius: 10px;
-    border: none;
-    padding: 20px;
-    background-color: #A7A3CC;
+.selection-table tbody tr:hover {
+  background-color: #f9f9f9;
 }
 
-#submit-button:hover {
-    background-color: #766EBF;
+.status-available {
+  color: green;
+  font-weight: bold;
 }
 
-.brigade-text__avaliable {
-    color: black;
+.status-busy {
+  color: red;
+  font-weight: bold;
 }
 
-.brigade-text__unavaliable {
-    color: gray;
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.send-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: #4CAF50;
+  color: white;
+}
+
+.send-button:hover {
+  background-color: #45a049;
+}
+
+.save-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: #bf6e6e;
+  color: white;
+}
+
+.save-button:hover {
+  background-color: #8d5151;
+}
+
+.alert__container {
+  position: fixed;
+  border: 5px solid #BF6E6E;
+  background-color: white;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  border-radius: 13px;
+  width: 60%;
+  height: 40%;
+  font-size: xx-large;
+  font-weight: bolder;
+}
+#exit-icon-alert {
+  position: absolute;
+  cursor: pointer;
+  padding: 10px;
+  right: -5px;
+  top: -5px;
+  background-color: #BF6E6E;
+  border-radius: 10px;
+  width: 20px;
+  height: 20px;
+}
+
+#exit-icon-alert:hover {
+  background-color: #8d5151;
+}
+.alert-message{
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -30%);
+  font-size: x-large;
+}
+.confirm-button {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translate(-50%, -0%);
+  border: none;
+  background-color: #BF6E6E;
+  font-size: x-large;
+  border-radius: 13px;
+  width: 25%;
+  height: 20%;
+  cursor: pointer;
+}
+.confirm-button:hover {
+  background-color: #8d5151;
 }
 </style>
