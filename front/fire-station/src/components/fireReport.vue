@@ -156,6 +156,7 @@ export default {
     await this.fetchAvailableVehicles();
   },
   methods: {
+
     async fetchAvailableBrigades() {
       try {
         const response = await axios.get('http://localhost:3000/api/get_brigades');
@@ -286,23 +287,49 @@ export default {
     },
 
     async sendToBrigades() {
-        if (!this.incidentAddress) {
-          alert('Укажите адрес происшествия');
-          return false;
-        }
+      if (!this.incidentAddress) {
+        alert('Укажите адрес происшествия');
+        return false;
+      }
+
       const selectedBrigades = this.getSelectedBrigades();
       if (selectedBrigades.length === 0) {
         alert('Выберите хотя бы одну бригаду!');
         return false;
       }
-        console.log(`Отправка запроса на: localhost:3000/api/create_callform?${this.stringifyURLParams()}`);
 
-        await axios.get(`http://localhost:3000/api/create_callform?${this.stringifyURLParams()}`);
+      try {
+        const params = {
+          callSource: this.callSource,
+          fireAddress: this.incidentAddress,
+          fireType: this.fireType,
+          fireRank: this.fireRank,
+          victimsCount: this.hasCasualties === 'yes' ? this.casualtiesCount : 0,
+          assignedTo: selectedBrigades[0],
+          auto: this.selectedVehicle,
+          bottomLeft: '55.7558;37.6173',
+          topRight: '55.756;37.618'
+        };
 
+        console.log('Отправляемые параметры:', params);
 
+        const response = await axios.get('http://localhost:3000/api/create_callform', {
+          params: params,
+          paramsSerializer: params => {
+            return Object.entries(params)
+                .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+                .join('&');
+          }
+        });
+
+        console.log('Ответ сервера:', response.data);
         this.resetForm();
         return true;
-
+      } catch (error) {
+        console.error('Ошибка при отправке данных:', error);
+        alert('Произошла ошибка: ' + (error.response?.data?.error || error.message));
+        return false;
+      }
     },
 
     getSelectedBrigades() {
@@ -319,7 +346,7 @@ export default {
       let params = {
         callSource: this.callSource,
         fireAddress: this.incidentAddress,
-        bottomLeft: null,
+        bottomLeft: { "latitude": 55.7558, "longitude": 37.6173 },
         topRight:null,
         fireType: this.fireType,
         fireRank: this.fireRank,
