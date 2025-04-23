@@ -5,7 +5,7 @@
         <label>Адрес происшествия:</label>
         <input type="text" v-model="incidentAddress" class="form-input">
       </div>
-<!--      карта будет позже-->
+      <!--      карта будет позже-->
       <img src="../../public/map.png">
 
       <div class="form-group">
@@ -123,6 +123,7 @@
 <script>
 // import { onMounted, ref } from 'vue'
 // import L from 'leaflet'
+import axios from 'axios';
 export default {
   name: 'CreateFireReportComponent',
 
@@ -146,62 +147,238 @@ export default {
         { value: '4', label: '4' }
       ],
 
-      availableBrigades: [
-        { number: 1, size: 9, lastCallTime: '12:35 12.12.24', callsCount: 1, status: 'Свободна', selected: false },
-        { number: 2, size: 5, lastCallTime: '11:35 12.12.24', callsCount: 2, status: 'Свободна', selected: false },
-        { number: 4, size: 8, lastCallTime: '13:50 12.12.24', callsCount: 1, status: 'На вызове', selected: false },
-        { number: 3, size: 7, lastCallTime: '13:25 12.12.24', callsCount: 3, status: 'На вызове', selected: false }
-      ],
-
-      availableVehicles: [
-        { type: 'Автоцистерна (АЦ)', status: 'Свободна', number: 'A123BC' },
-        { type: 'Автолестница (АЛ)', status: 'Занята', number: 'E456KL' },
-        { type: 'Коленчатый подъёмник (АКП)', status: 'Свободна', number: 'M789PH' },
-        { type: 'Пожарно-насосная станция (ПНС)', status: 'Свободна', number: 'T102KC' }
-      ]
+      availableBrigades: [],
+      availableVehicles: []
     }
   },
+  async created() {
+    await this.fetchAvailableBrigades();
+    await this.fetchAvailableVehicles();
+  },
   methods: {
-    sendToBrigades() {
-      const selectedBrigades = this.availableBrigades.filter(b => b.selected);
+
+    async fetchAvailableBrigades() {
+      try {
+        const response = await axios.get('http://localhost:3000/api/get_brigades');
+
+        console.log('Полученные данные о бригадах:', response.data);
+
+        const brigadeInfo = await Promise.all(
+            response.data.freeBrigades.concat(response.data.busyBrigades).map(async brigade => {
+              const membersResponse = await axios.get('http://localhost:3000/api/brigade_members', {
+                params: { brigadeNumber: brigade.brigadeNumber }
+              });
+
+        const lastCallResponse = await axios.get('http://localhost:3000/api/callform_search', {
+                params: {
+                  assignedTo: brigade.brigadeNumber,
+                  status: 'Complete',
+                }
+              });
+              const lastCallTime = lastCallResponse.data[0]?.modifiedAt
+                  ? this.neo4jDateToTime(lastCallResponse.data[0].modifiedAt)
+                  : 0;
+
+              return {
+                brigadeNumber: brigade.brigadeNumber,
+                size: membersResponse.data.length,
+                lastCallTime: lastCallTime
+              };
+            })
+        );
+        this.availableBrigades = this.formatBrigadeData(response.data, brigadeInfo);
+
+      } catch (error) {
+        console.error('Ошибка при получении бригад:', error);
+        this.error = this.getErrorMessage(error);
+      } finally {
+      }
+    },
+
+    formatBrigadeData(data, brigadeInfo) {
+      const getInfo = (brigadeNumber) => {
+        const info = brigadeInfo.find(b => b.brigadeNumber === brigadeNumber);
+        return info || { size: 0, lastCallTime: 0 };
+      };
+
+      const freeBrigades = data.freeBrigades?.map(brigade => ({
+        number: brigade.brigadeNumber || 0,
+        size: getInfo(brigade.brigadeNumber).size || 0,
+        lastCallTime: getInfo(brigade.brigadeNumber).lastCallTime,
+        callsCount: 0,
+        status: 'Свободна',
+        selected: false
+      })) || [];
+
+      const busyBrigades = data.busyBrigades?.map(brigade => ({
+        number: brigade.brigadeNumber  || 0,
+        size: getInfo(brigade.brigadeNumber).size || 0,
+        lastCallTime: getInfo(brigade.brigadeNumber).lastCallTime,
+        callsCount: 0,
+        status: 'На вызове',
+        selected: false
+      })) || [];
+
+      return [...freeBrigades, ...busyBrigades].sort((a, b) => a.number - b.number);
+    },
+    getErrorMessage(error) {
+      if (error.response) {
+        return `Ошибка сервера: ${error.response.status} ${error.response.statusText}`;
+      } else if (error.request) {
+        return 'Нет ответа от сервера';
+      } else {
+        return `Ошибка запроса: ${error.message}`;
+      }
+    },
+
+    neo4jDateToTime(neo4jDate) {
+      if (!neo4jDate || !neo4jDate.year) return 0;
+      return new Date(
+          neo4jDate.year.low,
+          neo4jDate.month.low,
+          neo4jDate.day.low,
+          neo4jDate.hour.low,
+          neo4jDate.minute.low,
+          neo4jDate.second.low
+      ).toLocaleString()
+    },
+
+    async fetchAvailableVehicles() {
+      try {
+        const response = await axios.get('http://localhost:3000/api/inventory_search');
+        console.log( response.data);
+
+        const vehicles = response.data.filter(item =>
+            item.labels.includes('Inventory') &&
+            item.name.includes('машина')
+        );
+        this.availableVehicles = await Promise.all(
+            vehicles.map(async vehicle => {
+              try {
+                const stateResponse = await axios.get('http://localhost:3000/api/auto_state', {
+                  params: {
+                    auto: vehicle.id
+                  }
+                });
+
+                return {
+                  id: vehicle.id,
+                  type: vehicle.name.split(/\s\d+$/)[0] || 'Пожарная машина',
+                  number: vehicle.name.match(/\d+$/)?.[0] || 'н/д',
+                  status: stateResponse.data.occupied ? 'На вызове' : 'Доступна',
+                  selected: false
+                };
+              } catch (error) {
+                console.error(`Ошибка получения статуса для машины ${vehicle.id}:`, error);
+                return {
+                  id: vehicle.id,
+                  type: vehicle.name.split(/\s\d+$/)[0] || 'Пожарная машина',
+                  number: vehicle.name.match(/\d+$/)?.[0] || 'н/д',
+                  status: 'Статус неизвестен',
+                  selected: false
+                };
+              }
+            })
+        );
+      } catch (error) {
+        console.error('Ошибка загрузки транспорта:', error.response?.data || error.message);
+        this.availableVehicles = [];
+      }
+    },
+
+    async sendToBrigades() {
+      if (!this.incidentAddress) {
+        alert('Укажите адрес происшествия');
+        return false;
+      }
+
+      const selectedBrigades = this.getSelectedBrigades();
       if (selectedBrigades.length === 0) {
-        alert('Выберите хотя бы одну бригаду');
-        return;
+        alert('Выберите хотя бы одну бригаду!');
+        return false;
       }
 
-      if (!this.selectedVehicle) {
-        alert('Выберите пожарную машину');
-        return;
+      try {
+        const params = {
+          callSource: this.callSource,
+          fireAddress: this.incidentAddress,
+          fireType: this.fireType,
+          fireRank: this.fireRank,
+          victimsCount: this.hasCasualties === 'yes' ? this.casualtiesCount : 0,
+          assignedTo: selectedBrigades[0],
+          auto: this.selectedVehicle,
+          bottomLeft: '55.7558;37.6173',
+          topRight: '55.756;37.618'
+        };
+
+        console.log('Отправляемые параметры:', params);
+
+        const response = await axios.get('http://localhost:3000/api/create_callform', {
+          params: params,
+          paramsSerializer: params => {
+            return Object.entries(params)
+                .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+                .join('&');
+          }
+        });
+
+        console.log('Ответ сервера:', response.data);
+        this.resetForm();
+        return true;
+      } catch (error) {
+        console.error('Ошибка при отправке данных:', error);
+        alert('Произошла ошибка: ' + (error.response?.data?.error || error.message));
+        return false;
       }
-
-      // Здесь будет логика отправки данных выбранным бригадам
-      console.log('Отправка бригадам:', {
-        incidentAddress: this.incidentAddress,
-        fireType: this.fireType,
-        fireRank: this.fireRank,
-        brigades: selectedBrigades,
-        vehicle: this.selectedVehicle
-      });
-
-      alert('Информация отправлена выбранным бригадам');
     },
 
-    confirmSave() {
-      // Здесь будет логика сохранения формы
-      console.log('Сохранение формы:', {
-        incidentAddress: this.incidentAddress,
-        fireType: this.fireType,
-        hasCasualties: this.hasCasualties,
-        casualtiesCount: this.casualtiesCount,
+    getSelectedBrigades() {
+      return this.availableBrigades
+          .filter(brigade => brigade.selected)
+          .map(brigade => brigade.number);
+    },
+
+    stringifyURLParams(){
+      const selectedBrigades = this.getSelectedBrigades();
+      const formatCoords = (point) => {
+        return `(${point.x || 0};${point.y || 0})`;
+      };
+      let params = {
         callSource: this.callSource,
+        fireAddress: this.incidentAddress,
+        bottomLeft: { "latitude": 55.7558, "longitude": 37.6173 },
+        topRight:null,
+        fireType: this.fireType,
         fireRank: this.fireRank,
-        selectedBrigades: this.availableBrigades.filter(b => b.selected),
-        selectedVehicle: this.selectedVehicle
-      });
-      this.showSaveAlert = false;
-      this.resetForm();
+        victimsCount: this.hasCasualties === 'yes' ? this.casualtiesCount : 0,
+        assignedTo: selectedBrigades.length > 0 ? selectedBrigades[0] : undefined,
+        auto: this.selectedVehicle
+      }
+      console.log("stringifyURLParams:", params);
 
+      params = new URLSearchParams(Object.fromEntries(
+          Object.entries(params).filter(([_, v]) => v !== undefined && v !== '' && v !== ';')
+      )).toString();
+      return params;
     },
+
+    //
+    // confirmSave() {
+    //   // Здесь будет логика сохранения формы
+    //   console.log('Сохранение формы:', {
+    //     incidentAddress: this.incidentAddress,
+    //     fireType: this.fireType,
+    //     hasCasualties: this.hasCasualties,
+    //     casualtiesCount: this.casualtiesCount,
+    //     callSource: this.callSource,
+    //     fireRank: this.fireRank,
+    //     selectedBrigades: this.availableBrigades.filter(b => b.selected),
+    //     selectedVehicle: this.selectedVehicle
+    //   });
+    //   this.showSaveAlert = false;
+    //   this.resetForm();
+    //
+    // },
     resetForm() {
       this.incidentAddress = '';
       this.fireType = '';
