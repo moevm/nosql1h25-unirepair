@@ -61,7 +61,7 @@
                             </td>
                             <td style="width: 50%; padding-left: 10px;">{{ user.familyName + ' ' + user.firstName + ' ' + user.fatherName }}</td>
                             <td style="padding-left: 10px;">{{ rolesTranslations[findRole(user)] }}</td>
-                            <td style="text-align: center; width: 8%">{{ user.brigadeNumber ? user.brigadeNumber : '-' }}</td>
+                            <td style="text-align: center; width: 8%">{{ user.brigadeNumber > 0 ? user.brigadeNumber : '-' }}</td>
                         </tr>    
                         <tr class="row__table" v-if="foundUsers.length < 4" v-for="index in (4 - foundUsers.length)">
                             <td style="width: 3%; text-align: center;">
@@ -114,6 +114,7 @@ export default {
         goToEditUserData(index){
             const editedUser = useEditedUser();
             editedUser.updateData(this.foundUsers[index], this.findRole(this.foundUsers[index]), index);
+            console.log(this.foundUsers[index])
             this.$emit('component-change', 'editUser');
             this.foundUsers = [];
         },
