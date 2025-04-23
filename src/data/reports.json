@@ -34,5 +34,32 @@
     "damage": 0,
     "additionalNotes": "Данные ещё не внесены, ожидается завершение отчёта.",
     "modifiedAt": "2025-03-30T10:50:00Z"
+  },
+  {
+    "status": "New",
+    "waterSpent": 0,
+    "foamSpent": 0,
+    "allegedFireCause": "неизвестно",
+    "damage": 0,
+    "additionalNotes": "Данные ещё не внесены, ожидается завершение отчёта.",
+    "modifiedAt": "2025-02-25T10:00:00Z"
+  },
+  {
+    "status": "New",
+    "waterSpent": 0,
+    "foamSpent": 0,
+    "allegedFireCause": "неизвестно",
+    "damage": 0,
+    "additionalNotes": "Данные ещё не внесены, ожидается завершение отчёта.",
+    "modifiedAt": "2025-03-04T10:30:00Z"
+  },
+  {
+    "status": "New",
+    "waterSpent": 0,
+    "foamSpent": 0,
+    "allegedFireCause": "неизвестно",
+    "damage": 0,
+    "additionalNotes": "Данные ещё не внесены, ожидается завершение отчёта.",
+    "modifiedAt": "2025-03-03T10:20:00Z"
   }
 ]

@@ -68,5 +68,61 @@
     "victimsCount": 3,
     "assignedTo": 1,
     "auto": "Пожарная машина 5"
+  },
+  {
+    "status": "Incomplete",
+    "createdAt": "2025-01-05T14:00:00Z",
+    "modifiedAt": "2025-01-05T15:45:00Z",
+    "callSource": "автоматическая система",
+    "fireAddress": "г. Санкт-Петербург, ул. Комсомольская, д. 22",
+    "bottomLeft": { "latitude": 59.9343, "longitude": 30.3351 },
+    "topRight": { "latitude": 59.935, "longitude": 30.336 },
+    "fireType": "пожар в жилом доме",
+    "fireRank": "1",
+    "victimsCount": 1,
+    "assignedTo": 2,
+    "auto": "Пожарная машина 6"
+  },
+  {
+    "status": "Complete",
+    "createdAt": "2025-01-13T16:00:00Z",
+    "modifiedAt": "2025-01-13T16:45:00Z",
+    "callSource": "автоматическая система",
+    "fireAddress": "г. Санкт-Петербург, ул. Парковая, д. 2",
+    "bottomLeft": { "latitude": 59.9343, "longitude": 30.3351 },
+    "topRight": { "latitude": 59.935, "longitude": 30.336 },
+    "fireType": "заводской пожар",
+    "fireRank": "2",
+    "victimsCount": 6,
+    "assignedTo": 1,
+    "auto": "Пожарная машина 7"
+  },
+  {
+    "status": "Complete",
+    "createdAt": "2025-02-04T10:00:00Z",
+    "modifiedAt": "2025-02-04T10:40:00Z",
+    "callSource": "автоматическая система",
+    "fireAddress": "г. Санкт-Петербург, ул. Молодежная, д. 17",
+    "bottomLeft": { "latitude": 59.9343, "longitude": 30.3351 },
+    "topRight": { "latitude": 59.935, "longitude": 30.336 },
+    "fireType": "заводской пожар",
+    "fireRank": "4",
+    "victimsCount": 3,
+    "assignedTo": 1,
+    "auto": "Пожарная машина 8"
+  },
+  {
+    "status": "Complete",
+    "createdAt": "2025-02-07T12:00:00Z",
+    "modifiedAt": "2025-02-07T13:10:00Z",
+    "callSource": "автоматическая система",
+    "fireAddress": "г. Санкт-Петербург, ул. Партизанская, д. 13",
+    "bottomLeft": { "latitude": 59.9343, "longitude": 30.3351 },
+    "topRight": { "latitude": 59.935, "longitude": 30.336 },
+    "fireType": "заводской пожар",
+    "fireRank": "1",
+    "victimsCount": 3,
+    "assignedTo": 2,
+    "auto": "Пожарная машина 9"
   }
 ]

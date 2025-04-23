@@ -10,7 +10,7 @@ const tests = {
       !result ||
       result.complete_reports.length !== 1 ||
       result.incomplete_reports.length !== 1 ||
-      result.new_reports.length !== 0
+      result.new_reports.length !== 2
     ) {
       return "Expected 1 complete and 1 incomplete report to be found for brigade 1";
     }
