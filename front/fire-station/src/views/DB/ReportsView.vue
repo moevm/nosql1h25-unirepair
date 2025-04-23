@@ -18,15 +18,24 @@
                         <input type="radio" v-model="status" value="New" class="text__input" :disabled="!useStatus"><span>Новый</span>
                     </div>
                     
-                    <span>Расход воды:</span>
-                    <input type="number" min="0" v-model="waterSpent" @blur="(waterSpent < 0 && waterSpent !== '') ? waterSpent = 0 : true" style="width: 50px;" class="text__input">
-                    <span>Расход пены:</span>
-                    <input type="number" min="0" v-model="foamSpent" @blur="(foamSpent < 0 && foamSpent !== '') ? foamSpent = 0 : true" style="width: 50px;" class="text__input">
+                    <span>Расход воды:  </span>
+                    <span>от:</span>
+                    <input type="number" min="0" v-model="waterSpent.from" @blur="(waterSpent.from < 0 && waterSpent.from !== '') ? waterSpent.from = 0 : true" style="width: 50px;" class="text__input">
+                    <span>до:</span>
+                    <input type="number" min="0" v-model="waterSpent.to" @blur="(waterSpent.to < 0 && waterSpent.to !== '') ? waterSpent.to = 0 : true" style="width: 50px;" class="text__input">
+                    <span>Расход пены:  </span>
+                    <span>от:</span>
+                    <input type="number" min="0" v-model="foamSpent.from" @blur="(foamSpent.from < 0 && foamSpent.from !== '') ? foamSpent.from = 0 : true" style="width: 50px;" class="text__input">
+                    <span>до:</span>
+                    <input type="number" min="0" v-model="foamSpent.to" @blur="(foamSpent.to < 0 && foamSpent.to !== '') ? foamSpent.to = 0 : true" style="width: 50px;" class="text__input">
                     <span>Предполагаемая причина пожара:</span>
                     <input type="text" v-model="allegedFireCause" class="text__input">
                     <br>
-                    <span>Оценка ущерба:</span>
-                    <input type="number" min="0" v-model="damage" @blur="(damage < 0 && damage !== '') ? damage = 0 : true" style="width: 50px;" class="text__input">
+                    <span>Оценка ущерба:  </span>
+                    <span>от:</span>
+                    <input type="number" min="0" v-model="damage.from" @blur="(damage.from < 0 && damage.from !== '') ? damage.from = 0 : true" style="width: 50px;" class="text__input">
+                    <span>до:</span>
+                    <input type="number" min="0" v-model="damage.to" @blur="(damage.to < 0 && damage.to !== '') ? damage.to = 0 : true" style="width: 50px;" class="text__input">
                     <span>Дополнительная информация:</span>
                     <input type="text" v-model="additionalNotes" class="text__input">
                     <br>
@@ -80,10 +89,10 @@ export default {
     data() {
         return {
             status: "Complete",
-            waterSpent: '',
-            foamSpent: '',
+            waterSpent: {from: '', to: ''},
+            foamSpent: {from: '', to: ''},
             allegedFireCause: '',
-            damage: '',
+            damage: {from: '', to: ''},
             additionalNotes: '',
             modifiedAt: {from: '', to: ''},
 
@@ -105,10 +114,10 @@ export default {
         stringifyURLParams(){
             let params = {
                 status: this.useStatus ? this.status : '',
-                waterSpent: this.waterSpent,
-                foamSpent: this.foamSpent,
+                waterSpent: `${this.waterSpent.from ? this.waterSpent.from : 0};${this.waterSpent.to ? this.waterSpent.to : 9999999}`,
+                foamSpent: `${this.foamSpent.from ? this.foamSpent.from : 0};${this.foamSpent.to ? this.foamSpent.to : 9999999}`,
                 allegedFireCause: this.allegedFireCause,
-                damage: this.damage,
+                damage: `${this.damage.from ? this.damage.from : 0};${this.damage.to ? this.damage.to : 9999999}`,
                 additionalNotes: this.additionalNotes,
                 modifiedAt: `${this.modifiedAt.from};${this.modifiedAt.to}`
             }
@@ -139,10 +148,10 @@ export default {
         },
         reset(){
             this.status = "Complete",
-            this.waterSpent = '',
-            this.foamSpent = '',
+            this.waterSpent = {from: '', to: ''},
+            this.foamSpent = {from: '', to: ''},
             this.allegedFireCause = '',
-            this.damage = '',
+            this.damage = {from: '', to: ''},
             this.additionalNotes = '',
             this.modifiedAt = {from: '', to: ''}
 

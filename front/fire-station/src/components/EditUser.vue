@@ -21,6 +21,8 @@
             <br>
             <input type="radio" v-model="editedUser.user.role" value="Fireman" class="userinfo__input">
             <span>Пожарный</span>
+            <input type="radio" v-model="editedUser.user.role" value="Brigadier" class="userinfo__input">
+            <span>Бригадир</span>
             <br>
             <input type="radio" v-model="editedUser.user.role" value="Operator" class="userinfo__input">
             <span>Оператор</span>
@@ -29,7 +31,7 @@
             <br>
 
             <span :class="{'brigade-text__avaliable': editedUser.user.role === 'Fireman', 'brigade-text__unavaliable': editedUser.user.role !== 'Fireman'}">Бригада:</span>
-            <input min="1" type="number" v-model="editedUser.user.brigade" class="userinfo__input" :disabled="editedUser.user.role !== 'Fireman'" @blur="correctBrigade">
+            <input min="1" type="number" :v-model="editedUser.user.brigade" class="userinfo__input" :disabled="editedUser.user.role !== 'Fireman'" @blur="correctBrigade">
             <span v-show="!editedUser.user.brigade && addUserAttempt && editedUser.user.role === 'Fireman'" style="color: red; margin-left: 15px;">Назначьте бригаду</span>
             <br>
             <span>Телефон:</span>

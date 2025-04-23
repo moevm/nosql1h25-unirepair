@@ -173,6 +173,8 @@ export default {
                 fatherName: this.patronymic,
                 role: this.role,
                 brigadeNumber: this.role === 'Fireman' || this.role === 'Brigadier' ? this.brigade : '',
+                createdAt: `${this.callDate_begin};${this.callDate_end}`,
+                modifiedAt: `${this.createDate_begin};${this.createDate_end}`
             }
 
             params = new URLSearchParams(Object.fromEntries(

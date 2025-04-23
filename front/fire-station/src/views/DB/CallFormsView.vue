@@ -42,8 +42,11 @@
                         <span style="margin-left: 20px;">Адрес:</span>
                         <input type="text" v-model="fireAddress" class="text__input">
                     </div>
-                    <span>Количество жертв:</span>
-                    <input type="number" v-model="victims" class="text__input" style="width: 50px" min="0" @blur="victims < 0 && victims !== '' ? victims = 0 : true">
+                    <span>Количество жертв:  </span>
+                    <span>от:</span>
+                    <input type="number" v-model="victims.from" class="text__input" style="width: 50px" min="0" @blur="victims.from < 0 && victims.from !== '' ? victims.from = 0 : true">
+                    <span>до:</span>
+                    <input type="number" v-model="victims.to" class="text__input" style="width: 50px" min="0" @blur="victims.to < 0 && victims.to !== '' ? victims.to = 0 : true">
                     <span>Прикрепленная бригада:</span>
                     <input type="number" min="1" v-model="brigade" @blur="(brigade < 1 && brigade !== '') ? brigade = 1 : true" style="width: 50px;" class="text__input">
                     <button @click="search" id="submit-button">Найти</button>
@@ -105,7 +108,7 @@ export default {
             fireAddress: '',
             fireDescription: '',
             fireRank: '1',
-            victims: '',
+            victims: {from: '', to: ''},
             brigade: '',
 
             useStatus: false,
@@ -132,7 +135,7 @@ export default {
                 fireAddress: this.fireAddress,
                 fireType: this.fireDescription,
                 fireRank: this.useRank ? this.fireRank : '',
-                victimsCount: this.victims,
+                victimsCount: `${this.victims.from ? this.victims.from : 0};${this.victims.to ? this.victims.to : 9999999}`,
                 assignedTo: this.brigade,
             }
 
@@ -144,7 +147,7 @@ export default {
         },
         findStatus(user){
             return user.labels.find(label => (label === 'Complete' || label === 'Incomplete'))
-        },
+        },  
         formDate(date){
             if(date.year){
                 let year = date.year.low.toString();
@@ -167,7 +170,7 @@ export default {
             this.callSource = '';
             this.fireDescription = '';
             this.fireRank = '1';
-            this.victims = '';
+            this.victims = {from: '', to: ''};
             this.brigade = '';
             this.useRank = false;
             this.useStatus = false;

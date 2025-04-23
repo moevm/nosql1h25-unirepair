@@ -23,9 +23,10 @@
                         <input type="radio" v-model="role" value="Fireman" :disabled="!useRole"><span>Пожарный</span>
                         <input type="radio" v-model="role" value="Operator" :disabled="!useRole"><span>Оператор</span>
                         <input type="radio" v-model="role" value="Admin" :disabled="!useRole"><span>Администратор</span>
+                        <input type="radio" v-model="role" value="Brigadier" :disabled="!useRole"><span>Бригадир</span>
                     </div>
                     <span>Бригада:</span>
-                    <input type="number" min="1" v-model="brigade" :disabled="role !== 'Fireman'" @blur="(brigade < 1 && brigade !== '') ? brigade = 1 : true" style="width: 50px;" class="text__input">
+                    <input type="number" min="1" v-model="brigade" :disabled="role !== 'Fireman' && role !== 'Brigadier' && useRole" @blur="(brigade < 1 && brigade !== '') ? brigade = 1 : true" style="width: 50px;" class="text__input">
                     <span>Адрес:</span>
                     <input type="text" v-model="address" class="text__input">
                     <span>Логин:</span>
@@ -67,7 +68,7 @@
                             <tr v-for="(user, index) in foundUsers" :key="index">
                                 <td style="width: 8%">{{ user.firstName + ' ' + user.familyName + ' ' + user.fatherName }}</td>
                                 <td style="width: 10%">{{ rolesTranslations[findRole(user)] }}</td>
-                                <td style="width: 5%">{{ user.brigadeNumber ? user.brigadeNumber : '-' }}</td>
+                                <td style="width: 5%">{{ user.brigadeNumber > 0 ? user.brigadeNumber : '-' }}</td>
                                 <td style="width: 10%">{{ user.address }}</td>
                                 <td style="width: 10%">{{ user.phone }}</td>
                                 <td style="width: 10%">{{ user.email }}</td>
@@ -134,7 +135,7 @@ export default {
                 firstName: this.name,
                 fatherName: this.patronymic,
                 role: this.useRole ? this.role : '',
-                brigadeNumber: (this.role === 'Fireman' || this.role === 'Brigadier') && this.useRole ? this.brigade : '',
+                brigadeNumber: !this.useRole || this.useRole && (this.role === 'Fireman' || this.role === 'Brigadier') ? this.brigade : '',
                 phone: this.phone,
                 address: this.address,
                 login: this.login,
