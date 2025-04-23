@@ -87,8 +87,9 @@ const api_routes = {
       );
     },
   // 8. User search
-  "user_search/familyName? firstName? fatherName? role:label? brigadeNumber:uint..? address? phone? email? registeredAt:datetime..? modifiedAt:datetime..?":
+  "user_search/familyName? firstName? fatherName? role:label? brigadeNumber:uint..? address? phone? email? login? registeredAt:datetime..? modifiedAt:datetime..?":
     async (args) => {
+      console.log(args);
       return await match("u:User", args, { orderBy: "u.name DESC" });
     },
   // 9. User modification
