@@ -26,7 +26,7 @@
       <p class="profile__contact-settings-item"><strong>Последнее редактирование:</strong> {{ user.modifiedAt }}</p>
     </div>
 
-    <RouterLink to="/db" class="button DB_button" >База данных</RouterLink>
+    <RouterLink to="/db" v-if="user.role=='admin'" class="button DB_button" >База данных</RouterLink>
     
     <div class="profile__buttons">
       <button class="button button_secondary" @click="$emit('edit', user)">Редактировать данные</button>
