@@ -214,61 +214,74 @@ const api_routes = {
     };
   },
   //add inventory
-    "inventory_add/name:string": async (args) => {
-        const nameValue = args.name?.value;
+  "inventory_add/name:string": async (args) => {
+    const nameValue = args.name?.value;
 
-        if (!nameValue || typeof nameValue !== 'string' || nameValue.trim() === '') {
-            return {
-                success: false,
-                message: "Название инвентаря не может быть пустым",
-                status: 400
-            };
-        }
+    if (
+      !nameValue ||
+      typeof nameValue !== "string" ||
+      nameValue.trim() === ""
+    ) {
+      return {
+        success: false,
+        message: "Название инвентаря не может быть пустым",
+        status: 400,
+      };
+    }
 
-        const trimmedName = nameValue.trim();
+    const trimmedName = nameValue.trim();
 
-        const existing = await match("i:Inventory", { name: { value: trimmedName, type: 'string' } });
-        if (existing?.length > 0) {
-            return {
-                success: false,
-                message: "Инвентарь с таким названием уже существует",
-                status: 409
-            };
-        }
+    const existing = await match("i:Inventory", {
+      name: { value: trimmedName, type: "string" },
+    });
+    if (existing?.length > 0) {
+      return {
+        success: false,
+        message: "Инвентарь с таким названием уже существует",
+        status: 409,
+      };
+    }
 
-        const newItem = await create(":Inventory", {
-            name: { value: trimmedName, type: 'string' }
-        });
-        
-        return {
-            success: true,
-            data: { name: trimmedName },
-            message: "Инвентарь успешно добавлен",
-            status: 200
-        };
-    },
-    "complete_callform_and_create_report/status:label? createdAt:daterange? modifiedAt:daterange? callSource? fireAddress? fireType? fireRank? victimsCount:uint? assignedTo:uint?":
-  async (args) => {
+    const newItem = await create(":Inventory", {
+      name: { value: trimmedName, type: "string" },
+    });
+
+    return {
+      success: true,
+      data: { name: trimmedName },
+      message: "Инвентарь успешно добавлен",
+      status: 200,
+    };
+  },
+  "complete_callform_and_create_report/status:label? createdAt:datetime..? modifiedAt:datetime..? callSource? fireAddress? fireType? fireRank? victimsCount:uint? assignedTo:uint?":
+    async (args) => {
       const callForms = await match("cf:CallForm:Incomplete", args, {
-          orderBy: "cf.createdAt DESC",
+        orderBy: "cf.createdAt DESC",
       });
 
       if (!callForms || callForms.length === 0) {
-          return {
-              success: false,
-              message: "Вы еще не отправили форму бригадам",
-              status: 404
-          };
+        return {
+          success: false,
+          message: "Вы еще не отправили форму бригадам",
+          status: 404,
+        };
       }
 
       const callform = callForms[0];
 
-      await match("cf:CallForm:Incomplete", { id: callform.id }, {
+      await match(
+        "cf:CallForm:Incomplete",
+        { id: callform.id },
+        {
           remove: { cf: ["Incomplete"] },
-          set: { cf: { label: makeLabel("Complete"), modifiedAt: now() } }
-      });
+          set: { cf: { label: makeLabel("Complete"), modifiedAt: now() } },
+        },
+      );
 
-      await match("cf:CallForm:Complete", { id: callform.id }, {
+      await match(
+        "cf:CallForm:Complete",
+        { id: callform.id },
+        {
           create: `(r:Report:New {
                       waterSpent: 0,
                       foamSpent: 0,
@@ -276,15 +289,16 @@ const api_routes = {
                       damage: 0,
                       additionalNotes: "Данные ещё не внесены, ожидается завершение отчёта.",
                       modifiedAt: datetime()
-                      })\nCREATE (r)-[:ON_CALL]->(cf)`
-      });
+                      })\nCREATE (r)-[:ON_CALL]->(cf)`,
+        },
+      );
 
       return {
-          success: true,
-          message: "Форма вызова завершена и отчет создан",
-          status: 200,
-          callformId: callform.id
+        success: true,
+        message: "Форма вызова завершена и отчет создан",
+        status: 200,
+        callformId: callform.id,
       };
-  },
+    },
 };
 export default api_routes;
