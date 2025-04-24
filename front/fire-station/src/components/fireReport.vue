@@ -34,11 +34,9 @@
         <label>Источник звонка:</label>
         <div class="radio-group">
           <label>
-            <input type="radio" v-model="callSource" value="witness"> Звонок очевидца
-          </label>
+            <input type="radio" v-model="callSource" value="телефонный звонок">телефонный звонок</label>
           <label>
-            <input type="radio" v-model="callSource" value="alarm"> Автоматическая сигнализация
-          </label>
+            <input type="radio" v-model="callSource" value="автоматическая система">автоматическая система</label>
         </div>
       </div>
 
@@ -55,26 +53,26 @@
         <label>Выбор бригад:</label>
         <table class="selection-table">
           <thead>
-          <tr>
-            <th>Выбрать</th>
-            <th>Номер бр.</th>
-            <th>Размер бр.</th>
-            <th>Время последнего вызова</th>
-            <th>Кол-во вызовов за смену</th>
-            <th>Статус</th>
-          </tr>
+            <tr>
+              <th>Выбрать</th>
+              <th>Номер бр.</th>
+              <th>Размер бр.</th>
+              <th>Время последнего вызова</th>
+              <th>Кол-во вызовов за смену</th>
+              <th>Статус</th>
+            </tr>
           </thead>
           <tbody>
-          <tr v-for="(brigade, index) in availableBrigades" :key="index">
-            <td><input type="checkbox" v-model="brigade.selected"></td>
-            <td>{{ brigade.number }}</td>
-            <td>{{ brigade.size }}</td>
-            <td>{{ brigade.lastCallTime }}</td>
-            <td>{{ brigade.callsCount }}</td>
-            <td :class="{'status-available': brigade.status === 'Свободна', 'status-busy': brigade.status === 'На вызове'}">
-              {{ brigade.status }}
-            </td>
-          </tr>
+            <tr v-for="(brigade, index) in availableBrigades" :key="index">
+              <td><input type="radio" v-model="selectedBrigade" :value="brigade.number"></td>
+              <td>{{ brigade.number }}</td>
+              <td>{{ brigade.size }}</td>
+              <td>{{ brigade.lastCallTime }}</td>
+              <td>{{ brigade.callsCount }}</td>
+              <td :class="{'status-available': brigade.status === 'Свободна', 'status-busy': brigade.status === 'На вызове'}">
+                {{ brigade.status }}
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -134,9 +132,9 @@ export default {
       fireType: '',
       hasCasualties: 'no',
       casualtiesCount: 0,
-      callSource: 'witness',
+      callSource: 'телефонный звонок',
       fireRank: '1',
-      selectedBrigades: [],
+      selectedBrigade: null,
       selectedVehicle: '',
 
       fireRanks: [
@@ -206,8 +204,7 @@ export default {
         size: getInfo(brigade.brigadeNumber).size || 0,
         lastCallTime: getInfo(brigade.brigadeNumber).lastCallTime,
         callsCount: 0,
-        status: 'Свободна',
-        selected: false
+        status: 'Свободна'
       })) || [];
 
       const busyBrigades = data.busyBrigades?.map(brigade => ({
@@ -292,9 +289,8 @@ export default {
         return false;
       }
 
-      const selectedBrigades = this.getSelectedBrigades();
-      if (selectedBrigades.length === 0) {
-        alert('Выберите хотя бы одну бригаду!');
+      if (!this.selectedBrigade) {
+        alert('Выберите бригаду!');
         return false;
       }
 
@@ -305,8 +301,8 @@ export default {
           fireType: this.fireType,
           fireRank: this.fireRank,
           victimsCount: this.hasCasualties === 'yes' ? this.casualtiesCount : 0,
-          assignedTo: selectedBrigades[0],
-          auto: this.selectedVehicle,
+          assignedTo: this.selectedBrigade, // используем напрямую selectedBrigade
+          auto: "Пожарная машина "+this.selectedVehicle,
           bottomLeft: '55.7558;37.6173',
           topRight: '55.756;37.618'
         };
@@ -321,9 +317,8 @@ export default {
                 .join('&');
           }
         });
-
         console.log('Ответ сервера:', response.data);
-        this.resetForm();
+        // this.resetForm();
         return true;
       } catch (error) {
         console.error('Ошибка при отправке данных:', error);
@@ -332,53 +327,73 @@ export default {
       }
     },
 
-    getSelectedBrigades() {
-      return this.availableBrigades
-          .filter(brigade => brigade.selected)
-          .map(brigade => brigade.number);
-    },
+    async confirmSave() {
+      try {
+        const searchParams = {
+          status: 'Incomplete',
+          fireAddress: this.incidentAddress,
+          assignedTo: this.selectedBrigade,
+          fireType: this.fireType,
+          fireRank: this.fireRank,
+          victimsCount: this.hasCasualties === 'yes' ? this.casualtiesCount : 0,
+          callSource: this.callSource
+        };
 
-    stringifyURLParams(){
-      const selectedBrigades = this.getSelectedBrigades();
-      const formatCoords = (point) => {
-        return `(${point.x || 0};${point.y || 0})`;
-      };
-      let params = {
-        callSource: this.callSource,
-        fireAddress: this.incidentAddress,
-        bottomLeft: { "latitude": 55.7558, "longitude": 37.6173 },
-        topRight:null,
-        fireType: this.fireType,
-        fireRank: this.fireRank,
-        victimsCount: this.hasCasualties === 'yes' ? this.casualtiesCount : 0,
-        assignedTo: selectedBrigades.length > 0 ? selectedBrigades[0] : undefined,
-        auto: this.selectedVehicle
+        const searchResponse = await axios.get('http://localhost:3000/api/callform_search', {
+          params: searchParams,
+          paramsSerializer: params => {
+            return Object.entries(params)
+                .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+                .join('&');
+          }
+        });
+        console.log('data', searchResponse.data);
+
+        const targetCall = searchResponse.data[0];
+
+
+        const paramsForCompletion = {
+          status: targetCall.status,
+          fireAddress: targetCall.fireAddress,
+          assignedTo: targetCall.assignedTo,
+          fireType: targetCall.fireType,
+          fireRank: targetCall.fireRank,
+          victimsCount: targetCall.victimsCount,
+          callSource: targetCall.callSource,
+          createdAt: targetCall.createdAt,
+          modifiedAt: targetCall.modifiedAt
+        };
+
+        console.log(paramsForCompletion)
+
+        const completeResponse = await axios.get(
+            'http://localhost:3000/api/complete_callform_and_create_report',
+            {
+              params: paramsForCompletion,
+              paramsSerializer: params => {
+                return Object.entries(params)
+                    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+                    .join('&');
+              }
+            }
+        );
+
+        console.log("completeResponse", completeResponse)
+
+        if (completeResponse.data.success) {
+          alert('Вызов успешно завершен и отчет создан!');
+          this.$emit('completed');
+          return true;
+        } else {
+          throw new Error(completeResponse.data.message || 'Не удалось завершить вызов');
+        }
+      } catch (error) {
+        console.error('Ошибка завершения вызова:', error);
+        alert(`Ошибка: ${error.message}`);
+        return false;
       }
-      console.log("stringifyURLParams:", params);
-
-      params = new URLSearchParams(Object.fromEntries(
-          Object.entries(params).filter(([_, v]) => v !== undefined && v !== '' && v !== ';')
-      )).toString();
-      return params;
     },
 
-    //
-    // confirmSave() {
-    //   // Здесь будет логика сохранения формы
-    //   console.log('Сохранение формы:', {
-    //     incidentAddress: this.incidentAddress,
-    //     fireType: this.fireType,
-    //     hasCasualties: this.hasCasualties,
-    //     casualtiesCount: this.casualtiesCount,
-    //     callSource: this.callSource,
-    //     fireRank: this.fireRank,
-    //     selectedBrigades: this.availableBrigades.filter(b => b.selected),
-    //     selectedVehicle: this.selectedVehicle
-    //   });
-    //   this.showSaveAlert = false;
-    //   this.resetForm();
-    //
-    // },
     resetForm() {
       this.incidentAddress = '';
       this.fireType = '';
@@ -386,7 +401,7 @@ export default {
       this.casualtiesCount = 0;
       this.callSource = 'witness';
       this.fireRank = '1';
-      this.selectedBrigades = [];
+      this.selectedBrigades = null;
       this.selectedVehicle = '';}
   }
 }
