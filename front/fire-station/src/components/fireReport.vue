@@ -53,26 +53,26 @@
         <label>Выбор бригад:</label>
         <table class="selection-table">
           <thead>
-          <tr>
-            <th>Выбрать</th>
-            <th>Номер бр.</th>
-            <th>Размер бр.</th>
-            <th>Время последнего вызова</th>
-            <th>Кол-во вызовов за смену</th>
-            <th>Статус</th>
-          </tr>
+            <tr>
+              <th>Выбрать</th>
+              <th>Номер бр.</th>
+              <th>Размер бр.</th>
+              <th>Время последнего вызова</th>
+              <th>Кол-во вызовов за смену</th>
+              <th>Статус</th>
+            </tr>
           </thead>
           <tbody>
-          <tr v-for="(brigade, index) in availableBrigades" :key="index">
-            <td><input type="checkbox" v-model="brigade.selected"></td>
-            <td>{{ brigade.number }}</td>
-            <td>{{ brigade.size }}</td>
-            <td>{{ brigade.lastCallTime }}</td>
-            <td>{{ brigade.callsCount }}</td>
-            <td :class="{'status-available': brigade.status === 'Свободна', 'status-busy': brigade.status === 'На вызове'}">
-              {{ brigade.status }}
-            </td>
-          </tr>
+            <tr v-for="(brigade, index) in availableBrigades" :key="index">
+              <td><input type="radio" v-model="selectedBrigade" :value="brigade.number"></td>
+              <td>{{ brigade.number }}</td>
+              <td>{{ brigade.size }}</td>
+              <td>{{ brigade.lastCallTime }}</td>
+              <td>{{ brigade.callsCount }}</td>
+              <td :class="{'status-available': brigade.status === 'Свободна', 'status-busy': brigade.status === 'На вызове'}">
+                {{ brigade.status }}
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -134,7 +134,7 @@ export default {
       casualtiesCount: 0,
       callSource: 'телефонный звонок',
       fireRank: '1',
-      selectedBrigades: [],
+      selectedBrigade: null,
       selectedVehicle: '',
 
       fireRanks: [
@@ -204,8 +204,7 @@ export default {
         size: getInfo(brigade.brigadeNumber).size || 0,
         lastCallTime: getInfo(brigade.brigadeNumber).lastCallTime,
         callsCount: 0,
-        status: 'Свободна',
-        selected: false
+        status: 'Свободна'
       })) || [];
 
       const busyBrigades = data.busyBrigades?.map(brigade => ({
@@ -284,21 +283,14 @@ export default {
       }
     },
 
-    getSelectedBrigades() {
-      return this.availableBrigades
-          .filter(brigade => brigade.selected)
-          .map(brigade => brigade.number);
-    },
-
     async sendToBrigades() {
       if (!this.incidentAddress) {
         alert('Укажите адрес происшествия');
         return false;
       }
 
-      const selectedBrigades = this.getSelectedBrigades();
-      if (selectedBrigades.length === 0) {
-        alert('Выберите хотя бы одну бригаду!');
+      if (!this.selectedBrigade) {
+        alert('Выберите бригаду!');
         return false;
       }
 
@@ -309,7 +301,7 @@ export default {
           fireType: this.fireType,
           fireRank: this.fireRank,
           victimsCount: this.hasCasualties === 'yes' ? this.casualtiesCount : 0,
-          assignedTo: selectedBrigades[0],
+          assignedTo: this.selectedBrigade, // используем напрямую selectedBrigade
           auto: "Пожарная машина "+this.selectedVehicle,
           bottomLeft: '55.7558;37.6173',
           topRight: '55.756;37.618'
@@ -340,7 +332,7 @@ export default {
         const searchParams = {
           status: 'Incomplete',
           fireAddress: this.incidentAddress,
-          assignedTo: this.getSelectedBrigades()[0],
+          assignedTo: this.selectedBrigade,
           fireType: this.fireType,
           fireRank: this.fireRank,
           victimsCount: this.hasCasualties === 'yes' ? this.casualtiesCount : 0,
@@ -409,7 +401,7 @@ export default {
       this.casualtiesCount = 0;
       this.callSource = 'witness';
       this.fireRank = '1';
-      this.selectedBrigades = [];
+      this.selectedBrigades = null;
       this.selectedVehicle = '';}
   }
 }
