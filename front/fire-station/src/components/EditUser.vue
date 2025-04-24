@@ -84,22 +84,7 @@ export default{
             await axios.get(`http://localhost:3000/api/modify_user?${this.stringifyURLParams()}`);
             console.log(`http://localhost:3000/api/modify_user?${decodeURIComponent(this.stringifyURLParams())}`)   
 
-            //this.dropState();
             this.$emit('component-change', 'searchUser');
-        },
-        dropState(){
-            useEditedUser().updateData({
-                name: '',
-                surname: '',
-                patronymic: '',
-                brigade: '',
-                phone: '',
-                email: '',
-                address: '',
-                login: '',
-                password: ''
-            }, '');
-            this.addUserAttempt = false;
         },
         stringifyURLParams(){
             const user = useEditedUser().user;
