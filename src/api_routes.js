@@ -11,6 +11,24 @@ import {
   makeLabel,
 } from "./query.js";
 
+const normalizeUser = (user) => {
+    //console.log('Raw user data before normalization:', JSON.stringify(user));
+
+    if (user.properties) {
+        const normalized = {
+            ...user.properties,
+            labels: user.labels,
+            elementId: user.elementId,
+            identity: user.identity
+        };
+        //console.log('Normalized Neo4j user:', JSON.stringify(normalized));
+        return normalized;
+    }
+
+    //console.log('Already normalized user:', JSON.stringify(user));
+    return user;
+};
+
 const api_routes = {
   // 1. All information on user from their login and password
   "login_user/login:string password:password": async ({ login, password }) => {
@@ -89,8 +107,15 @@ const api_routes = {
   // 8. User search
   "user_search/familyName? firstName? fatherName? role:label? brigadeNumber:uint..? address? phone? email? login? registeredAt:datetime..? modifiedAt:datetime..?":
     async (args) => {
-      console.log(args);
-      return await match("u:User", args, { orderBy: "u.name DESC" });
+      console.log('Search args:', args);
+      const users = await match("u:User", args, { orderBy: "u.name DESC" });
+    
+      //console.log('Raw users from match:', JSON.stringify(users));
+    
+      const normalizedUsers = users.map(normalizeUser);
+      //console.log('Final normalized users:', JSON.stringify(normalizedUsers));
+    
+      return normalizedUsers;
     },
   // 9. User modification
   "modify_user/familyName? firstName? fatherName? role:label? brigadeNumber:uint? address? phone? email? login:string password:password?":
