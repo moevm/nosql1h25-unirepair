@@ -30,9 +30,9 @@
             <input type="radio" v-model="editedUser.user.role" value="Admin" class="userinfo__input"><span>Администратор</span>
             <br>
 
-            <span :class="{'brigade-text__avaliable': editedUser.user.role === 'Fireman', 'brigade-text__unavaliable': editedUser.user.role !== 'Fireman'}">Бригада:</span>
-            <input min="1" type="number" :v-model="editedUser.user.brigade" class="userinfo__input" :disabled="editedUser.user.role !== 'Fireman'" @blur="correctBrigade">
-            <span v-show="!editedUser.user.brigade && addUserAttempt && editedUser.user.role === 'Fireman'" style="color: red; margin-left: 15px;">Назначьте бригаду</span>
+            <span :class="{'brigade-text__avaliable': editedUser.user.role === 'Fireman' || editedUser.user.role === 'Brigadier', 'brigade-text__unavaliable': editedUser.user.role !== 'Fireman' &&  editedUser.user.role !== 'Brigadier'}">Бригада:</span>
+            <input min="1" type="number" v-model="editedUser.user.brigade" class="userinfo__input" :disabled="editedUser.user.role !== 'Fireman' && editedUser.user.role !== 'Brigadier'" @blur="correctBrigade">
+            <span v-show="!editedUser.user.brigade && addUserAttempt && (editedUser.user.role === 'Fireman' || editedUser.user.role === 'Brigadier')" style="color: red; margin-left: 15px;">Назначьте бригаду</span>
             <br>
             <span>Телефон:</span>
             <input type="text" v-model="editedUser.user.phone" class="userinfo__input">
@@ -75,7 +75,8 @@ export default{
     methods: {
         async updateUser(){
             const user = useEditedUser().user;
-            if(!user.name || !user.surname || !user.role || (!user.brigade && user.role === "Fireman") || !user.address || !user.login){    
+            console.log(user)
+            if(!user.name || !user.surname || !user.role || (!user.brigade && (user.role === "Fireman" || user.role === 'Brigadier')) || !user.address || !user.login){    
                 this.addUserAttempt = true;
                 return false;
             }
@@ -83,23 +84,7 @@ export default{
             await axios.get(`http://localhost:3000/api/modify_user?${this.stringifyURLParams()}`);
             console.log(`http://localhost:3000/api/modify_user?${decodeURIComponent(this.stringifyURLParams())}`)   
 
-            this.dropState();
             this.$emit('component-change', 'searchUser');
-        },
-        dropState(){
-            useEditedUser().updateData({
-                name: '',
-                surname: '',
-                patronymic: '',
-                role: '',
-                brigade: '',
-                phone: '',
-                email: '',
-                address: '',
-                login: '',
-                password: ''
-            });
-            this.addUserAttempt = false;
         },
         stringifyURLParams(){
             const user = useEditedUser().user;
@@ -108,7 +93,7 @@ export default{
                 firstName: user.name,
                 fatherName: user.patronymic,
                 role: user.role,
-                brigadeNumber: user.role === 'Fireman' || user.role === 'Brigadier' ? user.brigade : '',
+                brigadeNumber: user.role === 'Fireman' || user.role === 'Brigadier' ? user.brigade : 0,
                 phone: user.phone,
                 address: user.address,
                 email: user.email,

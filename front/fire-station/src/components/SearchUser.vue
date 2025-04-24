@@ -114,7 +114,7 @@ export default {
         goToEditUserData(index){
             const editedUser = useEditedUser();
             editedUser.updateData(this.foundUsers[index], this.findRole(this.foundUsers[index]), index);
-            console.log(this.foundUsers[index])
+
             this.$emit('component-change', 'editUser');
             this.foundUsers = [];
         },

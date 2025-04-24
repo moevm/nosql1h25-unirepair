@@ -102,7 +102,7 @@ const api_routes = {
         { login },
         {
           remove: args.role
-            ? { u: ["Operator", "Administrator", "Fireman", "Brigidier"] }
+            ? { u: ["Operator", "Admin", "Fireman", "Brigadier"] }
             : undefined,
           set: { u: { ...args, modifiedAt: now() } },
         },

@@ -66,7 +66,7 @@
                                 <th style="width: 10%;">Характер пожара</th>
                                 <th style="width: 5%;">Ранг пожара</th>
                                 <th style="width: 10%;">Пострадавшие</th>
-                                <th style="width: 10%;">Прикреплённая пригада</th>
+                                <th style="width: 10%;">Прикреплённая бригада</th>
                                 <th style="width: 10%;">Автомобиль</th>
                             </tr>
                         </thead>
@@ -164,9 +164,9 @@ export default {
         },  
         formDate(date){
             if(date.year){
-                let year = date.year.low.toString();
-                let month = date.month.low.toString();
-                let day = date.day.low.toString();
+                let year = date.year.toString();
+                let month = date.month.toString();
+                let day = date.day.toString();
                 
                 while(year.length < 4) year = '0' + year;
                 while(month.length < 2) month = '0' + month;
