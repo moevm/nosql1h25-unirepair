@@ -170,21 +170,24 @@ export default {
         findStatus(user){
             return user.labels.find(label => (label === 'Active' || label === 'Deleted'))
         },
+
         formDate(date){
+            if (!date) return '-';
+
             if(date.year){
-                let year = date.year.toString();
-                let month = date.month.toString();
-                let day = date.day.toString();
+                const year = date.year.low !== undefined ? date.year.low : date.year;
+                const month = date.month?.low !== undefined ? date.month.low : date.month || 1;
+                const day = date.day?.low !== undefined ? date.day.low : date.day || 1;
                 
-                while(year.length < 4) year = '0' + year;
-                while(month.length < 2) month = '0' + month;
-                while(day.length < 2) day = '0' + day;
-                
-                return year + '-' + month + '-' + day;
+                const pad = num => num.toString().padStart(2, '0');
+                return `${year}-${pad(month)}-${pad(day)}`;
             }
 
-            return '-'
+            if (typeof date === 'string') return date;
+  
+            return '-';
         },
+        
         reset(){
             this.name = '',
             this.surname = '',
