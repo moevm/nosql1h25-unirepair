@@ -6,7 +6,7 @@ import driver from "./db.js";
 import { apiRouter, router, setDbReady } from "./routes.js";
 import generateData from "./generateData.js";
 import { props } from "./query.js";
-import { runTests } from "./api_tests.js";
+import { runApiTests } from "./tests/api_tests.js";
 import cors from "cors";
 
 const app = express();
@@ -121,7 +121,6 @@ const importData = async () => {
         user,
       );
     }
-    console.log("Данные пользователей загружены.");
 
     const callForms = loadJSON("call_forms.json");
     for (const cf of callForms) {
@@ -144,7 +143,6 @@ const importData = async () => {
         cf,
       );
     }
-    console.log("Данные о вызовах загружены.");
 
     const inventoryItems = loadJSON("inventory.json");
     for (const item of inventoryItems) {
@@ -155,7 +153,6 @@ const importData = async () => {
         item,
       );
     }
-    console.log("Данные инвентаря загружены.");
 
     const reports = loadJSON("reports.json");
     for (const report of reports) {
@@ -173,7 +170,6 @@ const importData = async () => {
         report,
       );
     }
-    console.log("Данные отчётов загружены.");
 
     const relationships = loadJSON("relationships.json");
     for (const relation of relationships) {
@@ -183,7 +179,7 @@ const importData = async () => {
         CREATE (start)-[:${relation.relationshipType}]->(end);`,
       );
     }
-    console.log("Связи между узлами загружены.");
+    console.log("Данные загружены");
   } catch (error) {
     console.error("Ошибка при импорте данных:", error);
   } finally {
@@ -201,13 +197,16 @@ const initializeDatabase = async () => {
   }
 
   await createDatabaseStructure();
+
   await clearDB();
   await importData();
-
-  setDbReady(true);
-  console.log("База данных готова! Теперь сервер начинает принимать запросы.");
   console.log("Запуск авто-тестов...");
-  await runTests(apiRouter);
+  await runApiTests(apiRouter);
+
+  await clearDB();
+  await importData();
+  setDbReady(true);
+  console.log("База данных готова принимать запросы.");
 };
 
 initializeDatabase();

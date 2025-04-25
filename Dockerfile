@@ -10,6 +10,7 @@ COPY ./front/fire-station/package.json ./front/fire-station/package-lock.json ./
 RUN npm install --prefix ./front/fire-station
 
 COPY ./src/*.js ./src
+COPY ./src/tests ./src/tests
 COPY ./front/fire-station ./front/fire-station
 
 CMD ["sh", "-c", "node src/app.js & npm run dev --prefix front/fire-station"]
