@@ -50,12 +50,12 @@ onMounted(async () => {
 
     const normalizeDate = (dt) => {
       if (!dt?.year) return null
-      const y = dt.year.low
-      const m = String(dt.month.low).padStart(2, '0')
-      const d = String(dt.day.low).padStart(2, '0')
-      const h = String(dt.hour.low).padStart(2, '0')
-      const min = String(dt.minute.low).padStart(2, '0')
-      const s = String(dt.second.low).padStart(2, '0')
+      const y = dt.year
+      const m = String(dt.month).padStart(2, '0')
+      const d = String(dt.day).padStart(2, '0')
+      const h = String(dt.hour).padStart(2, '0')
+      const min = String(dt.minute).padStart(2, '0')
+      const s = String(dt.second).padStart(2, '0')
       return `${y}-${m}-${d}T${h}:${min}:${s}Z`
     }
 
