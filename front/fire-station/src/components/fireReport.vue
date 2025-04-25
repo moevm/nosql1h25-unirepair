@@ -353,18 +353,15 @@ export default {
 
 
         const paramsForCompletion = {
-          status: targetCall.status,
           fireAddress: targetCall.fireAddress,
           assignedTo: targetCall.assignedTo,
           fireType: targetCall.fireType,
           fireRank: targetCall.fireRank,
           victimsCount: targetCall.victimsCount,
           callSource: targetCall.callSource,
-          createdAt: targetCall.createdAt,
-          modifiedAt: targetCall.modifiedAt
         };
 
-        console.log(paramsForCompletion)
+        console.log(paramsForCompletion)  
 
         const completeResponse = await axios.get(
             'http://localhost:3000/api/complete_callform_and_create_report',
@@ -392,6 +389,28 @@ export default {
         alert(`Ошибка: ${error.message}`);
         return false;
       }
+    },
+
+    formDate(date){
+            if(date.year){
+                let year = date.year.toString();
+                let month = date.month.toString();
+                let day = date.day.toString();
+                let hours = date.hour.toString();
+                let minute = date.minute.toString();
+                let second = date.second.toString();
+                
+                while(year.length < 4) year = '0' + year;
+                while(month.length < 2) month = '0' + month;
+                while(day.length < 2) day = '0' + day;
+                while(hours.length < 2) hours = '0' + hours;
+                while(minute.length < 2) minute = '0' + minute;
+                while(second.length < 2) second = '0' + second;
+
+                return year + '-' + month + '-' + day + 'T' + hours + ':' + minute + ':' + second;
+            }
+
+            return '-'
     },
 
     resetForm() {
