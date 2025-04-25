@@ -36,6 +36,7 @@ export default {
           alert('Ошибка: ' + data.error);
           return;
         }
+        console.log(data.registeredAt);
 
         const transformedUser = {
           fullName: `${data.familyName} ${data.firstName} ${data.fatherName}`,
@@ -54,6 +55,7 @@ export default {
           modifiedAt: this.convertDate(data.modifiedAt)
         };
 
+        console.log(transformedUser.registeredAt);
         userStore.setUser(transformedUser);
         this.$router.push('/userprofile');
 
@@ -94,12 +96,12 @@ export default {
       if (!dateObj || !dateObj.year) return null;
 
       const pad = (num) => String(num).padStart(2, '0');
-      const y = dateObj.year.low;
-      const m = pad(dateObj.month.low);
-      const d = pad(dateObj.day.low);
-      const h = pad(dateObj.hour.low);
-      const min = pad(dateObj.minute.low);
-      const s = pad(dateObj.second.low);
+      const y = dateObj.year;
+      const m = pad(dateObj.month);
+      const d = pad(dateObj.day);
+      const h = pad(dateObj.hour);
+      const min = pad(dateObj.minute);
+      const s = pad(dateObj.second);
 
       return `${y}-${m}-${d}T${h}:${min}:${s}Z`; // или в Date: new Date(`${y}-${m}-${d}T${h}:${min}:${s}Z`)
     },
