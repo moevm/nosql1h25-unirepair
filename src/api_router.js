@@ -48,17 +48,24 @@ export default class ApiRouter {
     let [path, params] = query.split("?");
     assert.assert(this.apiRoutes[path], `No such route: ${path}`);
     let queryObj = {};
-    for (const p of params.split("&")) {
-      const [k, v] = p.split("=");
-      queryObj[k] = v;
+    if (params) {
+      for (const p of params.split("&")) {
+        const [k, v] = p.split("=");
+        queryObj[k] = v;
+      }
     }
     return await this.apiRoutes[path].apply(queryObj);
   }
 
-  toExpressRouter() {
+  toExpressRouter(isReady) {
+    assert.assertFunction(isReady);
     const result = express.Router();
     for (const [name, route] of Object.entries(this.apiRoutes)) {
       result.get(`/${this.apiName}/${name}`, async (req, res) => {
+        if (!isReady()) {
+          console.log("Got a query, but the server is not ready yet");
+          res.send(null);
+        }
         try {
           let answer = await route.apply(req.query);
           res.send(answer);

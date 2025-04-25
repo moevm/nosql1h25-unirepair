@@ -9,25 +9,8 @@ import {
   matches,
   fishOutComplexConds,
   makeLabel,
+  matchOne,
 } from "./query.js";
-
-const normalizeUser = (user) => {
-    //console.log('Raw user data before normalization:', JSON.stringify(user));
-
-    if (user.properties) {
-        const normalized = {
-            ...user.properties,
-            labels: user.labels,
-            elementId: user.elementId,
-            identity: user.identity
-        };
-        //console.log('Normalized Neo4j user:', JSON.stringify(normalized));
-        return normalized;
-    }
-
-    //console.log('Already normalized user:', JSON.stringify(user));
-    return user;
-};
 
 const api_routes = {
   // 1. All information on user from their login and password
@@ -35,8 +18,12 @@ const api_routes = {
     const users = await match("u:User", { login });
     if (!users || users.length === 0) return { error: "User does not exist" };
     const user = users[0];
-    if (user.passwordHash !== password.value.hash)
+    if (user.passwordHash !== password.value.hash) {
+      console.log(
+        `Password ${password.value.password} with hash ${password.value.hash} does not match ${user.passwordHash}`,
+      );
       return { error: "Password is incorrect" };
+    }
     return user;
   },
   // 2. Current call forms on a brigade
@@ -66,20 +53,20 @@ const api_routes = {
     };
   },
   // 4. Fill in a report
-  "fill_report/reportId:id.. waterSpent:uint foamSpent:uint allegedFireCause damage:uint additionalNotes":
+  "fill_report/reportId:id waterSpent:uint foamSpent:uint allegedFireCause damage:uint additionalNotes":
     async (args) => {
-      await match("r:Report:New", fishOutTypes(args, ["id"]), {
+      return await matchOne("r:Report:New", fishOutTypes(args, ["id"]), {
         remove: { r: ["New"] },
         set: { r: { ...args, label: makeLabel("Complete") } },
+        results: ["r"],
       });
-      return {};
     },
   // 5. Create a new callform
   "create_callform/callSource? fireAddress? bottomLeft:point? topRight:point? fireType? fireRank:string? victimsCount:uint? assignedTo:uint? auto?":
     async (args) => {
       if (Object.values(args).includes(null))
         return { error: "Incomplete callforms are not supported yet" };
-      return await create(":CallForm:Incomplete", {
+      return await create("cf:CallForm:Incomplete", {
         ...args,
         createdAt: now(),
         modifiedAt: now(),
@@ -96,7 +83,7 @@ const api_routes = {
   "user_spawn/familyName firstName fatherName? role:label brigadeNumber:uint?=0 address phone? email? login:string password:password":
     async (args) => {
       return await create(
-        ":User:Active" + (args.role === "Brigadier" ? ":Fireman" : ""),
+        "u:User:Active" + (args.role === "Brigadier" ? ":Fireman" : ""),
         {
           ...args,
           registeredAt: now(),
@@ -107,22 +94,14 @@ const api_routes = {
   // 8. User search
   "user_search/familyName? firstName? fatherName? role:label? brigadeNumber:uint..? address? phone? email? login? registeredAt:datetime..? modifiedAt:datetime..?":
     async (args) => {
-      console.log('Search args:', args);
-      const users = await match("u:User", args, { orderBy: "u.name DESC" });
-    
-      //console.log('Raw users from match:', JSON.stringify(users));
-    
-      const normalizedUsers = users.map(normalizeUser);
-      //console.log('Final normalized users:', JSON.stringify(normalizedUsers));
-    
-      return normalizedUsers;
+      return await match("u:User", args, { orderBy: "u.name DESC" });
     },
   // 9. User modification
   "modify_user/familyName? firstName? fatherName? role:label? brigadeNumber:uint? address? phone? email? login:string password:password?":
     async (args) => {
       if (Object.keys(args).length === 1) return {};
       const login = fishOutTypes(args, ["string"]).login;
-      await match(
+      return await matchOne(
         "u:User",
         { login },
         {
@@ -132,7 +111,6 @@ const api_routes = {
           set: { u: { ...args, modifiedAt: now() } },
         },
       );
-      return {};
     },
   // 10. Get currently free and busy brigades
   get_brigades: async () => {
@@ -178,7 +156,7 @@ const api_routes = {
   },
   // 11. Create a new report based on complete callform
   "new_report/callformId:id": async (args) => {
-    await match("cf:CallForm:Complete", args, {
+    return await matchOne("cf:CallForm:Complete", args, {
       create: `(r:Report:New {
         waterSpent: 0,
         foamSpent: 0,
@@ -187,8 +165,8 @@ const api_routes = {
         additionalNotes: "Данные ещё не внесены, ожидается завершение отчёта.",
         modifiedAt: datetime()
       })\nCREATE (r)-[:ON_CALL]->(cf)`,
+      results: ["r"],
     });
-    return {};
   },
   "test_query/query:string": async ({ query }) => {
     const result = await rawQuery(query.value);
@@ -212,6 +190,13 @@ const api_routes = {
   // Inventory search
   "inventory_search/name?": async (args) => {
     return await match("i:Inventory", args, { orderBy: "i.name ASC" });
+  },
+  "complete_callform/callformId:id": async (args) => {
+    return await matchOne("cf:CallForm:Incomplete", args, {
+      remove: { cf: ["Incomplete"] },
+      set: { cf: { label: makeLabel("Complete") } },
+      results: ["cf"],
+    });
   },
   // Find a report by author
   "report_search_by_author/familyName? firstName? fatherName? role:label? brigadeNumber:uint..? createdAt:datetime..? modifiedAt:datetime..?":
@@ -267,7 +252,7 @@ const api_routes = {
       };
     }
 
-    const newItem = await create(":Inventory", {
+    const newItem = await create("i:Inventory", {
       name: { value: trimmedName, type: "string" },
     });
 
