@@ -1,6 +1,6 @@
 <template>
     <div class="layout">
-        <Sidebar />
+        <Sidebar class="sidebar"/>
         <AdminEditOptions @component-change="activeComponent = $event" v-show="activeComponent === 'menu'"/>
         
         <!--Ниже будут остальные компоненты редактирования, которые будут переключаться между собой-->

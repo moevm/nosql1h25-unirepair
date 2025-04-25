@@ -153,7 +153,8 @@ export default {
 }
 
 .component-label__container>label {
-    font-size: xx-large;
+    font-size: x-large;
+    font-weight: bolder;
 }
 
 #exit-icon {
@@ -174,12 +175,11 @@ export default {
     border-radius: 0 0 20px 20px;
     background-color: white;
     height: 100%;
-    padding-left: 80px;
-    padding-top: 40px;
+    padding: 24px;
 }
 
 .userinfo__input, span {
-    font-size: x-large;
+    font-size: large;
     margin-bottom: 25px;
 }
 
@@ -197,8 +197,8 @@ input[type="number"]{
 
 input[type="radio"] {
     cursor: pointer;
-    transform: scale(3);
-    margin: 30px;
+    transform: scale(2);
+    margin: 15px;
 }
 
 #submit-button {
@@ -206,7 +206,7 @@ input[type="radio"] {
     cursor: pointer;
     right: 60px;
     bottom: 50px;
-    font-size: xx-large;
+    font-size: large;
     border-radius: 10px;
     border: none;
     padding: 20px;

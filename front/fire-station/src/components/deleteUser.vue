@@ -49,9 +49,9 @@
                     <table class="users__table">
                         <thead style="position: sticky; top: 0; background-color: white; border: 1px solid black; z-index: 10;">
                             <tr>
-                                <th style="position: absolute; left: 8px; top: 8px;">
+                                <th style="position: absolute; left: 0; top:0;">
                                     <input type="checkbox" class="checkbox" :disabled="!foundUsers.length" v-model="allSelected" @click="() => {allSelected = !allSelected; selectedUsers.fill(allSelected)}">
-                                    <span style="margin-left: 10px; font-size: medium;">Выбрать всех</span>
+                                    <span style="padding-left: 6px;">Выбрать всех</span>
                                 </th>
                                 <th>ФИО</th>
                                 <th>Должность</th>
@@ -180,6 +180,7 @@ export default {
     flex-direction: column;
     gap: 2px;
     position: relative;
+    box-sizing: border-box;
 }
 
 .blured-content__container {
@@ -194,7 +195,8 @@ export default {
 }
 
 .component-label__container>label {
-    font-size: xx-large;
+    font-size: x-large;
+    font-weight: bolder;
 }
 
 #exit-icon {
@@ -215,12 +217,11 @@ export default {
     border-radius: 0 0 20px 20px;
     background-color: white;
     height: 100%;
-    padding-left: 80px;
-    padding-top: 40px;
+    padding: 24px;
 }
 
 .userinfo__input, span, .table__container, #submit-button {
-    font-size: x-large;
+    font-size: large;
     margin-bottom: 10px;
 }
 
@@ -238,7 +239,7 @@ input[type="number"]{
 
 input[type="radio"] {
     cursor: pointer;
-    transform: scale(2.5);
+    transform: scale(2);
     margin: 20px
 }
 
@@ -251,11 +252,11 @@ input[type="radio"] {
 }
 
 .date__input {
-    padding: 10px;
+    padding: 5px;
 }
 
 #submit-button {
-    font-size: x-large;
+    font-size: medium;
     border-radius: 10px;
     border: none;
     padding: 10px 20px 10px 20px;
@@ -272,7 +273,7 @@ input[type="radio"] {
 
 .table__container {
     width: 95%;
-    font-size: large;
+    font-size: medium;
     max-height: 185px;
     overflow-y: scroll;
 }
@@ -285,15 +286,15 @@ input[type="radio"] {
 
 .row__table>td {
     border: 1px solid black;
-    height: 33px;
+    height: 23px;
 }
 
 th {
-    height: 35px;
+    height: 25px;
 }
 
 .checkbox {
-    transform: scale(2);
+    transform: scale(150%);
 }
 
 .checkbox:hover {
@@ -311,7 +312,7 @@ th {
     border-radius: 13px;
     width: 80%;
     height: 40%;
-    font-size: xx-large;
+    font-size: medium;
     font-weight: bolder;
 }
 
@@ -322,7 +323,7 @@ th {
     transform: translate(-50%, -0%);
     border: none;
     background-color: #BF6E6E;
-    font-size: xx-large;
+    font-size: x-large;
     border-radius: 13px;
     width: 30%;
     height: 30%;

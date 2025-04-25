@@ -1,6 +1,6 @@
 <template>
     <div class="chart__container">
-        <canvas ref="chart" width="400" height="110"></canvas>
+        <canvas ref="chart"></canvas>
     </div>
 </template>
 
@@ -62,6 +62,7 @@ export default {
 
 <style>
 .chart__container {
-    padding-right: 80px;
+    width: 100%;
+    max-height: 45%;
 }
 </style>

@@ -57,7 +57,7 @@
                     <tbody>
                         <tr class="row__table" v-for="(user, index) in foundUsers" :key="index">
                             <td style="width: 3%; text-align: center;">
-                                <img src="/icons/editUser.svg" style="cursor: pointer; transform: scale(1.2);" @click="goToEditUserData(index)">
+                                <img src="/icons/editUser.svg" style="cursor: pointer; transform: scale(1);" @click="goToEditUserData(index)">
                             </td>
                             <td style="width: 50%; padding-left: 10px;">{{ user.familyName + ' ' + user.firstName + ' ' + user.fatherName }}</td>
                             <td style="padding-left: 10px;">{{ rolesTranslations[findRole(user)] }}</td>
@@ -65,7 +65,7 @@
                         </tr>    
                         <tr class="row__table" v-if="foundUsers.length < 4" v-for="index in (4 - foundUsers.length)">
                             <td style="width: 3%; text-align: center;">
-                                <img src="/icons/editUser.svg" style="cursor: pointer; transform: scale(1.2);">
+                                <img src="/icons/editUser.svg" style="cursor: pointer; transform: scale(1);">
                             </td>
                             <td style="width: 50%"></td>
                             <td></td>
@@ -162,6 +162,7 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    box-sizing: border-box;
 }
 
 .component-label__container {
@@ -172,7 +173,8 @@ export default {
 }
 
 .component-label__container>label {
-    font-size: xx-large;
+    font-size: x-large;
+    font-weight: bolder;
 }
 
 #exit-icon {
@@ -193,12 +195,11 @@ export default {
     border-radius: 0 0 20px 20px;
     background-color: white;
     height: 100%;
-    padding-left: 80px;
-    padding-top: 40px;
+    padding: 24px;
 }
 
 .userinfo__input, span {
-    font-size: x-large;
+    font-size: large;
     margin-bottom: 10px;
 }
 
@@ -216,8 +217,8 @@ input[type="number"]{
 
 input[type="radio"] {
     cursor: pointer;
-    transform: scale(2.5);
-    margin: 20px
+    transform: scale(1.5);
+    margin: 15px
 }
 
 .brigade-text__avaliable {
@@ -229,12 +230,12 @@ input[type="radio"] {
 }
 
 .date__input {
-    padding: 10px;
+    padding: 5px;
 }
 
 #submit-button {
     cursor: pointer;
-    font-size: x-large;
+    font-size: large;
     border-radius: 10px;
     border: none;
     padding: 10px 20px 10px 20px;
@@ -247,7 +248,7 @@ input[type="radio"] {
 
 .table__container {
     width: 95%;
-    font-size: large;
+    font-size: medium;
     max-height: 185px;
     overflow-y: scroll;
 }
@@ -260,10 +261,10 @@ input[type="radio"] {
 
 .row__table>td {
     border: 1px solid black;
-    height: 33px;
+    height: 23px;
 }
 
 th {
-    height: 35px;
+    height: 25px;
 }
 </style>
