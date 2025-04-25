@@ -73,7 +73,7 @@ export default {
   min-height: 90vh;
   background: #fff;
   padding: 24px;
-  border-radius: 12px;
+  border-radius: 13px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
