@@ -2,11 +2,15 @@ import * as assert from "./assert.js";
 import driver from "./db.js";
 
 function optcat(prefix, value) {
-  return value ? `${prefix}${value}` : "";
+  return value !== null && value !== undefined && value !== ""
+    ? `${prefix}${value}`
+    : "";
 }
 
 function optpostcat(value, postfix) {
-  return value ? `${value}${postfix}` : "";
+  return value !== null && value !== undefined && value !== ""
+    ? `${value}${postfix}`
+    : "";
 }
 
 function typeOf(value) {
@@ -171,8 +175,22 @@ export async function rawQuery(query, resultHandler = (x) => x) {
 export async function create(what, values) {
   assert.assertString(what);
   assert.assertObject(values);
-  await rawQuery(`CREATE (${what}${props(values)});`);
-  return {};
+  assert.assert(what.includes(":"));
+  const key = what.split(":")[0];
+  return await rawQuery(
+    `CREATE (${what}${props(values)}) RETURN ${key};`,
+    (result) =>
+      result.records.map((record) => {
+        const tmp = record.get(key);
+        return tmp && tmp.identity !== undefined
+          ? {
+              ...tmp.properties,
+              labels: tmp.labels,
+              id: tmp.elementId,
+            }
+          : tmp;
+      })[0],
+  );
 }
 
 export async function rawMatch(conditionsStr, options = {}) {
@@ -237,7 +255,7 @@ export async function rawMatch(conditionsStr, options = {}) {
               const key = r.includes(" AS ") ? r.split(" AS ")[1] : r;
               const tmp = record.get(key);
               records[key] =
-                tmp && tmp.identity
+                tmp && tmp.identity !== undefined
                   ? {
                       ...tmp.properties,
                       labels: tmp.labels,
@@ -269,4 +287,10 @@ export async function match(what, conditions, options = {}) {
     options.where = `${matches({ [n]: complexConds })}${optcat(" AND ", options.where)}`;
   if (options.results === undefined) options.results = [n];
   return await rawMatch(`(${what}${props(conditions)})`, options);
+}
+
+export async function matchOne(what, conditions, options = {}) {
+  const result = await match(what, conditions, options);
+  assert.assert(result.length > 0);
+  return result[0];
 }

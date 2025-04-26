@@ -29,9 +29,13 @@ export default {
 .edit-options {
     display: grid;
     grid-template-columns: repeat(2, auto);
+    grid-template-rows: repeat(2, auto);
     gap: 50px;
     place-content: center;
     width: 100%;
+    max-height: 100vh;
+    box-sizing: border-box;
+    padding: 20px;
 }
 
 .edit-options__link {
@@ -41,12 +45,14 @@ export default {
     background-color: white;
     padding: 60px;
     border-radius: 20px;
-    width: 450px;
+    width: 100%;
+    max-width: 400px;
+    max-height: 300px;
     text-decoration: none;
     color: black;
-    font-size: xx-large;
+    font-size: x-large;
     text-align: center;
-    gap: 60px;
+    gap: 30px;
     border: none;
     cursor: pointer;
 }

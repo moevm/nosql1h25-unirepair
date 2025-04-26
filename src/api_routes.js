@@ -9,6 +9,7 @@ import {
   matches,
   fishOutComplexConds,
   makeLabel,
+  matchOne,
 } from "./query.js";
 
 const api_routes = {
@@ -17,8 +18,12 @@ const api_routes = {
     const users = await match("u:User", { login });
     if (!users || users.length === 0) return { error: "User does not exist" };
     const user = users[0];
-    if (user.passwordHash !== password.value.hash)
+    if (user.passwordHash !== password.value.hash) {
+      console.log(
+        `Password ${password.value.password} with hash ${password.value.hash} does not match ${user.passwordHash}`,
+      );
       return { error: "Password is incorrect" };
+    }
     return user;
   },
   // 2. Current call forms on a brigade
@@ -48,19 +53,18 @@ const api_routes = {
     };
   },
   // 4. Fill in a report
-  "fill_report/reportId:id.. waterSpent:uint foamSpent:uint allegedFireCause damage:uint additionalNotes":
+  "fill_report/reportId:id waterSpent:uint foamSpent:uint allegedFireCause damage:uint additionalNotes":
     async (args) => {
-      await match("r:Report:New", fishOutTypes(args, ["id"]), {
+      return await matchOne("r:Report:New", fishOutTypes(args, ["id"]), {
         remove: { r: ["New"] },
         set: { r: { ...args, label: makeLabel("Complete") } },
+        results: ["r"],
       });
-      return {};
     },
   // 5. Create a new callform
     "create_callform/callSource? fireAddress? bottomLeft:point? topRight:point? fireType? fireRank:string? victimsCount:uint? assignedTo:uint? auto?":
     async (args) => {
         try {
-            // Проверка обязательных параметров
             if (!args.callSource || !args.fireAddress || !args.assignedTo) {
                 return {
                     success: false,
@@ -72,14 +76,13 @@ const api_routes = {
             const createdAt = now();
             const modifiedAt = now();
 
-            // Создаем форму в БД
             await create(":CallForm:Incomplete", {
                 ...args,
                 createdAt,
                 modifiedAt
             });
 
-            // Возвращаем данные в понятном формате
+          //для фронтенда
             return {
                 success: true,
                 formData: {
@@ -104,7 +107,7 @@ const api_routes = {
                 status: 500
             };
         }
-    },
+  },
   // 6. Find operator's complete callforms
   "operator_callforms/login:string": async (args) => {
     return await rawMatch(
@@ -116,7 +119,7 @@ const api_routes = {
   "user_spawn/familyName firstName fatherName? role:label brigadeNumber:uint?=0 address phone? email? login:string password:password":
     async (args) => {
       return await create(
-        ":User:Active" + (args.role === "Brigadier" ? ":Fireman" : ""),
+        "u:User:Active" + (args.role === "Brigadier" ? ":Fireman" : ""),
         {
           ...args,
           registeredAt: now(),
@@ -127,7 +130,6 @@ const api_routes = {
   // 8. User search
   "user_search/familyName? firstName? fatherName? role:label? brigadeNumber:uint..? address? phone? email? login? registeredAt:datetime..? modifiedAt:datetime..?":
     async (args) => {
-      console.log(args);
       return await match("u:User", args, { orderBy: "u.name DESC" });
     },
   // 9. User modification
@@ -135,7 +137,7 @@ const api_routes = {
     async (args) => {
       if (Object.keys(args).length === 1) return {};
       const login = fishOutTypes(args, ["string"]).login;
-      await match(
+      return await matchOne(
         "u:User",
         { login },
         {
@@ -145,7 +147,6 @@ const api_routes = {
           set: { u: { ...args, modifiedAt: now() } },
         },
       );
-      return {};
     },
   // 10. Get currently free and busy brigades
   get_brigades: async () => {
@@ -191,7 +192,7 @@ const api_routes = {
   },
   // 11. Create a new report based on complete callform
   "new_report/callformId:id": async (args) => {
-    await match("cf:CallForm:Complete", args, {
+    return await matchOne("cf:CallForm:Complete", args, {
       create: `(r:Report:New {
         waterSpent: 0,
         foamSpent: 0,
@@ -200,8 +201,8 @@ const api_routes = {
         additionalNotes: "Данные ещё не внесены, ожидается завершение отчёта.",
         modifiedAt: datetime()
       })\nCREATE (r)-[:ON_CALL]->(cf)`,
+      results: ["r"],
     });
-    return {};
   },
   "test_query/query:string": async ({ query }) => {
     const result = await rawQuery(query.value);
@@ -225,6 +226,13 @@ const api_routes = {
   // Inventory search
   "inventory_search/name?": async (args) => {
     return await match("i:Inventory", args, { orderBy: "i.name ASC" });
+  },
+  "complete_callform/callformId:id": async (args) => {
+    return await matchOne("cf:CallForm:Incomplete", args, {
+      remove: { cf: ["Incomplete"] },
+      set: { cf: { label: makeLabel("Complete") } },
+      results: ["cf"],
+    });
   },
   // Find a report by author
   "report_search_by_author/familyName? firstName? fatherName? role:label? brigadeNumber:uint..? createdAt:datetime..? modifiedAt:datetime..?":
@@ -280,7 +288,7 @@ const api_routes = {
       };
     }
 
-    const newItem = await create(":Inventory", {
+    const newItem = await create("i:Inventory", {
       name: { value: trimmedName, type: "string" },
     });
 

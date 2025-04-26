@@ -7,7 +7,7 @@ let userCount = null;
 let dbReady = false;
 
 export let apiRouter = new ApiRouter("api", api_routes);
-export let router = apiRouter.toExpressRouter();
+export let router = apiRouter.toExpressRouter(() => dbReady);
 
 export function setDbReady() {
   dbReady = true;

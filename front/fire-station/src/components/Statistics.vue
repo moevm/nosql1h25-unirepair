@@ -1,31 +1,29 @@
 <template>
     <div class="statistics__container">
-        <div class="statistics-options__container">
-            <input type="radio" class="radio__input" v-model="selected" value="calls">
-            <span>Вызовы</span>
+        <input type="radio" class="radio__input" v-model="selected" value="calls">
+        <span class="statistics__text text__choice">Вызовы</span>
+        <br>
+        <input type="radio" class="radio__input" v-model="selected" value="usage">
+        <span class="statistics__text text__choice">Расход:</span>
+        <div class="checkboxes__container">
+            <input type="checkbox" :disabled="selected !=='usage'" class="custom__checkbox" v-model="waterUsage"><span class="statistics__text text__choice">Воды</span>
             <br>
-            <input type="radio" class="radio__input" v-model="selected" value="usage">
-            <span>Расход:</span>
-            <div class="checkboxes__container">
-                <input type="checkbox" :disabled="selected !=='usage'" class="custom__checkbox" v-model="waterUsage"><span style="margin-left: 20px;">Воды</span>
-                <br>
-                <input type="checkbox" :disabled="selected !=='usage'" class="custom__checkbox" v-model="foamUsage"><span style="margin-left: 20px;">Пены</span>
-            </div>
-            <span>За период:</span>
-            <span style="margin-left: 30px">от:</span><input type="date" class="date__input" v-model="date_begin">
-            <span style="margin-left: 30px">до:</span><input type="date" class="date__input" v-model="date_end" :min="date_begin">
-            <br>
-            <div style="margin-top: 20px; margin-bottom: 20px;">
-                <button id="submit-button" @click="showChart">Отобразить</button>
-                <button id="submit-button" @click="downloadData" style="margin-left: 200px;">Скачать</button>
-            </div>
+            <input type="checkbox" :disabled="selected !=='usage'" class="custom__checkbox" v-model="foamUsage"><span class="statistics__text text__choice">Пены</span>
+        </div>
+        <span class="statistics__text">За период:</span>
+        <span class="statistics__text text__date">от:</span><input type="date" class="date__input" v-model="date_begin">
+        <span class="statistics__text text__date">до:</span><input type="date" class="date__input" v-model="date_end" :min="date_begin">
+        <br>
+        <div class="chart-buttons">
+            <button class="submit-button" @click="showChart">Отобразить</button>
+            <button class="submit-button" @click="downloadData" style="margin-left: 200px;">Скачать</button>
+        </div>
 
-            <Chart ref="chart" />
+        <Chart ref="chart" />
 
-            <div style="margin-top: 20px; display: flex; justify-content: space-between;">
-                <button id="submit-button" @click="saveJSON">Сохранить данные в json<br>формате</button>
-                <button id="submit-button" @click="uploadJSON" style="margin-right: 80px">Загрузить данные в json<br>формате</button>
-            </div>
+        <div class="profile__buttons">
+            <button class="submit-button save-button" @click="saveJSON">Сохранить данные в json<br>формате</button>
+            <button class="submit-button load-button" @click="uploadJSON">Загрузить данные в json<br>формате</button>
         </div>
     </div>
 </template>
@@ -108,54 +106,86 @@ export default {
 
 <style scoped>
 .statistics__container {
-    background-color: white;
-    width: 100%;
+    position: relative;
+    box-sizing: border-box;
     margin: 24px;
-    border-radius: 20px;
+    min-width: 70vw;
+    width: 100%;
+    min-height: 90vh;
+    background: #fff;
+    padding: 46px 50px;
+    border-radius: 13px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.statistics__text {
+  font-size: 20px;
 }
 
 .radio__input {
-    transform: scale(3);
-    margin: 0 30px 30px 10px;
-}
-
-.statistics-options__container {
-    margin-left: 80px;
-    margin-top: 60px;
-}
-
-span {
-    font-size: x-large;
-}
-
-.checkboxes__container {
-    padding-left: 60px;
-}
-
-.custom__checkbox {
     transform: scale(2);
     margin-bottom: 20px;
 }
 
+.checkboxes__container {
+    padding-left: 35px;
+}
+
+.text__choice {
+  padding-left: 15px;
+}
+
+.custom__checkbox {
+    transform: scale(150%);
+    margin-bottom: 20px;
+}
+
 .date__input {
-    padding: 10px;
+    padding: 6px;
     font-size: x-large;
     margin-left: 10px;
 }
 
-#submit-button {
-    font-size: x-large;
-    border-radius: 10px;
-    border: none;
-    padding: 10px 20px 10px 20px;
-    background-color: #A7A3CC;
+.text__date {
+  padding-left: 25px;
 }
 
-#submit-button:not(:disabled) {
+.profile__buttons {
+    display: flex;
+    justify-content: space-between;
+}
+
+.submit-button {
+    font-size: 20px;
+    font-weight: 500;
+    border-radius: 8px;
+    border: none;
+    padding: 0.5rem 1rem;
+    background-color: #A7A3CC;
+    margin: 0;
+}
+
+.chart-buttons {
+    margin: 18px 0 4px;
+}
+
+.save-button {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+}
+
+.load-button {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+}
+
+.submit-button:not(:disabled) {
     cursor: pointer;
 }
 
-#submit-button:hover:not(:disabled) {
+.submit-button:hover:not(:disabled) {
     background-color: #766EBF;
 }
 </style>

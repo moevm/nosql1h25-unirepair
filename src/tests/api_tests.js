@@ -1,0 +1,202 @@
+import * as assert from "../assert.js";
+import { runUnitTests } from "./unit_test.js";
+
+const datePattern = {
+  year: "number:",
+  month: "number:",
+  day: "number:",
+  hour: "number:",
+  minute: "number:",
+  second: "number:",
+};
+
+const pointPattern = {
+  x: "number:",
+  y: "number:",
+};
+
+const userPattern = {
+  "labels:listOf": "string:",
+  fatherName: "string:",
+  familyName: "string:",
+  firstName: "string:",
+  address: "string:",
+  email: "string:",
+  login: "string:",
+  brigadeNumber: "number:\\d+",
+  passwordHash: "string:[a-zA-Z\\d]+",
+  modifiedAt: datePattern,
+  registeredAt: datePattern,
+  id: "string:\\d+",
+};
+
+const callFormPattern = {
+  "labels:listOf": "string:",
+  callSource: "string:",
+  fireAddress: "string:",
+  bottomLeft: pointPattern,
+  topRight: pointPattern,
+  fireType: "string:",
+  fireRank: "string:",
+  victimsCount: "number:\\d+",
+  assignedTo: "number:\\d+",
+  auto: "string:",
+  modifiedAt: datePattern,
+  createdAt: datePattern,
+  id: "string:\\d+",
+};
+
+const reportPattern = {
+  "labels:listOf": "string:",
+  allegedFireCause: "string:",
+  additionalNotes: "string:",
+  waterSpent: "number:\\d+",
+  foamSpent: "number:\\d+",
+  damage: "number:",
+  modifiedAt: datePattern,
+  id: "string:\\d+",
+};
+
+const inventoryPattern = {
+  name: "string:",
+  id: "string:\\d+",
+};
+
+function listOf(pattern) {
+  return { ":listOf": pattern };
+}
+
+function msg(content) {
+  return { message: `string:${content}` };
+}
+
+function err(content) {
+  return { error: `string:${content}` };
+}
+
+const tests = {
+  "login_user?login=operator_dmitriy&password=123": userPattern,
+  "login_user?login=operator_dmitriy&password=111111": err(
+    "Password is incorrect",
+  ),
+  "login_user?login=operator_anna&password=111111": err("User does not exist"),
+  "get_callforms?assignedTo=1": listOf(callFormPattern),
+  "get_callforms?assignedTo=1;2": listOf(callFormPattern),
+  "get_callforms?assignedTo=7": msg("No active calls"),
+  "brigade_reports?brigadeNumber=1": {
+    complete_reports: listOf({
+      u: userPattern,
+      o: userPattern,
+      r: reportPattern,
+      cf: callFormPattern,
+    }),
+    incomplete_reports: listOf({
+      u: userPattern,
+      o: userPattern,
+      r: reportPattern,
+      cf: callFormPattern,
+    }),
+    new_reports: listOf({
+      u: userPattern,
+      o: userPattern,
+      r: reportPattern,
+      cf: callFormPattern,
+    }),
+  },
+  "create_callform?callSource=Anatoliy": err(
+    "Incomplete callforms are not supported yet",
+  ),
+  [`create_callform?callSource=Vasya&fireAddress=ITMO&bottomLeft=10;20&topRight=30;40&fireType=expansive&fireRank=3&victimsCount=0&assignedTo=1&auto=${encodeURIComponent("Пожарная машина 4")}`]:
+    {
+      ensure: callFormPattern,
+      query: "complete_callform?callformId=$id",
+      then: {
+        ensure: callFormPattern,
+        query: "new_report?callformId=$id",
+        then: {
+          ensure: reportPattern,
+          query:
+            "fill_report?reportId=$id&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere",
+          then: reportPattern,
+        },
+      },
+    },
+  "operator_callforms?login=operator_dmitriy": listOf(callFormPattern),
+  "user_spawn?familyName=Roh&firstName=Ivan&fatherName=Ragnarson&role=Brigadier&brigadeNumber=6&address=Siberia&phone=900&email=bananamail&login=rohgadier&password=password":
+    {
+      ensure: userPattern,
+      query: "modify_user?login=rohgadier&address=Germany",
+      then: userPattern,
+    },
+  "user_search?firstName=и&registeredAt=2022-10-10;2024-10-10":
+    listOf(userPattern),
+  get_brigades: {
+    busyBrigades: listOf({
+      brigadeNumber: "number:\\d+",
+      activeCallStartedAt: datePattern,
+    }),
+    freeBrigades: listOf({
+      brigadeNumber: "number:\\d+",
+      "lastCallEndedAt?": datePattern,
+    }),
+  },
+  callform_search: listOf(callFormPattern),
+  "callform_search?status=Complete": listOf(callFormPattern),
+  "callform_search?status=Incomplete&createdAt=2022-05-05&modifiedAt=2021-06-06;2026-07-01":
+    listOf(callFormPattern),
+  "callform_search?victimsCount=0;&assignedTo=;10": listOf(callFormPattern),
+  "report_search?status=New": listOf(reportPattern),
+  "report_search?status=Incomplete&waterSpent=;": listOf(reportPattern),
+  "report_search?status=New&modifiedAt=2004-08-05;": listOf(reportPattern),
+  "report_search?allegedFireCause=а": listOf(reportPattern),
+  inventory_search: listOf(inventoryPattern),
+  "inventory_search?name=машина": listOf(inventoryPattern),
+  "report_search_by_author?familyName=И": listOf({
+    u: userPattern,
+    r: reportPattern,
+    cf: callFormPattern,
+  }),
+  "brigade_members?brigadeNumber=;": listOf(userPattern),
+};
+
+async function checkQueryResult(router, runner, result, checker) {
+  if (checker.constructor === {}.constructor) {
+    if (checker.ensure) {
+      await checkQueryResult(router, runner, result, checker.ensure);
+      assert.assertString(checker.query);
+      assert.assertObject(result);
+      assert.assert(result.id !== undefined);
+      const substitutedCheckQuery = checker.query.replaceAll("$id", result.id);
+      const queryResult = await router.runTestQuery(substitutedCheckQuery);
+      if (checker.then)
+        await checkQueryResult(router, runner, queryResult, checker.then);
+    } else {
+      runner.match(result, checker);
+    }
+  } else if (typeof checker === "function") {
+    checker(runner, result);
+  } else {
+    assert.assert(false, "Unexpected checker type: " + typeof checker);
+  }
+}
+
+function makeApiTests(router) {
+  let result = [];
+  let i = 0;
+  for (const [query, checker] of Object.entries(tests)) {
+    i += 1;
+    const name = `${query.split("?")[0]}_${i}`;
+    result.push([
+      name,
+      async (runner) => {
+        const queryResult = await router.runTestQuery(query);
+        await checkQueryResult(router, runner, queryResult, checker);
+      },
+    ]);
+  }
+  return result;
+}
+
+export async function runApiTests(router) {
+  await runUnitTests(makeApiTests(router));
+}

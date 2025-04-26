@@ -1,6 +1,6 @@
 <template>
     <div class="layout">
-        <Sidebar />
+        <Sidebar/>
         <Statistics />
     </div>
 </template>
