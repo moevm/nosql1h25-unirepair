@@ -255,9 +255,10 @@ const api_routes = {
   },
   // Add inventory item
   "inventory_add/name:string": async (args) => {
-    return await createIfNotExists("i:Inventory", args, {
-      orelse: error("Such an item already exists in inventory"),
-    });
+      const result = await createIfNotExists("i:Inventory", args, {
+          orelse: { success: false, message: "Such an item already exists in inventory" },
+      });
+      return { success: true, data: result };
   },
 };
 export default api_routes;
