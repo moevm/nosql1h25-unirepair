@@ -171,8 +171,12 @@
             </div>
 
             <div class="form-actions">
-                <button class="send-button" @click="sendToBrigades">
-                    Отправить бригадам
+                <button 
+                    class="send-button" 
+                    @click="sendToBrigades"
+                    :disabled="formSubmitted || !selectedBrigade || !selectedVehicle"
+                    >
+                    {{ formSubmitted ? 'Форма отправлена' : 'Отправить бригадам' }}
                 </button>
                 <button class="save-button" @click="showSaveAlert = true">
                     Сохранить форму
@@ -228,6 +232,7 @@ export default {
             availableVehicles: [],
             createdFormData: null,
             createdFormDates: null,
+            formSubmitted: false
         };
     },
     async created() {
@@ -408,7 +413,8 @@ export default {
                 if (response === null) return;
 
                 this.createdFormData = response;
-                alert("Форма успешно создана!");
+                this.formSubmitted = true;
+                //alert("Форма успешно создана!");
                 return true;
             } catch (error) {
                 console.error("Ошибка:", error);
@@ -431,8 +437,9 @@ export default {
                     callformId: this.createdFormData.id,
                 });
                 if (response) {
-                    alert("форма успешно завершена!");
+                    //alert("форма успешно завершена!");
                     this.resetForm();
+                    this.$router.push('/reports');
                 }
             } catch (error) {
                 console.error("ошибка:", error);
@@ -589,6 +596,7 @@ img {
     height: 40%;
     font-size: xx-large;
     font-weight: bolder;
+    z-index: 1000;
 }
 #exit-icon-alert {
     position: absolute;

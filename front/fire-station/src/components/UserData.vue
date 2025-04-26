@@ -56,7 +56,7 @@
 
         <RouterLink
             to="/db"
-            v-if="user?.role == 'admin'"
+            v-if="user && user?.role == 'admin'"
             class="button DB_button"
             >База данных</RouterLink
         >
