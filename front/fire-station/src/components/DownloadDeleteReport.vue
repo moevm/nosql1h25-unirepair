@@ -372,8 +372,8 @@ export default {
         formData(r) {
             return `${r.modifiedAt.split("T")[0]}`;
         },
-    },
-};
+    }
+}
 </script>
 
 <style scoped>

@@ -139,11 +139,11 @@ th {
     border-radius: 10px;
 }
 .call-card {
-    margin: 0 24px 0 24px;
-    background: #fff;
-    padding: 24px;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 0 24px 0 24px;
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .call-card_text {
