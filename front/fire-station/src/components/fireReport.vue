@@ -146,7 +146,9 @@ export default {
       ],
 
       availableBrigades: [],
-      availableVehicles: []
+      availableVehicles: [],
+      createdFormData: null,
+    createdFormDates: null
     }
   },
   async created() {
@@ -158,38 +160,46 @@ export default {
     async fetchAvailableBrigades() {
       try {
         const response = await axios.get('http://localhost:3000/api/get_brigades');
-
         console.log('Полученные данные о бригадах:', response.data);
 
-        const brigadeInfo = await Promise.all(
-            response.data.freeBrigades.concat(response.data.busyBrigades).map(async brigade => {
-              const membersResponse = await axios.get('http://localhost:3000/api/brigade_members', {
-                params: { brigadeNumber: brigade.brigadeNumber }
-              });
+        // Собираем все уникальные номера бригад
+        const allBrigadeNumbers = [
+          ...new Set([
+            ...response.data.freeBrigades.map(b => b.brigadeNumber),
+            ...response.data.busyBrigades.map(b => b.brigadeNumber)
+          ])
+        ];
 
-        const lastCallResponse = await axios.get('http://localhost:3000/api/callform_search', {
+        const brigadeInfo = await Promise.all(
+          allBrigadeNumbers.map(async brigadeNumber => {
+            const [membersResponse, lastCallResponse] = await Promise.all([
+              axios.get('http://localhost:3000/api/brigade_members', {
+                params: { brigadeNumber }
+              }),
+              axios.get('http://localhost:3000/api/callform_search', {
                 params: {
-                  assignedTo: brigade.brigadeNumber,
+                  assignedTo: brigadeNumber,
                   status: 'Complete',
                 }
-              });
-              const lastCallTime = lastCallResponse.data[0]?.modifiedAt
-                  ? this.neo4jDateToTime(lastCallResponse.data[0].modifiedAt)
-                  : 0;
+              })
+            ]);
 
-              return {
-                brigadeNumber: brigade.brigadeNumber,
-                size: membersResponse.data.length,
-                lastCallTime: lastCallTime
-              };
-            })
+            const lastCallTime = lastCallResponse.data[0]?.modifiedAt
+              ? this.neo4jDateToTime(lastCallResponse.data[0].modifiedAt)
+              : 'Нет данных';
+
+            return {
+              brigadeNumber,
+              size: membersResponse.data.length,
+              lastCallTime
+            };
+          })
         );
-        this.availableBrigades = this.formatBrigadeData(response.data, brigadeInfo);
 
+        this.availableBrigades = this.formatBrigadeData(response.data, brigadeInfo);
       } catch (error) {
         console.error('Ошибка при получении бригад:', error);
         this.error = this.getErrorMessage(error);
-      } finally {
       }
     },
 
@@ -199,25 +209,39 @@ export default {
         return info || { size: 0, lastCallTime: 0 };
       };
 
-      const freeBrigades = data.freeBrigades?.map(brigade => ({
-        number: brigade.brigadeNumber || 0,
-        size: getInfo(brigade.brigadeNumber).size || 0,
-        lastCallTime: getInfo(brigade.brigadeNumber).lastCallTime,
-        callsCount: 0,
-        status: 'Свободна'
-      })) || [];
+      // Создаем Map для хранения уникальных бригад
+      const brigadeMap = new Map();
 
-      const busyBrigades = data.busyBrigades?.map(brigade => ({
-        number: brigade.brigadeNumber  || 0,
-        size: getInfo(brigade.brigadeNumber).size || 0,
-        lastCallTime: getInfo(brigade.brigadeNumber).lastCallTime,
-        callsCount: 0,
-        status: 'На вызове',
-        selected: false
-      })) || [];
+      // Обрабатываем свободные бригады
+      data.freeBrigades?.forEach(brigade => {
+        if (!brigadeMap.has(brigade.brigadeNumber)) {
+          brigadeMap.set(brigade.brigadeNumber, {
+            number: brigade.brigadeNumber || 0,
+            size: getInfo(brigade.brigadeNumber).size || 0,
+            lastCallTime: getInfo(brigade.brigadeNumber).lastCallTime,
+            callsCount: 0,
+            status: 'Свободна'
+          });
+        }
+      });
 
-      return [...freeBrigades, ...busyBrigades].sort((a, b) => a.number - b.number);
+      // Обрабатываем занятые бригады
+      data.busyBrigades?.forEach(brigade => {
+        if (!brigadeMap.has(brigade.brigadeNumber)) {
+          brigadeMap.set(brigade.brigadeNumber, {
+            number: brigade.brigadeNumber || 0,
+            size: getInfo(brigade.brigadeNumber).size || 0,
+            lastCallTime: getInfo(brigade.brigadeNumber).lastCallTime,
+            callsCount: 0,
+            status: 'На вызове'
+          });
+        }
+      });
+
+      // Преобразуем Map обратно в массив и сортируем
+      return Array.from(brigadeMap.values()).sort((a, b) => a.number - b.number);
     },
+
     getErrorMessage(error) {
       if (error.response) {
         return `Ошибка сервера: ${error.response.status} ${error.response.statusText}`;
@@ -229,15 +253,25 @@ export default {
     },
 
     neo4jDateToTime(neo4jDate) {
-      if (!neo4jDate || !neo4jDate.year) return 0;
-      return new Date(
-          neo4jDate.year.low,
-          neo4jDate.month.low,
-          neo4jDate.day.low,
-          neo4jDate.hour.low,
-          neo4jDate.minute.low,
-          neo4jDate.second.low
-      ).toLocaleString()
+      if (!neo4jDate || !neo4jDate.year) return 'Нет данных';
+      
+      const date = new Date(
+        neo4jDate.year.low || neo4jDate.year,
+        (neo4jDate.month?.low || neo4jDate.month) - 1, // Месяцы в JS 0-11
+        neo4jDate.day?.low || neo4jDate.day,
+        neo4jDate.hour?.low || neo4jDate.hour,
+        neo4jDate.minute?.low || neo4jDate.minute,
+        neo4jDate.second?.low || neo4jDate.second
+      );
+      
+      return date.toLocaleString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
     },
 
     async fetchAvailableVehicles() {
@@ -284,16 +318,6 @@ export default {
     },
 
     async sendToBrigades() {
-      if (!this.incidentAddress) {
-        alert('Укажите адрес происшествия');
-        return false;
-      }
-
-      if (!this.selectedBrigade) {
-        alert('Выберите бригаду!');
-        return false;
-      }
-
       try {
         const params = {
           callSource: this.callSource,
@@ -301,97 +325,91 @@ export default {
           fireType: this.fireType,
           fireRank: this.fireRank,
           victimsCount: this.hasCasualties === 'yes' ? this.casualtiesCount : 0,
-          assignedTo: this.selectedBrigade, // используем напрямую selectedBrigade
-          auto: "Пожарная машина "+this.selectedVehicle,
+          assignedTo: this.selectedBrigade,
+          auto: "Пожарная машина " + this.selectedVehicle,
           bottomLeft: '55.7558;37.6173',
           topRight: '55.756;37.618'
         };
 
-        console.log('Отправляемые параметры:', params);
-
+        console.log('Отправка данных:', params);
+        
         const response = await axios.get('http://localhost:3000/api/create_callform', {
           params: params,
           paramsSerializer: params => {
             return Object.entries(params)
-                .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-                .join('&');
+              .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+              .join('&');
           }
         });
-        console.log('Ответ сервера:', response.data);
-        // this.resetForm();
-        return true;
+
+        if (response.data.success) {
+          this.createdFormData = response.data.formData;
+          console.log('Форма создана:', this.createdFormData);
+          alert('Форма успешно создана!');
+          return true;
+        } else {
+          throw new Error(response.data.error || 'Неизвестная ошибка');
+        }
       } catch (error) {
-        console.error('Ошибка при отправке данных:', error);
-        alert('Произошла ошибка: ' + (error.response?.data?.error || error.message));
+        console.error('Ошибка:', error);
+        alert('Ошибка при создании формы: ' + error.message);
         return false;
       }
     },
 
     async confirmSave() {
+      if (!this.createdFormData) {
+        alert('Сначала создайте форму!');
+        return;
+      }
+
+      console.log(typeof this.createdFormData.createdAt);
+
       try {
-        const searchParams = {
-          status: 'Incomplete',
-          fireAddress: this.incidentAddress,
-          assignedTo: this.selectedBrigade,
-          fireType: this.fireType,
-          fireRank: this.fireRank,
-          victimsCount: this.hasCasualties === 'yes' ? this.casualtiesCount : 0,
-          callSource: this.callSource
+        const params = {
+          createdAt: this.createdFormData.createdAt,
+          modifiedAt: this.createdFormData.modifiedAt
         };
 
-        const searchResponse = await axios.get('http://localhost:3000/api/callform_search', {
-          params: searchParams,
-          paramsSerializer: params => {
-            return Object.entries(params)
+        console.log('поиск формы по параметрам:', params);
+
+        const response = await axios.get(
+          'http://localhost:3000/api/complete_callform_and_create_report',
+          {
+            params: params,
+            paramsSerializer: params => {
+              return Object.entries(params)
                 .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
                 .join('&');
-          }
-        });
-        console.log('data', searchResponse.data);
-
-        const targetCall = searchResponse.data[0];
-
-
-        const paramsForCompletion = {
-          status: targetCall.status,
-          fireAddress: targetCall.fireAddress,
-          assignedTo: targetCall.assignedTo,
-          fireType: targetCall.fireType,
-          fireRank: targetCall.fireRank,
-          victimsCount: targetCall.victimsCount,
-          callSource: targetCall.callSource,
-          createdAt: targetCall.createdAt,
-          modifiedAt: targetCall.modifiedAt
-        };
-
-        console.log(paramsForCompletion)
-
-        const completeResponse = await axios.get(
-            'http://localhost:3000/api/complete_callform_and_create_report',
-            {
-              params: paramsForCompletion,
-              paramsSerializer: params => {
-                return Object.entries(params)
-                    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
-                    .join('&');
-              }
             }
+          }
         );
 
-        console.log("completeResponse", completeResponse)
-
-        if (completeResponse.data.success) {
-          alert('Вызов успешно завершен и отчет создан!');
-          this.$emit('completed');
-          return true;
+        if (response.data.success) {
+          alert('форма успешно завершена!');
+          this.resetForm();
         } else {
-          throw new Error(completeResponse.data.message || 'Не удалось завершить вызов');
+          throw new Error(response.data.message);
         }
       } catch (error) {
-        console.error('Ошибка завершения вызова:', error);
-        alert(`Ошибка: ${error.message}`);
-        return false;
+        console.error('ошибка:', error);
+        alert(`ошибка завершения формы: ${error.message}`);
       }
+    },
+
+    formDate(date) {
+      if (!date || !date.year) return '-';
+      
+      const pad = num => num.toString().padStart(2, '0');
+      
+      const year = date.year.low || date.year;
+      const month = pad((date.month?.low || date.month) + 1); // +1 так как месяцы 0-11
+      const day = pad(date.day?.low || date.day);
+      const hours = pad(date.hour?.low || date.hour);
+      const minute = pad(date.minute?.low || date.minute);
+      const second = pad(date.second?.low || date.second);
+      
+      return `${year}-${month}-${day}T${hours}:${minute}:${second}`;
     },
 
     resetForm() {
@@ -399,10 +417,14 @@ export default {
       this.fireType = '';
       this.hasCasualties = 'no';
       this.casualtiesCount = 0;
-      this.callSource = 'witness';
+      this.callSource = 'телефонный звонок';
       this.fireRank = '1';
-      this.selectedBrigades = null;
-      this.selectedVehicle = '';}
+      this.selectedBrigade = null;
+      this.selectedVehicle = '';
+      this.createdFormData = null;
+      this.createdFormDates = null;
+      this.showSaveAlert = false;
+    }
   }
 }
 </script>
