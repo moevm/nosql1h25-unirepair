@@ -78,7 +78,7 @@ const tests = {
   "login_user?login=operator_anna&password=111111": err("User does not exist"),
   "get_callforms?assignedTo=1": listOf(callFormPattern),
   "get_callforms?assignedTo=1;2": listOf(callFormPattern),
-  "get_callforms?assignedTo=7": "list:[]",
+  "get_callforms?assignedTo=7": "list:\\[\\]",
   "brigade_reports?brigadeNumber=1": {
     complete_reports: listOf({
       u: userPattern,
@@ -121,7 +121,10 @@ const tests = {
             ensure: reportPattern,
             query: "operator_callforms?login=operator_dmitriy",
             then: {
-              ensure: listOf(callFormPattern, "4;4"),
+              ensure: {
+                complete_callforms: listOf(callFormPattern, "4;4"),
+                incomplete_callforms: listOf(callFormPattern, "2;2"),
+              },
               query: "report_search_by_author?login=brigadier_igor",
               then: listOf(
                 {
@@ -140,7 +143,14 @@ const tests = {
     "Either CallForm or Brigadier not found",
   ),
   "complete_callform?callformId=209824": err("CallForm not found"),
-  "operator_callforms?login=operator_dmitriy": listOf(callFormPattern),
+  "operator_callforms?login=operator_dmitriy": {
+    complete_callforms: listOf(callFormPattern),
+    incomplete_callforms: listOf(callFormPattern),
+  },
+  "operator_callforms?login=operator_franka": {
+    complete_callforms: "list:\\[\\]",
+    incomplete_callforms: "list:\\[\\]",
+  },
   "user_spawn?familyName=Сидоров&firstName=Дмитрий&role=Operator&address=г. Новосибирск, ул. Красная, д. 15&login=operator_dmitriy&password=123":
     err("User already exists"),
   "user_spawn?familyName=Roh&firstName=Ivan&fatherName=Ragnarson&role=Brigadier&brigadeNumber=6&address=Siberia&phone=900&email=bananamail&login=rohgadier&password=password":

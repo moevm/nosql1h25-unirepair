@@ -90,10 +90,16 @@ const api_routes = {
     },
   // 6. Find operator's complete callforms
   "operator_callforms/login:string": async (args) => {
-    return await rawMatch(
-      `(u:User:Operator${props(args)})-[:CREATED]->(cf:CallForm:Complete)`,
-      { results: ["cf"], orderBy: "cf.createdAt DESC" },
-    );
+    return {
+      complete_callforms: await rawMatch(
+        `(u:User:Operator${props(args)})-[:CREATED]->(cf:CallForm:Complete)`,
+        { results: ["cf"], orderBy: "cf.createdAt DESC" },
+      ),
+      incomplete_callforms: await rawMatch(
+        `(u:User:Operator${props(args)})-[:CREATED]->(cf:CallForm:Incomplete)`,
+        { results: ["cf"], orderBy: "cf.createdAt DESC" },
+      ),
+    };
   },
   // 7. Spawn user
   "user_spawn/familyName firstName fatherName? role:label brigadeNumber:uint?=0 address phone? email? login:string password:password":
