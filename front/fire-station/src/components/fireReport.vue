@@ -85,90 +85,98 @@
 
             <div class="form-group">
                 <label>Выбор бригад:</label>
-                <table class="selection-table">
-                    <thead>
-                        <tr>
-                            <th>Выбрать</th>
-                            <th>Номер бр.</th>
-                            <th>Размер бр.</th>
-                            <th>Время последнего вызова</th>
-                            <th>Кол-во вызовов за смену</th>
-                            <th>Статус</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            v-for="(brigade, index) in availableBrigades"
-                            :key="index"
-                        >
-                            <td>
-                                <input
-                                    type="radio"
-                                    v-model="selectedBrigade"
-                                    :value="brigade.number"
-                                />
-                            </td>
-                            <td>{{ brigade.number }}</td>
-                            <td>{{ brigade.size }}</td>
-                            <td>{{ brigade.lastCallTime }}</td>
-                            <td>{{ brigade.callsCount }}</td>
-                            <td
-                                :class="{
-                                    'status-available':
-                                        brigade.status === 'Свободна',
-                                    'status-busy':
-                                        brigade.status === 'На вызове',
-                                }"
+                <div class="table-container">
+                    <table class="selection-table">
+                        <thead>
+                            <tr>
+                                <th>Выбрать</th>
+                                <th>Номер бр.</th>
+                                <th>Размер бр.</th>
+                                <th>Время последнего вызова</th>
+                                <th>Кол-во вызовов за смену</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                v-for="(brigade, index) in availableBrigades"
+                                :key="index"
                             >
-                                {{ brigade.status }}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                                <td>
+                                    <input
+                                        type="radio"
+                                        v-model="selectedBrigade"
+                                        :value="brigade.number"
+                                    />
+                                </td>
+                                <td>{{ brigade.number }}</td>
+                                <td>{{ brigade.size }}</td>
+                                <td>{{ brigade.lastCallTime }}</td>
+                                <td>{{ brigade.callsCount }}</td>
+                                <td
+                                    :class="{
+                                        'status-available':
+                                            brigade.status === 'Свободна',
+                                        'status-busy':
+                                            brigade.status === 'На вызове',
+                                    }"
+                                >
+                                    {{ brigade.status }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="form-group">
                 <label>Выбор пожарной машины:</label>
-                <table class="selection-table">
-                    <thead>
-                        <tr>
-                            <th>Выбрать</th>
-                            <th>Тип машины</th>
-                            <th>Статус</th>
-                            <th>Номер машины</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            v-for="(vehicle, index) in availableVehicles"
-                            :key="index"
-                        >
-                            <td>
-                                <input
-                                    type="radio"
-                                    v-model="selectedVehicle"
-                                    :value="vehicle.number"
-                                />
-                            </td>
-                            <td>{{ vehicle.type }}</td>
-                            <td
-                                :class="{
-                                    'status-available':
-                                        vehicle.status === 'Свободна',
-                                    'status-busy': vehicle.status === 'Занята',
-                                }"
+                <div class="table-container">
+                    <table class="selection-table">
+                        <thead>
+                            <tr>
+                                <th>Выбрать</th>
+                                <th>Тип машины</th>
+                                <th>Статус</th>
+                                <th>Номер машины</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                v-for="(vehicle, index) in availableVehicles"
+                                :key="index"
                             >
-                                {{ vehicle.status }}
-                            </td>
-                            <td>{{ vehicle.number }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+                                <td>
+                                    <input
+                                        type="radio"
+                                        v-model="selectedVehicle"
+                                        :value="vehicle.number"
+                                    />
+                                </td>
+                                <td>{{ vehicle.type }}</td>
+                                <td
+                                    :class="{
+                                        'status-available':
+                                            vehicle.status === 'Свободна',
+                                        'status-busy': vehicle.status === 'Занята',
+                                    }"
+                                >
+                                    {{ vehicle.status }}
+                                </td>
+                                <td>{{ vehicle.number }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="form-actions">
-                <button class="send-button" @click="sendToBrigades">
-                    Отправить бригадам
+                <button 
+                    class="send-button" 
+                    @click="sendToBrigades"
+                    :disabled="formSubmitted || !selectedBrigade || !selectedVehicle"
+                    >
+                    {{ formSubmitted ? 'Форма отправлена' : 'Отправить бригадам' }}
                 </button>
                 <button class="save-button" @click="showSaveAlert = true">
                     Сохранить форму
@@ -224,6 +232,7 @@ export default {
             availableVehicles: [],
             createdFormData: null,
             createdFormDates: null,
+            formSubmitted: false
         };
     },
     async created() {
@@ -404,7 +413,8 @@ export default {
                 if (response === null) return;
 
                 this.createdFormData = response;
-                alert("Форма успешно создана!");
+                this.formSubmitted = true;
+                //alert("Форма успешно создана!");
                 return true;
             } catch (error) {
                 console.error("Ошибка:", error);
@@ -427,8 +437,9 @@ export default {
                     callformId: this.createdFormData.id,
                 });
                 if (response) {
-                    alert("форма успешно завершена!");
+                    //alert("форма успешно завершена!");
                     this.resetForm();
+                    this.$router.push('/reports');
                 }
             } catch (error) {
                 console.error("ошибка:", error);
@@ -585,6 +596,7 @@ img {
     height: 40%;
     font-size: xx-large;
     font-weight: bolder;
+    z-index: 1000;
 }
 #exit-icon-alert {
     position: absolute;
@@ -623,5 +635,43 @@ img {
 }
 .confirm-button:hover {
     background-color: #8d5151;
+}
+
+/* добавим прокрутку */
+.table-container {
+  max-height: 250px; /* Высота примерно для 5 строк */
+  overflow-y: auto; /* Вертикальная прокрутка */
+  border: 1px solid #ddd;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.table-container table {
+  width: 100%;
+}
+
+.table-container thead th {
+  position: sticky;
+  top: 0;
+  background-color: #f2f2f2;
+  z-index: 10;
+}
+
+/* Кастомный скроллбар */
+.table-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 </style>
