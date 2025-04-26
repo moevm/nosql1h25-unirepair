@@ -63,10 +63,9 @@ const api_routes = {
         },
       ),
       new_reports: await rawMatch(
-        `(r:Report:New)-[:ON_CALL]->(cf:CallForm:Complete)-[:CREATED_BY]->(o:User:Operator)`,
+        `(u:User:Brigadier${props(args)})-[:FILLED_IN]->(r:Report:New)-[:ON_CALL]->(cf:CallForm:Complete)-[:CREATED_BY]->(o:User:Operator)`,
         {
-          where: `cf.assignedTo = ${args.brigadeNumber.value}`,
-          results: ["o", "r", "cf"],
+          results: ["u", "o", "r", "cf"],
           orderBy: "cf.createdAt DESC",
           orelse: [],
         },
@@ -74,21 +73,16 @@ const api_routes = {
     };
   },
   // 4. Fill in a report
-  "fill_report/login:string? reportId:id waterSpent:uint foamSpent:uint allegedFireCause damage:uint additionalNotes":
+  "fill_report/reportId:id waterSpent:uint foamSpent:uint allegedFireCause damage:uint additionalNotes":
     async (args) => {
       const login = fishOut(args, ({ k }) => k === "login");
-      return await matchOne(
-        `r:Report:${login.login ? "New" : "Incomplete"}`,
-        fishOutTypes(args, ["id"]),
-        {
-          match: `(u:User:Brigadier${props(login)})`,
-          create: `(u)-[:FILLED_IN]->(r)`,
-          remove: { r: ["New"] },
-          set: { r: { ...args, label: makeLabel("Complete") } },
-          results: ["r"],
-          orelse: error("Report or Brigadier not found"),
-        },
-      );
+      return await matchOne(`r:Report`, fishOutTypes(args, ["id"]), {
+        where: "NOT r:Complete",
+        remove: { r: ["New"] },
+        set: { r: { ...args, label: makeLabel("Complete") } },
+        results: ["r"],
+        orelse: error("Report not found"),
+      });
     },
   // 5. Create a new callform
   "create_callform/login:string callSource? fireAddress? bottomLeft:point? topRight:point? fireType? fireRank:string? victimsCount:uint? assignedTo:uint? auto?":
@@ -103,7 +97,7 @@ const api_routes = {
           modifiedAt: now(),
         })})
         CREATE (o)-[:CREATED]->(cf)
-        CREATE (cf)-[:CREATED_BY]->(cf)`,
+        CREATE (cf)-[:CREATED_BY]->(o)`,
         results: ["cf"],
         orelse: error(`Operator ${operatorArgs.login.value} not found`),
       });
@@ -202,6 +196,7 @@ const api_routes = {
   // 11. Create a new report based on complete callform
   "new_report/callformId:id": async (args) => {
     return await matchOne("cf:CallForm:Complete", args, {
+      match: `(u:User:Brigadier { brigadeNumber: cf.assignedTo })`,
       create: `(r:Report:New {
           waterSpent: 0,
           foamSpent: 0,
@@ -210,7 +205,8 @@ const api_routes = {
           additionalNotes: "Данные ещё не внесены, ожидается завершение отчёта.",
           modifiedAt: datetime()
         })
-        CREATE (r)-[:ON_CALL]->(cf)`,
+        CREATE (r)-[:ON_CALL]->(cf)
+        CREATE (u)-[:FILLED_IN]->(r)`,
       results: ["r"],
       orelse: error("CallForm not found"),
     });

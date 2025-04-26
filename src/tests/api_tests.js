@@ -98,8 +98,8 @@ const tests = {
       cf: callFormPattern,
     }),
   },
-  "fill_report?login=brigadier_igor&reportId=99999d&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere":
-    err("Report or Brigadier not found"),
+  "fill_report?reportId=99999d&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere":
+    err("Report not found"),
   "create_callform?login=operator_dmitriy&callSource=Anatoliy": err(
     "Incomplete callforms are not supported yet",
   ),
@@ -115,7 +115,7 @@ const tests = {
         then: {
           ensure: reportPattern,
           query:
-            "fill_report?login=brigadier_igor&reportId=$id&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere",
+            "fill_report?reportId=$id&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere",
           then: {
             ensure: reportPattern,
             query: "operator_callforms?login=operator_dmitriy",
