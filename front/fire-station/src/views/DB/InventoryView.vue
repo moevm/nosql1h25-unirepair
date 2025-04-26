@@ -72,23 +72,23 @@ export default {
             }
 
             try {
-                const url = `http://localhost:3000/api/inventory_add?name=${encodeURIComponent(name)}`;
-                
-                const response = await axios.get(url);
-                
-                if (response.data.success) {
-                this.newInventoryName = '';
-                this.search();
-                } else {
-                alert(response.data.message || 'Ошибка при добавлении');
-                }
+            const url = `http://localhost:3000/api/inventory_add?name=${encodeURIComponent(name)}`;
+            const response = await axios.get(url);
+            
+            // Если запрос успешен (HTTP 200), считаем что добавление прошло успешно
+            this.newInventoryName = '';
+            this.search();
+            
             } catch (error) {
-                console.error('Полная ошибка:', error);
-                if (error.response) {
-                alert(error.response.data?.message || 'Ошибка сервера');
-                } else {
+            console.error('Ошибка:', error);
+            if (error.response) {
+                // Бекенд возвращает сообщение об ошибке в error.response.data
+                alert(error.response.data || 'Ошибка сервера');
+            } else if (error.request) {
                 alert('Не удалось подключиться к серверу');
-                }
+            } else {
+                alert('Ошибка при настройке запроса');
+            }
             }
         },
         
