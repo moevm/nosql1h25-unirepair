@@ -51,9 +51,7 @@ onMounted(async () => {
 
         const transformReports = (reportsArr, status) =>
             reportsArr.map(({ u, o, r, cf }) => ({
-                brigadier: u
-                    ? `${u.familyName} ${u.firstName} ${u.fatherName}`
-                    : "",
+                brigadier: `${u.familyName} ${u.firstName} ${u.fatherName}`,
                 operator: `${o.familyName} ${o.firstName} ${o.fatherName}`,
                 id: r.id,
                 damage: r.damage,
@@ -67,6 +65,8 @@ onMounted(async () => {
                 fireRank: cf.fireRank,
                 victimsCount: cf.victimsCount,
                 auto: cf.auto,
+                callTime: cf.createdAt,
+                endTime: cf.modifiedAt,
                 modifiedAt: r.modifiedAt,
                 assignedTo: cf.assignedTo,
                 callId: cf.id,
