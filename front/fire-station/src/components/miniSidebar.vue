@@ -37,14 +37,15 @@ export default {
     const activeRoute = computed(() => route.path)
 
     const roleBasedMenu = {
-      dispatcher: [
+      operator: [
         { icon: '/icons/add_form.svg', route: '/new-call' },
         { icon: '/icons/calls.svg', route: '/active-calls' },
-        {  icon: '/icons/folder.svg', route: '/reports' },
+        { icon: '/icons/folder.svg', route: '/reports' },
       ]
     }
-
+    console.log(user.value)
     const menuItems = computed(() => (user.value ? roleBasedMenu[user.value.role] || [] : []))
+
 
     return {
       menuItems,
@@ -72,11 +73,9 @@ export default {
   list-style: none;
   padding: 0;
   margin: 0;
-  width: 90%;
   display: flex;
   flex-direction: column;
   row-gap: 12px;
-  position: absolute;
   right: 0;
 }
 
@@ -85,7 +84,6 @@ export default {
 }
 
 .sidebar__item--active {
-  border-radius: 20px 0 0 20px;
   background-color: #766EBF;
 }
 
@@ -104,7 +102,7 @@ export default {
 }
 
 .sidebar__icon {
-  padding-right: 10px;
+  padding: 0 50vw 0 50vw;
   width: 50px;
   height: 50px;
 }

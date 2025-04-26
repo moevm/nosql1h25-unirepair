@@ -12,7 +12,7 @@
           class="reports__file"
       >
         <img class="icon-file" src="/icons/file-text.svg" alt="file-text" />
-        <span class="file_name">{{ report.name }}</span>
+        <span class="file_name">{{ formReportName(report) }}</span>
       </div>
     </div>
   </div>
@@ -20,35 +20,31 @@
 </template>
 
 <script setup>
+import { useUserStore } from '@/stores/user';
+import axios from 'axios';
 import { ref, computed } from 'vue'
-const reports = ref([
-  {
-    id: 2,
-    name: 'Rep_22.02.24_08:51_5-2',
-    number: '15.12.24_02:36_6-2',
-    brigadier: 'Иванов И. И.',
-    operator: 'Петров П. П.',
-    callTime: '02:36 15.12.24',
-    endTime: '04:10 15.12.24',
-    address: 'Ул. Ленина, д. 12, 3-й этаж',
-    category: 'Квартира (многоквартирный дом)',
-    victims: '1 человек (эвакуирован)',
-    team: [
-      'Бригада 1 (5 человек)',
-      'Автомобиль Л-41',
-      'Лестница 10 м',
-      'Генератор пены'
-    ],
-    waterSpent: '',
-    foamSpent: '',
-    equipmentDamage: '',
-    noDamage: false,
-    fireReason: '',
-    damageAssessment: '',
-    additionalInfo: ''
-  },
-])
 
+let reports = ref([]);
+
+axios.get(`http://localhost:3000/api/operator_callforms?login=${useUserStore().user.login}`).then(res => reports.value = res.data.complete_callforms);
+const formReportName = (r => {
+    let day = r.createdAt.day.toString();
+    while(day.length < 2) day = '0' + day;
+
+    let month = r.createdAt.month.toString();
+    while(month.length < 2) month = '0' + month;
+
+    let year = r.createdAt.year.toString().slice(-2);
+    while(year.length < 2) year = '0' + year;
+
+    let hour = r.createdAt.hour.toString();
+    while(hour.length < 2) hour = '0' + hour
+
+    let minute = r.createdAt.minute.toString();
+    while(minute.length < 2) minute = '0' + minute
+
+    return `Rep_${day}.${month}.${year}_${hour}:${minute}_B-${r.assignedTo}`
+  })
 </script>
 
 <style scoped>

@@ -183,19 +183,19 @@ export default {
             return params;
         },
         formReportName(r){
-            let day = r.createdAt.day.low.toString();
+            let day = r.createdAt.day.toString();
             while(day.length < 2) day = '0' + day;
 
-            let month = r.createdAt.month.low.toString();
+            let month = r.createdAt.month.toString();
             while(month.length < 2) month = '0' + month;
 
-            let year = r.createdAt.year.low.toString().slice(-2);
+            let year = r.createdAt.year.toString().slice(-2);
             while(year.length < 2) year = '0' + year;
 
-            let hour = r.createdAt.hour.low.toString();
+            let hour = r.createdAt.hour.toString();
             while(hour.length < 2) hour = '0' + hour
 
-            let minute = r.createdAt.minute.low.toString();
+            let minute = r.createdAt.minute.toString();
             while(minute.length < 2) minute = '0' + minute
 
             return `Rep_${day}.${month}.${year}_${hour}:${minute}_B-${r.assignedTo}`
@@ -204,13 +204,13 @@ export default {
             return user.labels.find(label => (label === "Brigadier" || label === "Fireman" || label === "Operator" || label === "Admin"))
         },
         formData(r){
-            let day = r.modifiedAt.day.low.toString();
+            let day = r.modifiedAt.day.toString();
             while(day.length < 2) day = '0' + day
 
-            let month = r.modifiedAt.month.low.toString();
+            let month = r.modifiedAt.month.toString();
             while(month.length < 2) month = '0' + month
 
-            let year = r.modifiedAt.year.low.toString();
+            let year = r.modifiedAt.year.toString();
             while(year.length < 2) year = '0' + year
 
             return `${year}-${month}-${day}`
