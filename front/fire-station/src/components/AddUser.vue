@@ -153,7 +153,7 @@ export default {
 }
 
 .component-label__container>label {
-    font-size: x-large;
+    font-size: xx-large;
     font-weight: bolder;
 }
 
@@ -175,11 +175,12 @@ export default {
     border-radius: 0 0 20px 20px;
     background-color: white;
     height: 100%;
-    padding: 24px;
+    padding-left: 4vw;
+    padding-top: 2vw;
 }
 
 .userinfo__input, span {
-    font-size: large;
+    font-size: x-large;
     margin-bottom: 25px;
 }
 
@@ -188,7 +189,7 @@ export default {
 }
 
 input[type="text"]{
-    width: 600px;
+    width: 30vw;
 }
 
 input[type="number"]{
@@ -197,8 +198,8 @@ input[type="number"]{
 
 input[type="radio"] {
     cursor: pointer;
-    transform: scale(2);
-    margin: 15px;
+    transform: scale(3);
+    margin: 30px;
 }
 
 #submit-button {
@@ -206,7 +207,7 @@ input[type="radio"] {
     cursor: pointer;
     right: 60px;
     bottom: 50px;
-    font-size: large;
+    font-size: xx-large;
     border-radius: 10px;
     border: none;
     padding: 20px;
@@ -223,5 +224,32 @@ input[type="radio"] {
 
 .brigade-text__unavaliable {
     color: gray;
+}
+
+@media (max-width: 1500px){
+    .component-label__container>label {
+        font-size: x-large;
+        font-weight: bolder;
+    }
+    .userinfo__input, span {
+        font-size: large;
+        margin-bottom: 23px;
+    }
+    input[type="radio"] {
+        cursor: pointer;
+        transform: scale(2);
+        margin: 15px;
+    }
+    #submit-button {
+        position: absolute;
+        cursor: pointer;
+        right: 60px;
+        bottom: 50px;
+        font-size: x-large;
+        border-radius: 10px;
+        border: none;
+        padding: 20px;
+        background-color: #A7A3CC;
+    }
 }
 </style>

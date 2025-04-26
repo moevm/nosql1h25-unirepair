@@ -57,7 +57,7 @@
                     <tbody>
                         <tr class="row__table" v-for="(user, index) in foundUsers" :key="index">
                             <td style="width: 3%; text-align: center;">
-                                <img src="/icons/editUser.svg" style="cursor: pointer; transform: scale(1);" @click="goToEditUserData(index)">
+                                <img src="/icons/editUser.svg" class="editButton" @click="goToEditUserData(index)">
                             </td>
                             <td style="width: 50%; padding-left: 10px;">{{ user.familyName + ' ' + user.firstName + ' ' + user.fatherName }}</td>
                             <td style="padding-left: 10px;">{{ rolesTranslations[findRole(user)] }}</td>
@@ -65,7 +65,7 @@
                         </tr>    
                         <tr class="row__table" v-if="foundUsers.length < 4" v-for="index in (4 - foundUsers.length)">
                             <td style="width: 3%; text-align: center;">
-                                <img src="/icons/editUser.svg" style="cursor: pointer; transform: scale(1);">
+                                <img src="/icons/editUser.svg" class="editButton">
                             </td>
                             <td style="width: 50%"></td>
                             <td></td>
@@ -173,7 +173,7 @@ export default {
 }
 
 .component-label__container>label {
-    font-size: x-large;
+    font-size: xx-large;
     font-weight: bolder;
 }
 
@@ -195,11 +195,12 @@ export default {
     border-radius: 0 0 20px 20px;
     background-color: white;
     height: 100%;
-    padding: 24px;
+    padding-left: 4vw;
+    padding-top: 2vw;
 }
 
 .userinfo__input, span {
-    font-size: large;
+    font-size: x-large;
     margin-bottom: 10px;
 }
 
@@ -208,7 +209,7 @@ export default {
 }
 
 input[type="text"]{
-    width: 600px;
+    width: 30vw;
 }
 
 input[type="number"]{
@@ -217,8 +218,8 @@ input[type="number"]{
 
 input[type="radio"] {
     cursor: pointer;
-    transform: scale(1.5);
-    margin: 15px
+    transform: scale(2.5);
+    margin: 20px;
 }
 
 .brigade-text__avaliable {
@@ -230,12 +231,12 @@ input[type="radio"] {
 }
 
 .date__input {
-    padding: 5px;
+    padding: 0.5vw;
 }
 
 #submit-button {
     cursor: pointer;
-    font-size: large;
+    font-size: x-large;
     border-radius: 10px;
     border: none;
     padding: 10px 20px 10px 20px;
@@ -248,8 +249,8 @@ input[type="radio"] {
 
 .table__container {
     width: 95%;
-    font-size: medium;
-    max-height: 185px;
+    font-size: large;
+    max-height: 19.5vh;
     overflow-y: scroll;
 }
 
@@ -261,10 +262,44 @@ input[type="radio"] {
 
 .row__table>td {
     border: 1px solid black;
-    height: 23px;
+    height: 3.5vh;
 }
 
 th {
-    height: 25px;
+    height: 3.5vh;
+}
+
+.editButton {
+    cursor: pointer;
+    transform: scale(1.2);
+}
+
+@media (max-width: 1500px){
+    .component-label__container>label {
+        font-size: x-large;
+        font-weight: bolder;
+    }
+    .userinfo__input, span {
+        font-size: medium;
+        margin-bottom: 5px;
+    }
+    input[type="radio"] {
+        cursor: pointer;
+        transform: scale(2);
+        margin: 15px;
+    }
+    #submit-button {
+        cursor: pointer;
+        font-size: large;
+        border-radius: 10px;
+        border: none;
+        padding: 10px 20px 10px 20px;
+        background-color: #A7A3CC;
+    }
+    .editButton {
+        cursor: pointer;
+        transform: scale(1);
+    }
+
 }
 </style>

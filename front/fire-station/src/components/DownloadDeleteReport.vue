@@ -49,11 +49,11 @@
                     <table class="users__table">
                         <thead style="position: sticky; top: 0; background-color: white; border: 1px solid black; z-index: 10;">
                             <tr>
-                                <th style="position: absolute; left: 0; top: 0;">
+                                <th>
                                     <input type="checkbox" class="checkbox" :disabled="!foundReports.length" v-model="allSelected" @click="() => {allSelected = !allSelected; selectedReports.fill(allSelected)}">
-                                    <span style="padding-left: 6px; font-size: small">Выбрать всех</span>
+                                    <span style="position: absolute; top: 0px; margin-left: 10px; font-size: small;">Выбрать<br>всех</span>
                                 </th>
-                                <th style="padding-left: 80px;">Название отчета</th>
+                                <th>Название отчета</th>
                                 <th>ФИО</th>
                                 <th>Должность</th>
                                 <th>Бр.</th>
@@ -242,7 +242,7 @@ export default {
 }
 
 .component-label__container>label {
-    font-size: x-large;
+    font-size: xx-large;
     font-weight: bolder;
 }
 
@@ -264,11 +264,12 @@ export default {
     border-radius: 0 0 20px 20px;
     background-color: white;
     height: 100%;
-    padding: 24px;
+    padding-left: 4vw;
+    padding-top: 2vw;
 }
 
 .userinfo__input, span, .table__container, #submit-button {
-    font-size: large;
+    font-size: x-large;
     margin-bottom: 10px;
 }
 
@@ -277,7 +278,7 @@ export default {
 }
 
 input[type="text"]{
-    width: 600px;
+    width: 30vw;
 }
 
 input[type="number"]{
@@ -286,8 +287,8 @@ input[type="number"]{
 
 input[type="radio"] {
     cursor: pointer;
-    transform: scale(1.5);
-    margin: 15px
+    transform: scale(2.5);
+    margin: 20px
 }
 
 .brigade-text__avaliable {
@@ -299,7 +300,7 @@ input[type="radio"] {
 }
 
 .date__input {
-    padding: 5px;
+    padding: 0.5vw;
 }
 
 #submit-button {
@@ -320,8 +321,8 @@ input[type="radio"] {
 
 .table__container {
     width: 95%;
-    font-size: medium;
-    max-height: 185px;
+    font-size: large;
+    max-height: 16vh;
     overflow-y: scroll;
 }
 
@@ -333,15 +334,15 @@ input[type="radio"] {
 
 .row__table>td {
     border: 1px solid black;
-    height: 23px;
+    height: 3.5vh;
 }
 
 th {
-    height: 25px;
+    height: 3.5vh;
 }
 
 .checkbox {
-    transform: scale(150%);
+    transform: scale(2);
 }
 
 .alert__container {
@@ -401,5 +402,46 @@ th {
   background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   cursor: not-allowed;
+}
+
+@media (max-width: 1500px){
+    .component-label__container>label {
+        font-size: x-large;
+        font-weight: bolder;
+    }
+    .userinfo__input, span {
+        font-size: large;
+        margin-bottom: 5px;
+    }
+    input[type="radio"] {
+        cursor: pointer;
+        transform: scale(2);
+        margin: 15px;
+    }
+    #submit-button {
+        cursor: pointer;
+        font-size: medium;
+        border-radius: 10px;
+        border: none;
+        padding: 10px 20px 10px 20px;
+        background-color: #A7A3CC;
+    }
+    .editButton {
+        cursor: pointer;
+        transform: scale(1);
+    }
+    .checkbox {
+        transform: scale(150%);
+    }
+    .row__table>td {
+        border: 1px solid black;
+        height: 3.5vh;
+        font-size: small;
+    }
+
+    th {
+        height: 3.5vh;
+        font-size: small;
+    }
 }
 </style>
