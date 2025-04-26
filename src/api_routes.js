@@ -57,15 +57,53 @@ const api_routes = {
       return {};
     },
   // 5. Create a new callform
-  "create_callform/callSource? fireAddress? bottomLeft:point? topRight:point? fireType? fireRank:string? victimsCount:uint? assignedTo:uint? auto?":
+    "create_callform/callSource? fireAddress? bottomLeft:point? topRight:point? fireType? fireRank:string? victimsCount:uint? assignedTo:uint? auto?":
     async (args) => {
-      if (Object.values(args).includes(null))
-        return { error: "Incomplete callforms are not supported yet" };
-      return await create(":CallForm:Incomplete", {
-        ...args,
-        createdAt: now(),
-        modifiedAt: now(),
-      });
+        try {
+            // Проверка обязательных параметров
+            if (!args.callSource || !args.fireAddress || !args.assignedTo) {
+                return {
+                    success: false,
+                    error: "Не заполнены обязательные поля",
+                    status: 400
+                };
+            }
+
+            const createdAt = now();
+            const modifiedAt = now();
+
+            // Создаем форму в БД
+            await create(":CallForm:Incomplete", {
+                ...args,
+                createdAt,
+                modifiedAt
+            });
+
+            // Возвращаем данные в понятном формате
+            return {
+                success: true,
+                formData: {
+                    callSource: args.callSource,
+                    fireAddress: args.fireAddress,
+                    fireType: args.fireType,
+                    fireRank: args.fireRank,
+                    victimsCount: args.victimsCount,
+                    assignedTo: args.assignedTo,
+                    auto: args.auto,
+                    createdAt: new Date().toISOString(),
+                    modifiedAt: new Date().toISOString()
+                },
+                message: "Форма успешно создана"
+            };
+
+        } catch (error) {
+            console.error('Ошибка создания формы:', error);
+            return {
+                success: false,
+                error: error.message,
+                status: 500
+            };
+        }
     },
   // 6. Find operator's complete callforms
   "operator_callforms/login:string": async (args) => {
@@ -253,52 +291,87 @@ const api_routes = {
       status: 200,
     };
   },
-  "complete_callform_and_create_report/status:label? createdAt:datetime..? modifiedAt:datetime..? callSource? fireAddress? fireType? fireRank? victimsCount:uint? assignedTo:uint?":
+  "complete_callform_and_create_report/createdAt? modifiedAt?":
     async (args) => {
-      const callForms = await match("cf:CallForm:Incomplete", args, {
-        orderBy: "cf.createdAt DESC",
-      });
+        try {
+            if (!args.createdAt || !args.modifiedAt) {
+                return {
+                    success: false,
+                    message: "Требуются параметры createdAt и modifiedAt",
+                    status: 400
+                };
+            }
 
-      if (!callForms || callForms.length === 0) {
-        return {
-          success: false,
-          message: "Вы еще не отправили форму бригадам",
-          status: 404,
-        };
-      }
+            const createdAt = typeof args.createdAt === 'string' ? args.createdAt : args.createdAt.value;
+            const modifiedAt = typeof args.modifiedAt === 'string' ? args.modifiedAt : args.modifiedAt.value;
 
-      const callform = callForms[0];
+            const createdAtDate = new Date(createdAt);
+            const searchStart = new Date(createdAtDate.getTime() - 500).toISOString();
+            const searchEnd = new Date(createdAtDate.getTime() + 500).toISOString();
 
-      await match(
-        "cf:CallForm:Incomplete",
-        { id: callform.id },
-        {
-          remove: { cf: ["Incomplete"] },
-          set: { cf: { label: makeLabel("Complete"), modifiedAt: now() } },
-        },
-      );
+            // ищим форму (во временном диапазоне, его стоит уменьшить)
+            const callForms = await rawMatch(
+                `(cf:CallForm:Incomplete)`,
+                {
+                    where: `datetime("${searchStart}") <= cf.createdAt <= datetime("${searchEnd}")`,
+                    results: ["cf"],
+                    orderBy: "cf.createdAt DESC",
+                    limit: "1"
+                }
+            );
 
-      await match(
-        "cf:CallForm:Complete",
-        { id: callform.id },
-        {
-          create: `(r:Report:New {
-                      waterSpent: 0,
-                      foamSpent: 0,
-                      allegedFireCause: "неизвестно",
-                      damage: 0,
-                      additionalNotes: "Данные ещё не внесены, ожидается завершение отчёта.",
-                      modifiedAt: datetime()
-                      })\nCREATE (r)-[:ON_CALL]->(cf)`,
-        },
-      );
+            if (!callForms || callForms.length === 0) {
+                return {
+                    success: false,
+                    message: `Форма не найдена (createdAt: ${createdAt}, modifiedAt: ${modifiedAt})`,
+                    status: 404
+                };
+            }
 
-      return {
-        success: true,
-        message: "Форма вызова завершена и отчет создан",
-        status: 200,
-        callformId: callform.id,
-      };
-    },
+            const form = callForms[0];
+            const brigadeNumber = form.assignedTo;
+
+            // получаем всех бригадиров данной бригады
+            const brigadeCommanders = await rawMatch(
+                `(u:User:Brigadier)`,
+                {
+                    where: `u.brigadeNumber = ${brigadeNumber}`,
+                    results: ["u"],
+                    orderBy: "u.familyName ASC"
+                }
+            );
+
+            console.log('Найдены бригадиры бригады', brigadeNumber, ':',
+                brigadeCommanders.map(c => ({
+                    id: c.id,
+                    name: `${c.familyName} ${c.firstName} ${c.fatherName}`,
+                    phone: c.phone
+                }))
+            );
+
+
+            //тут будет создание отчёта.....
+
+
+            return {
+                success: true,
+                message: "Форма успешно завершена",
+                status: 200,
+                details: {
+                    formId: form.id,
+                    brigadeNumber: brigadeNumber,
+                    brigadeCommanders: brigadeCommanders,
+                    reportsCreated: result[0]?.reportsCreated || 0
+                }
+            };
+        } catch (error) {
+            console.error('Ошибка:', error.message);
+            return {
+                success: false,
+                error: error.message,
+                status: 500
+            };
+        }
+    }
 };
 export default api_routes;

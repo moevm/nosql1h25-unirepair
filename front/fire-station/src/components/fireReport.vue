@@ -146,7 +146,9 @@ export default {
       ],
 
       availableBrigades: [],
-      availableVehicles: []
+      availableVehicles: [],
+      createdFormData: null,
+    createdFormDates: null
     }
   },
   async created() {
@@ -284,16 +286,6 @@ export default {
     },
 
     async sendToBrigades() {
-      if (!this.incidentAddress) {
-        alert('Укажите адрес происшествия');
-        return false;
-      }
-
-      if (!this.selectedBrigade) {
-        alert('Выберите бригаду!');
-        return false;
-      }
-
       try {
         const params = {
           callSource: this.callSource,
@@ -301,93 +293,75 @@ export default {
           fireType: this.fireType,
           fireRank: this.fireRank,
           victimsCount: this.hasCasualties === 'yes' ? this.casualtiesCount : 0,
-          assignedTo: this.selectedBrigade, // используем напрямую selectedBrigade
-          auto: "Пожарная машина "+this.selectedVehicle,
+          assignedTo: this.selectedBrigade,
+          auto: "Пожарная машина " + this.selectedVehicle,
           bottomLeft: '55.7558;37.6173',
           topRight: '55.756;37.618'
         };
 
-        console.log('Отправляемые параметры:', params);
-
+        console.log('Отправка данных:', params);
+        
         const response = await axios.get('http://localhost:3000/api/create_callform', {
           params: params,
           paramsSerializer: params => {
             return Object.entries(params)
-                .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-                .join('&');
+              .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+              .join('&');
           }
         });
-        console.log('Ответ сервера:', response.data);
-        // this.resetForm();
-        return true;
+
+        if (response.data.success) {
+          this.createdFormData = response.data.formData;
+          console.log('Форма создана:', this.createdFormData);
+          alert('Форма успешно создана!');
+          return true;
+        } else {
+          throw new Error(response.data.error || 'Неизвестная ошибка');
+        }
       } catch (error) {
-        console.error('Ошибка при отправке данных:', error);
-        alert('Произошла ошибка: ' + (error.response?.data?.error || error.message));
+        console.error('Ошибка:', error);
+        alert('Ошибка при создании формы: ' + error.message);
         return false;
       }
     },
 
     async confirmSave() {
+      if (!this.createdFormData) {
+        alert('Сначала создайте форму!');
+        return;
+      }
+
+      console.log(typeof this.createdFormData.createdAt);
+
       try {
-        const searchParams = {
-          status: 'Incomplete',
-          fireAddress: this.incidentAddress,
-          assignedTo: this.selectedBrigade,
-          fireType: this.fireType,
-          fireRank: this.fireRank,
-          victimsCount: this.hasCasualties === 'yes' ? this.casualtiesCount : 0,
-          callSource: this.callSource
+        const params = {
+          createdAt: this.createdFormData.createdAt,
+          modifiedAt: this.createdFormData.modifiedAt
         };
 
-        const searchResponse = await axios.get('http://localhost:3000/api/callform_search', {
-          params: searchParams,
-          paramsSerializer: params => {
-            return Object.entries(params)
+        console.log('поиск формы по параметрам:', params);
+
+        const response = await axios.get(
+          'http://localhost:3000/api/complete_callform_and_create_report',
+          {
+            params: params,
+            paramsSerializer: params => {
+              return Object.entries(params)
                 .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
                 .join('&');
-          }
-        });
-        console.log('data', searchResponse.data);
-
-        const targetCall = searchResponse.data[0];
-
-
-        const paramsForCompletion = {
-          fireAddress: targetCall.fireAddress,
-          assignedTo: targetCall.assignedTo,
-          fireType: targetCall.fireType,
-          fireRank: targetCall.fireRank,
-          victimsCount: targetCall.victimsCount,
-          callSource: targetCall.callSource,
-        };
-
-        console.log(paramsForCompletion)  
-
-        const completeResponse = await axios.get(
-            'http://localhost:3000/api/complete_callform_and_create_report',
-            {
-              params: paramsForCompletion,
-              paramsSerializer: params => {
-                return Object.entries(params)
-                    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
-                    .join('&');
-              }
             }
+          }
         );
 
-        console.log("completeResponse", completeResponse)
-
-        if (completeResponse.data.success) {
-          alert('Вызов успешно завершен и отчет создан!');
-          this.$emit('completed');
-          return true;
+        if (response.data.success) {
+          alert('форма успешно завершена!');
+          this.resetForm();
         } else {
-          throw new Error(completeResponse.data.message || 'Не удалось завершить вызов');
+          throw new Error(response.data.message);
         }
       } catch (error) {
-        console.error('Ошибка завершения вызова:', error);
-        alert(`Ошибка: ${error.message}`);
-        return false;
+        console.error('ошибка:', error);
+        alert(`ошибка завершения формы: ${error.message}`);
       }
     },
 
@@ -418,10 +392,14 @@ export default {
       this.fireType = '';
       this.hasCasualties = 'no';
       this.casualtiesCount = 0;
-      this.callSource = 'witness';
+      this.callSource = 'телефонный звонок';
       this.fireRank = '1';
-      this.selectedBrigades = null;
-      this.selectedVehicle = '';}
+      this.selectedBrigade = null;
+      this.selectedVehicle = '';
+      this.createdFormData = null;
+      this.createdFormDates = null;
+      this.showSaveAlert = false;
+    }
   }
 }
 </script>
