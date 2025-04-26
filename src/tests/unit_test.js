@@ -1,28 +1,45 @@
 import * as assert from "../assert.js";
 
-function matchType(obj, type) {
+function mismatchWithType(obj, type) {
+  let range = { from: null, to: null };
+  if (type.includes(".len=")) {
+    let tmp = null;
+    [type, tmp] = type.split(".len=");
+    assert.assert(tmp.includes(";"));
+    const [from, to] = tmp.split(";");
+    range.from = from !== "" ? parseInt(from) : null;
+    range.to = to !== "" ? parseInt(to) : null;
+  }
   switch (type) {
     case "listOf":
     case "list":
-      return Array.isArray(obj);
+      if (!Array.isArray(obj)) return `${typeof obj} is not list`;
+      if (range.from !== null && obj.length < range.from)
+        return `${obj.length} is below ${range.from}`;
+      if (range.to !== null && obj.length > range.to)
+        return `${obj.length} is over ${range.to}`;
+      break;
     default:
-      return typeof obj === type;
+      if (typeof obj !== type) return `${typeof obj} is not ${type}`;
+      break;
   }
 }
 
-function matchesPattern(obj, pattern) {
-  if (pattern === undefined || pattern === null) return true;
-  if (obj === undefined || obj === null) return false;
-  const matchItem = function (item, type, pattern) {
-    if (!matchType(item, type)) return false;
-    if (pattern && type === "listOf") {
+function mismatchWithPattern(obj, pattern) {
+  if (pattern === undefined || pattern === null) return undefined;
+  if (obj === undefined || obj === null) return "empty";
+  const mismatchWithItem = function (item, type, pattern) {
+    if (mismatchWithType(item, type)) return mismatchWithType(item, type);
+    if (pattern && type.includes("listOf")) {
+      let i = 0;
       for (const elem of item) {
-        if (!matchesPattern(elem, pattern)) return false;
+        i += 1;
+        if (mismatchWithPattern(elem, pattern))
+          return `listOf[${i}] -> ${mismatchWithPattern(elem, pattern)}`;
       }
-    } else if (pattern && !matchesPattern(item, pattern)) {
-      return false;
+    } else if (pattern && mismatchWithPattern(item, pattern)) {
+      return mismatchWithPattern(item, pattern);
     }
-    return true;
   };
   if (pattern && pattern.constructor === {}.constructor) {
     for (const [k, value] of Object.entries(pattern)) {
@@ -32,23 +49,26 @@ function matchesPattern(obj, pattern) {
         if (obj[key.split(":")[0]] === null) continue;
       }
       if (!key.includes(":")) {
-        if (!matchesPattern(obj[key], value)) return false;
+        if (mismatchWithPattern(obj[key], value))
+          return `${key} -> ${mismatchWithPattern(obj[key], value)}`;
       } else {
         const [name, type] = key.split(":");
         const item = name === "" ? obj : obj[name];
-        if (!matchItem(item, type, value)) return false;
+        if (mismatchWithItem(item, type, value))
+          return `${key} -> ${mismatchWithItem(item, type, value)}`;
       }
     }
   } else if (typeof pattern === "string") {
     if (!pattern.includes(":")) {
-      if (!new RegExp(pattern).test(JSON.stringify(obj))) return false;
+      if (!new RegExp(pattern).test(JSON.stringify(obj)))
+        return `${JSON.stringify(obj)} NOT LIKE ${pattern}`;
     } else {
       const [type, test] = pattern.split(":");
-      if (!matchType(obj, type)) return false;
-      if (test && !new RegExp(test).test(JSON.stringify(obj))) return false;
+      if (mismatchWithType(obj, type)) return mismatchWithType(obj, type);
+      if (test && !new RegExp(test).test(JSON.stringify(obj)))
+        return `${JSON.stringify(obj)} NOT LIKE ${pattern}`;
     }
   }
-  return true;
 }
 
 class TestRunner {
@@ -65,9 +85,10 @@ class TestRunner {
   }
 
   match(obj, pattern) {
+    const mismatch = mismatchWithPattern(obj, pattern);
     this.check(
-      matchesPattern(obj, pattern),
-      `${JSON.stringify(obj)} \ndoes not match pattern\n${JSON.stringify(pattern)}`,
+      mismatch === undefined,
+      `${JSON.stringify(obj)} \ndoes not match pattern\n${JSON.stringify(pattern)}\n *** Mismatch ***: ${JSON.stringify(mismatch)}\n`,
     );
   }
 

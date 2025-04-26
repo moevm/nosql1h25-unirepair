@@ -62,12 +62,8 @@ const inventoryPattern = {
   id: "string:\\d+",
 };
 
-function listOf(pattern) {
-  return { ":listOf": pattern };
-}
-
-function msg(content) {
-  return { message: `string:${content}` };
+function listOf(pattern, len = null) {
+  return { [`:listOf${len !== null ? `.len=${len}` : ""}`]: pattern };
 }
 
 function err(content) {
@@ -82,7 +78,7 @@ const tests = {
   "login_user?login=operator_anna&password=111111": err("User does not exist"),
   "get_callforms?assignedTo=1": listOf(callFormPattern),
   "get_callforms?assignedTo=1;2": listOf(callFormPattern),
-  "get_callforms?assignedTo=7": msg("No active calls"),
+  "get_callforms?assignedTo=7": "list:\\[\\]",
   "brigade_reports?brigadeNumber=1": {
     complete_reports: listOf({
       u: userPattern,
@@ -103,31 +99,67 @@ const tests = {
       cf: callFormPattern,
     }),
   },
-  "create_callform?callSource=Anatoliy": err(
+  "fill_report?reportId=99999d&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere":
+    err("Report not found"),
+  "create_callform?login=operator_dmitriy&callSource=Anatoliy": err(
     "Incomplete callforms are not supported yet",
   ),
-  [`create_callform?callSource=Vasya&fireAddress=ITMO&bottomLeft=10;20&topRight=30;40&fireType=expansive&fireRank=3&victimsCount=0&assignedTo=1&auto=${encodeURIComponent("Пожарная машина 4")}`]:
+  "create_callform?login=operator_inkognito&callSource=Vasya&fireAddress=ITMO&bottomLeft=10;20&topRight=30;40&fireType=expansive&fireRank=3&victimsCount=0&assignedTo=1&auto=Пожарная машина 4":
+    err("Operator operator_inkognito not found"),
+  "create_callform?login=operator_dmitriy&callSource=Vasya&fireAddress=ITMO&bottomLeft=10;20&topRight=30;40&fireType=expansive&fireRank=3&victimsCount=0&assignedTo=1&auto=Пожарная машина 4":
     {
       ensure: callFormPattern,
       query: "complete_callform?callformId=$id",
       then: {
         ensure: callFormPattern,
-        query: "new_report?callformId=$id",
+        query: "new_report?login=brigadier_igor&callformId=$id",
         then: {
           ensure: reportPattern,
           query:
             "fill_report?reportId=$id&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere",
-          then: reportPattern,
+          then: {
+            ensure: reportPattern,
+            query: "operator_callforms?login=operator_dmitriy",
+            then: {
+              ensure: {
+                complete_callforms: listOf(callFormPattern, "4;4"),
+                incomplete_callforms: listOf(callFormPattern, "2;2"),
+              },
+              query: "report_search_by_author?login=brigadier_igor",
+              then: listOf(
+                {
+                  u: userPattern,
+                  r: reportPattern,
+                  cf: callFormPattern,
+                },
+                "5;5",
+              ),
+            },
+          },
         },
       },
     },
-  "operator_callforms?login=operator_dmitriy": listOf(callFormPattern),
+  "new_report?callformId=919294&login=brigadier_igor": err(
+    "Either CallForm or Brigadier not found",
+  ),
+  "complete_callform?callformId=209824": err("CallForm not found"),
+  "operator_callforms?login=operator_dmitriy": {
+    complete_callforms: listOf(callFormPattern),
+    incomplete_callforms: listOf(callFormPattern),
+  },
+  "operator_callforms?login=operator_franka": {
+    complete_callforms: "list:\\[\\]",
+    incomplete_callforms: "list:\\[\\]",
+  },
+  "user_spawn?familyName=Сидоров&firstName=Дмитрий&role=Operator&address=г. Новосибирск, ул. Красная, д. 15&login=operator_dmitriy&password=123":
+    err("User already exists"),
   "user_spawn?familyName=Roh&firstName=Ivan&fatherName=Ragnarson&role=Brigadier&brigadeNumber=6&address=Siberia&phone=900&email=bananamail&login=rohgadier&password=password":
     {
       ensure: userPattern,
       query: "modify_user?login=rohgadier&address=Germany",
       then: userPattern,
     },
+  "modify_user?login=victor1998&role=Operator": err("User not found"),
   "user_search?firstName=и&registeredAt=2022-10-10;2024-10-10":
     listOf(userPattern),
   get_brigades: {
@@ -157,19 +189,41 @@ const tests = {
     cf: callFormPattern,
   }),
   "brigade_members?brigadeNumber=;": listOf(userPattern),
+  "auto_state?auto=Пожарная машина 5": {
+    occupied: "boolean:true",
+  },
+  "auto_state?auto=Пожарная машина 1": {
+    occupied: "boolean:false",
+  },
+  "inventory_add?name=Пожарная машина 2": err(
+    "Such an item already exists in inventory",
+  ),
+  "inventory_add?name=Антон": {
+    ensure: inventoryPattern,
+    query: "inventory_search?name=Ант",
+    then: listOf(inventoryPattern),
+  },
 };
 
 async function checkQueryResult(router, runner, result, checker) {
   if (checker.constructor === {}.constructor) {
     if (checker.ensure) {
       await checkQueryResult(router, runner, result, checker.ensure);
-      assert.assertString(checker.query);
-      assert.assertObject(result);
-      assert.assert(result.id !== undefined);
-      const substitutedCheckQuery = checker.query.replaceAll("$id", result.id);
-      const queryResult = await router.runTestQuery(substitutedCheckQuery);
-      if (checker.then)
-        await checkQueryResult(router, runner, queryResult, checker.then);
+      if (checker.query) {
+        assert.assertString(checker.query);
+        let substitutedCheckQuery = checker.query;
+        if (substitutedCheckQuery.includes("$id")) {
+          assert.assert(result.id !== undefined);
+          assert.assertObject(result);
+          substitutedCheckQuery = substitutedCheckQuery.replaceAll(
+            "$id",
+            result.id,
+          );
+        }
+        const queryResult = await router.runTestQuery(substitutedCheckQuery);
+        if (checker.then)
+          await checkQueryResult(router, runner, queryResult, checker.then);
+      }
     } else {
       runner.match(result, checker);
     }

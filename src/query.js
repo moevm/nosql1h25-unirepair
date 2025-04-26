@@ -21,29 +21,26 @@ function isRange(value) {
   return value && value.from !== undefined && value.to !== undefined;
 }
 
-export function fishOutTypes(obj, types) {
+export function fishOut(obj, pred) {
   assert.assertObject(obj);
-  assert.assertArray(types);
+  assert.assertFunction(pred);
   let result = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (value && types.includes(typeOf(value))) {
-      result[key] = value;
-      delete obj[key];
+  for (const [k, v] of Object.entries(obj)) {
+    if (pred({ k, v })) {
+      result[k] = v;
+      delete obj[k];
     }
   }
   return result;
 }
 
+export function fishOutTypes(obj, types) {
+  assert.assertArray(types);
+  return fishOut(obj, ({ v }) => v !== null && types.includes(typeOf(v)));
+}
+
 function fishOutRanges(obj) {
-  assert.assertObject(obj);
-  let result = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (isRange(value)) {
-      result[key] = value;
-      delete obj[key];
-    }
-  }
-  return result;
+  return fishOut(obj, ({ v }) => isRange(v));
 }
 
 export function fishOutComplexConds(obj) {
@@ -209,7 +206,7 @@ export async function rawMatch(conditionsStr, options = {}) {
   if (options.results) assert.assertArray(options.results);
   if (options.orderBy) assert.assertString(options.orderBy);
   if (options.limit) assert.assertString(options.limit);
-  return await rawQuery(
+  const result = await rawQuery(
     `MATCH ${conditionsStr}` +
       optcat("\nWHERE ", options.where) +
       optcat("\nCREATE ", options.create) +
@@ -269,6 +266,15 @@ export async function rawMatch(conditionsStr, options = {}) {
           })
         : [],
   );
+  if (options.orelse !== undefined && (!result || result.length === 0)) {
+    if (typeof options.orelse === "function") return await options.orelse();
+    return options.orelse;
+  }
+  if (options.then) {
+    if (typeof options.then === "function") return await options.then(result);
+    return options.then;
+  }
+  return result;
 }
 
 export async function match(what, conditions, options = {}) {
@@ -279,6 +285,7 @@ export async function match(what, conditions, options = {}) {
   }
   const n = what.split(":")[0];
   const complexConds = fishOutComplexConds(conditions);
+  fishOutTypes(conditions, ["password"]);
   if (
     Object.values(complexConds).filter(
       (val) => val.from !== null || val.to !== null,
@@ -290,7 +297,25 @@ export async function match(what, conditions, options = {}) {
 }
 
 export async function matchOne(what, conditions, options = {}) {
-  const result = await match(what, conditions, options);
-  assert.assert(result.length > 0);
-  return result[0];
+  if (options.orelse === undefined)
+    options.orelse = () =>
+      assert.assert(false, "Got empty result in matchOne function");
+  if (typeof options.then === "function") {
+    const prevthen = options.then;
+    options.then = async (rs) => await prevthen(rs[0]);
+  } else if (options.then === undefined) {
+    options.then = (rs) => rs[0];
+  }
+  return await match(what, conditions, options);
+}
+
+export async function createIfNotExists(what, values, options = {}) {
+  return await matchOne(
+    what,
+    options.searchBy ? { ...options.searchBy } : { ...values },
+    {
+      orelse: async () => await create(what, values),
+      then: options.orelse ? options.orelse : (x) => null,
+    },
+  );
 }

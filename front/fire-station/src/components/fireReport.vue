@@ -160,38 +160,46 @@ export default {
     async fetchAvailableBrigades() {
       try {
         const response = await axios.get('http://localhost:3000/api/get_brigades');
-
         console.log('Полученные данные о бригадах:', response.data);
 
-        const brigadeInfo = await Promise.all(
-            response.data.freeBrigades.concat(response.data.busyBrigades).map(async brigade => {
-              const membersResponse = await axios.get('http://localhost:3000/api/brigade_members', {
-                params: { brigadeNumber: brigade.brigadeNumber }
-              });
+        // Собираем все уникальные номера бригад
+        const allBrigadeNumbers = [
+          ...new Set([
+            ...response.data.freeBrigades.map(b => b.brigadeNumber),
+            ...response.data.busyBrigades.map(b => b.brigadeNumber)
+          ])
+        ];
 
-        const lastCallResponse = await axios.get('http://localhost:3000/api/callform_search', {
+        const brigadeInfo = await Promise.all(
+          allBrigadeNumbers.map(async brigadeNumber => {
+            const [membersResponse, lastCallResponse] = await Promise.all([
+              axios.get('http://localhost:3000/api/brigade_members', {
+                params: { brigadeNumber }
+              }),
+              axios.get('http://localhost:3000/api/callform_search', {
                 params: {
-                  assignedTo: brigade.brigadeNumber,
+                  assignedTo: brigadeNumber,
                   status: 'Complete',
                 }
-              });
-              const lastCallTime = lastCallResponse.data[0]?.modifiedAt
-                  ? this.neo4jDateToTime(lastCallResponse.data[0].modifiedAt)
-                  : 0;
+              })
+            ]);
 
-              return {
-                brigadeNumber: brigade.brigadeNumber,
-                size: membersResponse.data.length,
-                lastCallTime: lastCallTime
-              };
-            })
+            const lastCallTime = lastCallResponse.data[0]?.modifiedAt
+              ? this.neo4jDateToTime(lastCallResponse.data[0].modifiedAt)
+              : 'Нет данных';
+
+            return {
+              brigadeNumber,
+              size: membersResponse.data.length,
+              lastCallTime
+            };
+          })
         );
-        this.availableBrigades = this.formatBrigadeData(response.data, brigadeInfo);
 
+        this.availableBrigades = this.formatBrigadeData(response.data, brigadeInfo);
       } catch (error) {
         console.error('Ошибка при получении бригад:', error);
         this.error = this.getErrorMessage(error);
-      } finally {
       }
     },
 
@@ -201,25 +209,39 @@ export default {
         return info || { size: 0, lastCallTime: 0 };
       };
 
-      const freeBrigades = data.freeBrigades?.map(brigade => ({
-        number: brigade.brigadeNumber || 0,
-        size: getInfo(brigade.brigadeNumber).size || 0,
-        lastCallTime: getInfo(brigade.brigadeNumber).lastCallTime,
-        callsCount: 0,
-        status: 'Свободна'
-      })) || [];
+      // Создаем Map для хранения уникальных бригад
+      const brigadeMap = new Map();
 
-      const busyBrigades = data.busyBrigades?.map(brigade => ({
-        number: brigade.brigadeNumber  || 0,
-        size: getInfo(brigade.brigadeNumber).size || 0,
-        lastCallTime: getInfo(brigade.brigadeNumber).lastCallTime,
-        callsCount: 0,
-        status: 'На вызове',
-        selected: false
-      })) || [];
+      // Обрабатываем свободные бригады
+      data.freeBrigades?.forEach(brigade => {
+        if (!brigadeMap.has(brigade.brigadeNumber)) {
+          brigadeMap.set(brigade.brigadeNumber, {
+            number: brigade.brigadeNumber || 0,
+            size: getInfo(brigade.brigadeNumber).size || 0,
+            lastCallTime: getInfo(brigade.brigadeNumber).lastCallTime,
+            callsCount: 0,
+            status: 'Свободна'
+          });
+        }
+      });
 
-      return [...freeBrigades, ...busyBrigades].sort((a, b) => a.number - b.number);
+      // Обрабатываем занятые бригады
+      data.busyBrigades?.forEach(brigade => {
+        if (!brigadeMap.has(brigade.brigadeNumber)) {
+          brigadeMap.set(brigade.brigadeNumber, {
+            number: brigade.brigadeNumber || 0,
+            size: getInfo(brigade.brigadeNumber).size || 0,
+            lastCallTime: getInfo(brigade.brigadeNumber).lastCallTime,
+            callsCount: 0,
+            status: 'На вызове'
+          });
+        }
+      });
+
+      // Преобразуем Map обратно в массив и сортируем
+      return Array.from(brigadeMap.values()).sort((a, b) => a.number - b.number);
     },
+
     getErrorMessage(error) {
       if (error.response) {
         return `Ошибка сервера: ${error.response.status} ${error.response.statusText}`;
@@ -231,15 +253,25 @@ export default {
     },
 
     neo4jDateToTime(neo4jDate) {
-      if (!neo4jDate || !neo4jDate.year) return 0;
-      return new Date(
-          neo4jDate.year.low,
-          neo4jDate.month.low,
-          neo4jDate.day.low,
-          neo4jDate.hour.low,
-          neo4jDate.minute.low,
-          neo4jDate.second.low
-      ).toLocaleString()
+      if (!neo4jDate || !neo4jDate.year) return 'Нет данных';
+      
+      const date = new Date(
+        neo4jDate.year.low || neo4jDate.year,
+        (neo4jDate.month?.low || neo4jDate.month) - 1, // Месяцы в JS 0-11
+        neo4jDate.day?.low || neo4jDate.day,
+        neo4jDate.hour?.low || neo4jDate.hour,
+        neo4jDate.minute?.low || neo4jDate.minute,
+        neo4jDate.second?.low || neo4jDate.second
+      );
+      
+      return date.toLocaleString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
     },
 
     async fetchAvailableVehicles() {
@@ -365,26 +397,19 @@ export default {
       }
     },
 
-    formDate(date){
-            if(date.year){
-                let year = date.year.toString();
-                let month = date.month.toString();
-                let day = date.day.toString();
-                let hours = date.hour.toString();
-                let minute = date.minute.toString();
-                let second = date.second.toString();
-                
-                while(year.length < 4) year = '0' + year;
-                while(month.length < 2) month = '0' + month;
-                while(day.length < 2) day = '0' + day;
-                while(hours.length < 2) hours = '0' + hours;
-                while(minute.length < 2) minute = '0' + minute;
-                while(second.length < 2) second = '0' + second;
-
-                return year + '-' + month + '-' + day + 'T' + hours + ':' + minute + ':' + second;
-            }
-
-            return '-'
+    formDate(date) {
+      if (!date || !date.year) return '-';
+      
+      const pad = num => num.toString().padStart(2, '0');
+      
+      const year = date.year.low || date.year;
+      const month = pad((date.month?.low || date.month) + 1); // +1 так как месяцы 0-11
+      const day = pad(date.day?.low || date.day);
+      const hours = pad(date.hour?.low || date.hour);
+      const minute = pad(date.minute?.low || date.minute);
+      const second = pad(date.second?.low || date.second);
+      
+      return `${year}-${month}-${day}T${hours}:${minute}:${second}`;
     },
 
     resetForm() {
