@@ -193,6 +193,7 @@ export async function create(what, values) {
 export async function rawMatch(conditionsStr, options = {}) {
   assert.assertString(conditionsStr);
   assert.assertObject(options);
+  if (options.match) assert.assertString(options.match);
   if (options.where) assert.assertString(options.where);
   if (options.create) assert.assertString(options.create);
   if (options.remove) {
@@ -208,6 +209,7 @@ export async function rawMatch(conditionsStr, options = {}) {
   if (options.limit) assert.assertString(options.limit);
   const result = await rawQuery(
     `MATCH ${conditionsStr}` +
+      optcat("\nMATCH ", options.match) +
       optcat("\nWHERE ", options.where) +
       optcat("\nCREATE ", options.create) +
       (options.remove

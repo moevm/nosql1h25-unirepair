@@ -1,57 +1,148 @@
 <template>
     <div class="searchUser__container">
-        <div style="display: flex; flex-direction: column; gap: 2px;" :class="{'blured-content__container': showAlert}">
+        <div
+            style="display: flex; flex-direction: column; gap: 2px"
+            :class="{ 'blured-content__container': showAlert }"
+        >
             <div class="component-label__container">
-                <img id="exit-icon" src="/icons/exit.svg" @click="$emit('component-change', 'menu')">
+                <img
+                    id="exit-icon"
+                    src="/icons/exit.svg"
+                    @click="$emit('component-change', 'menu')"
+                />
                 <label>Удаление пользователя</label>
             </div>
             <div class="component-userinfo__container">
                 <span>Фамилия:</span>
-                <input type="text" v-model="surname" class="userinfo__input">
-                <br>
+                <input type="text" v-model="surname" class="userinfo__input" />
+                <br />
                 <span>Имя:</span>
-                <input type="text" v-model="name" class="userinfo__input">
-                <br>
+                <input type="text" v-model="name" class="userinfo__input" />
+                <br />
                 <span>Отчество:</span>
-                <input type="text" v-model="patronymic" class="userinfo__input">
-                <br> 
-                
-                <span>Должность:</span>
-                <br>
-                <input type="radio" v-model="role" value="Fireman" @click="info" class="userinfo__input">
-                <span>Пожарный</span>
-                <input type="radio" v-model="role" value="Brigadier" @click="info" class="userinfo__input">
-                <span>Бригадир</span>
-                <br>
-                <input type="radio" v-model="role" value="Operator" @click="info" class="userinfo__input">
-                <span>Оператор</span>
-                <br>
-                <input type="radio" v-model="role" value="Admin" @click="info" class="userinfo__input">
-                <span>Администратор</span>
-                <br>
+                <input
+                    type="text"
+                    v-model="patronymic"
+                    class="userinfo__input"
+                />
+                <br />
 
-                <span :class="{'brigade-text__avaliable': role === 'Fireman' || role === 'Brigadier', 'brigade-text__unavaliable': role !== 'Fireman' && role !== 'Brigadier'}">Бригада:</span>
-                <input min="1" type="number" v-model="brigade" class="userinfo__input" :disabled="role !== 'Fireman' && role !== 'Brigadier'" @blur="correctBrigade">
-                <br>
+                <span>Должность:</span>
+                <br />
+                <input
+                    type="radio"
+                    v-model="role"
+                    value="Fireman"
+                    @click="info"
+                    class="userinfo__input"
+                />
+                <span>Пожарный</span>
+                <input
+                    type="radio"
+                    v-model="role"
+                    value="Brigadier"
+                    @click="info"
+                    class="userinfo__input"
+                />
+                <span>Бригадир</span>
+                <br />
+                <input
+                    type="radio"
+                    v-model="role"
+                    value="Operator"
+                    @click="info"
+                    class="userinfo__input"
+                />
+                <span>Оператор</span>
+                <br />
+                <input
+                    type="radio"
+                    v-model="role"
+                    value="Admin"
+                    @click="info"
+                    class="userinfo__input"
+                />
+                <span>Администратор</span>
+                <br />
+
+                <span
+                    :class="{
+                        'brigade-text__avaliable':
+                            role === 'Fireman' || role === 'Brigadier',
+                        'brigade-text__unavaliable':
+                            role !== 'Fireman' && role !== 'Brigadier',
+                    }"
+                    >Бригада:</span
+                >
+                <input
+                    min="1"
+                    type="number"
+                    v-model="brigade"
+                    class="userinfo__input"
+                    :disabled="role !== 'Fireman' && role !== 'Brigadier'"
+                    @blur="correctBrigade"
+                />
+                <br />
 
                 <span>Дата регистрации:</span>
-                <span style="margin-left: 100px;">от:</span><input type="date" class="date__input userinfo__input" v-model="registrationDate_begin">
-                <span style="margin-left: 40px;">до:</span><input type="date" class="date__input userinfo__input" v-model="registrationDate_end">
-                <br>
+                <span style="margin-left: 100px">от:</span
+                ><input
+                    type="date"
+                    class="date__input userinfo__input"
+                    v-model="registrationDate_begin"
+                />
+                <span style="margin-left: 40px">до:</span
+                ><input
+                    type="date"
+                    class="date__input userinfo__input"
+                    v-model="registrationDate_end"
+                />
+                <br />
                 <span>Дата редактирования:</span>
-                <span style="margin-left: 58px;">от:</span><input type="date" class="date__input userinfo__input" v-model="changeDate_begin">
-                <span style="margin-left: 40px;">до:</span><input type="date" class="date__input userinfo__input" v-model="changeDate_end">
-                <br>
+                <span style="margin-left: 58px">от:</span
+                ><input
+                    type="date"
+                    class="date__input userinfo__input"
+                    v-model="changeDate_begin"
+                />
+                <span style="margin-left: 40px">до:</span
+                ><input
+                    type="date"
+                    class="date__input userinfo__input"
+                    v-model="changeDate_end"
+                />
+                <br />
 
                 <button id="submit-button" @click="searchUsers">Найти</button>
 
                 <div class="table__container">
                     <table class="users__table">
-                        <thead style="position: sticky; top: 0; background-color: white; border: 1px solid black; z-index: 10;">
+                        <thead
+                            style="
+                                position: sticky;
+                                top: 0;
+                                background-color: white;
+                                border: 1px solid black;
+                                z-index: 10;
+                            "
+                        >
                             <tr>
-                                <th style="position: absolute; left: 0; top:0;">
-                                    <input type="checkbox" class="checkbox" :disabled="!foundUsers.length" v-model="allSelected" @click="() => {allSelected = !allSelected; selectedUsers.fill(allSelected)}">
-                                    <span style="padding-left: 6px;">Выбрать всех</span>
+                                <th style="position: absolute; left: 0; top: 0">
+                                    <input
+                                        type="checkbox"
+                                        class="checkbox"
+                                        :disabled="!foundUsers.length"
+                                        v-model="allSelected"
+                                        @click="
+                                            () => {
+                                                allSelected = !allSelected;
+                                                selectedUsers.fill(allSelected);
+                                            }
+                                        "
+                                    />
+                                    <span style="padding-left: 6px"
+                                        >Выбрать всех</span
+                                    >
                                 </th>
                                 <th>ФИО</th>
                                 <th>Должность</th>
@@ -59,17 +150,50 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="row__table" v-for="(user, index) in foundUsers" :key="index">
-                                <td style="width: 3%; text-align: center;">
-                                    <input type="checkbox" class="checkbox" v-model="selectedUsers[index]" @click="handleCheckboxClick(index)">
+                            <tr
+                                class="row__table"
+                                v-for="(user, index) in foundUsers"
+                                :key="index"
+                            >
+                                <td style="width: 3%; text-align: center">
+                                    <input
+                                        type="checkbox"
+                                        class="checkbox"
+                                        v-model="selectedUsers[index]"
+                                        @click="handleCheckboxClick(index)"
+                                    />
                                 </td>
-                                <td style="width: 50%; padding-left: 10px;">{{ user.firstName + ' ' + user.familyName + ' ' + user.fatherName }}</td>
-                                <td style="padding-left: 10px;">{{ rolesTranslations[findRole(user)] }}</td>
-                                <td style="text-align: center; width: 8%">{{ user.brigadeNumber ? user.brigadeNumber : '-' }}</td>
-                            </tr>    
-                            <tr class="row__table" v-if="foundUsers.length < 4" v-for="index in (4 - foundUsers.length)">
-                                <td style="width: 3%; text-align: center;">
-                                    <input type="checkbox" class="checkbox" disabled>
+                                <td style="width: 50%; padding-left: 10px">
+                                    {{
+                                        user.firstName +
+                                        " " +
+                                        user.familyName +
+                                        " " +
+                                        user.fatherName
+                                    }}
+                                </td>
+                                <td style="padding-left: 10px">
+                                    {{ rolesTranslations[findRole(user)] }}
+                                </td>
+                                <td style="text-align: center; width: 8%">
+                                    {{
+                                        user.brigadeNumber
+                                            ? user.brigadeNumber
+                                            : "-"
+                                    }}
+                                </td>
+                            </tr>
+                            <tr
+                                class="row__table"
+                                v-if="foundUsers.length < 4"
+                                v-for="index in 4 - foundUsers.length"
+                            >
+                                <td style="width: 3%; text-align: center">
+                                    <input
+                                        type="checkbox"
+                                        class="checkbox"
+                                        disabled
+                                    />
                                 </td>
                                 <td style="width: 50%"></td>
                                 <td></td>
@@ -78,98 +202,135 @@
                         </tbody>
                     </table>
                 </div>
-                <div style="display: flex; justify-content: center; padding-right: 80px;">
-                    <button id="submit-button" @click="showAlert=true" :disabled="!selectedUsers.reduce((acc, num) => acc || num, false)">Удалить</button>
+                <div
+                    style="
+                        display: flex;
+                        justify-content: center;
+                        padding-right: 80px;
+                    "
+                >
+                    <button
+                        id="submit-button"
+                        @click="showAlert = true"
+                        :disabled="
+                            !selectedUsers.reduce(
+                                (acc, num) => acc || num,
+                                false,
+                            )
+                        "
+                    >
+                        Удалить
+                    </button>
                 </div>
             </div>
         </div>
         <div v-if="showAlert" class="alert__container">
-            <img src="/icons/exit.svg" id="exit-icon-alert" @click="showAlert=false">
-            <span style="position: absolute; top: 30%; left: 50%; transform: translate(-50%, -30%);">Вы действительно хотите удалить пользователя?</span>
-            <br>
-            <button class="delete__button" @click="deleteSelectedUsers">Удалить</button>
+            <img
+                src="/icons/exit.svg"
+                id="exit-icon-alert"
+                @click="showAlert = false"
+            />
+            <span
+                style="
+                    position: absolute;
+                    top: 30%;
+                    left: 50%;
+                    transform: translate(-50%, -30%);
+                "
+                >Вы действительно хотите удалить пользователя?</span
+            >
+            <br />
+            <button class="delete__button" @click="deleteSelectedUsers">
+                Удалить
+            </button>
         </div>
     </div>
 </template>
 
 <script>
-import axios from 'axios';
+import query from "../common/query.js";
+import range from "../common/range.js";
 
 export default {
-    name: 'DeleteUserComponent',
+    name: "DeleteUserComponent",
     data() {
         return {
-            name: '',
-            surname: '',
-            patronymic: '',
-            role: '',
-            brigade: '',
+            name: "",
+            surname: "",
+            patronymic: "",
+            role: "",
+            brigade: "",
 
-            registrationDate_begin: '',
-            registrationDate_end: '',
-            changeDate_begin: '',
-            changeDate_end: '',
+            registrationDate_begin: "",
+            registrationDate_end: "",
+            changeDate_begin: "",
+            changeDate_end: "",
 
             foundUsers: [],
             selectedUsers: [],
             showAlert: false,
             allSelected: false,
             rolesTranslations: {
-                "Brigadier": "Бригадир",
-                "Fireman": "Пожарный",
-                "Operator": "Оператор",
-                "Admin": "Администратор"
-            }
-        }
+                Brigadier: "Бригадир",
+                Fireman: "Пожарный",
+                Operator: "Оператор",
+                Admin: "Администратор",
+            },
+        };
     },
     methods: {
-        async searchUsers(){
-            await axios.get(`http://localhost:3000/api/user_search?${this.stringifyURLParams()}`)
-                .then(res => this.foundUsers = res.data);
-            this.allSelected = false;
-            this.selectedUsers = Array(this.foundUsers.length).fill(false);
-        },
-        deleteSelectedUsers(){
-            this.showAlert = false;
-
-            this.selectedUsers.forEach((isSelected, index) => {
-                if(isSelected) true; // deletion
-            });
-
-            this.foundUsers = [];
-            this.selectedUsers = [];    
-            this.allSelected = false;
-            this.$emit('component-change', 'menu');
-        },
-        handleCheckboxClick(index){
-            if(this.selectedUsers[index]) this.allSelected = false;
-            else{
-                this.selectedUsers[index] = true;
-                if(this.selectedUsers.reduce((acc, num) => acc && num)) this.allSelected = true;
-            }
-        },
-        stringifyURLParams(){
-            let params = {
+        async searchUsers() {
+            const data = await query("user_search", {
                 familyName: this.surname,
                 firstName: this.name,
                 fatherName: this.patronymic,
                 role: this.role,
-                brigadeNumber: this.role === 'Fireman' || this.role === 'Brigadier' ? this.brigade : '',
-                registeredAt: `${this.registrationDate_begin};${this.registrationDate_end}`,
-                modifiedAt: `${this.changeDate_begin};${this.changeDate_end}`
-            }
-
-            params = new URLSearchParams(Object.fromEntries(
-                Object.entries(params).filter(([_, v]) => v !== undefined && v !== '' && v !== ';')
-            )).toString();
-
-            return params;
+                brigadeNumber:
+                    this.role === "Fireman" || this.role === "Brigadier"
+                        ? this.brigade
+                        : "",
+                registeredAt: range(
+                    this.registrationDate_begin,
+                    this.registrationDate_end,
+                ),
+                modifiedAt: range(this.changeDate_begin, this.changeDate_end),
+            });
+            if (data === null) return;
+            this.foundUsers = data;
+            this.allSelected = false;
+            this.selectedUsers = Array(this.foundUsers.length).fill(false);
         },
-        findRole(user){
-            return user.labels.find(label => (label === "Brigadier" || label === "Fireman" || label === "Operator" || label === "Admin"))
-        }
-    }
-}
+        deleteSelectedUsers() {
+            this.showAlert = false;
+
+            this.selectedUsers.forEach((isSelected, index) => {
+                if (isSelected) true; // deletion
+            });
+
+            this.foundUsers = [];
+            this.selectedUsers = [];
+            this.allSelected = false;
+            this.$emit("component-change", "menu");
+        },
+        handleCheckboxClick(index) {
+            if (this.selectedUsers[index]) this.allSelected = false;
+            else {
+                this.selectedUsers[index] = true;
+                if (this.selectedUsers.reduce((acc, num) => acc && num))
+                    this.allSelected = true;
+            }
+        },
+        findRole(user) {
+            return user.labels.find(
+                (label) =>
+                    label === "Brigadier" ||
+                    label === "Fireman" ||
+                    label === "Operator" ||
+                    label === "Admin",
+            );
+        },
+    },
+};
 </script>
 
 <style scoped>
@@ -194,7 +355,7 @@ export default {
     background-color: white;
 }
 
-.component-label__container>label {
+.component-label__container > label {
     font-size: x-large;
     font-weight: bolder;
 }
@@ -220,7 +381,10 @@ export default {
     padding: 24px;
 }
 
-.userinfo__input, span, .table__container, #submit-button {
+.userinfo__input,
+span,
+.table__container,
+#submit-button {
     font-size: large;
     margin-bottom: 10px;
 }
@@ -229,18 +393,18 @@ export default {
     margin-left: 20px;
 }
 
-input[type="text"]{
+input[type="text"] {
     width: 600px;
 }
 
-input[type="number"]{
+input[type="number"] {
     width: 50px;
 }
 
 input[type="radio"] {
     cursor: pointer;
     transform: scale(2);
-    margin: 20px
+    margin: 20px;
 }
 
 .brigade-text__avaliable {
@@ -260,7 +424,7 @@ input[type="radio"] {
     border-radius: 10px;
     border: none;
     padding: 10px 20px 10px 20px;
-    background-color: #A7A3CC;
+    background-color: #a7a3cc;
 }
 
 #submit-button:not(:disabled) {
@@ -268,7 +432,7 @@ input[type="radio"] {
 }
 
 #submit-button:hover:not(:disabled) {
-    background-color: #766EBF;
+    background-color: #766ebf;
 }
 
 .table__container {
@@ -284,7 +448,7 @@ input[type="radio"] {
     border-spacing: 0;
 }
 
-.row__table>td {
+.row__table > td {
     border: 1px solid black;
     height: 23px;
 }
@@ -303,7 +467,7 @@ th {
 
 .alert__container {
     position: absolute;
-    border: 5px solid #BF6E6E;
+    border: 5px solid #bf6e6e;
     background-color: white;
     left: 50%;
     top: 50%;
@@ -322,7 +486,7 @@ th {
     left: 50%;
     transform: translate(-50%, -0%);
     border: none;
-    background-color: #BF6E6E;
+    background-color: #bf6e6e;
     font-size: x-large;
     border-radius: 13px;
     width: 30%;
@@ -341,7 +505,7 @@ th {
     right: -5px;
     top: -5px;
     height: auto;
-    background-color: #BF6E6E;
+    background-color: #bf6e6e;
     border-radius: 10px;
 }
 
@@ -350,13 +514,13 @@ th {
 }
 
 .overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  cursor: not-allowed;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    cursor: not-allowed;
 }
 </style>

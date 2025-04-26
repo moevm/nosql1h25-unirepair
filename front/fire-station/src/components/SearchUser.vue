@@ -1,52 +1,123 @@
 <template>
     <div class="searchUser__container">
         <div class="component-label__container">
-            <img id="exit-icon" src="/icons/exit.svg" @click="$emit('component-change', 'menu')">
+            <img
+                id="exit-icon"
+                src="/icons/exit.svg"
+                @click="$emit('component-change', 'menu')"
+            />
             <label>Редактировать данные пользователя</label>
         </div>
         <div class="component-userinfo__container">
             <span>Фамилия:</span>
-            <input type="text" v-model="surname" class="userinfo__input">
-            <br>
+            <input type="text" v-model="surname" class="userinfo__input" />
+            <br />
             <span>Имя:</span>
-            <input type="text" v-model="name" class="userinfo__input">
-            <br>
+            <input type="text" v-model="name" class="userinfo__input" />
+            <br />
             <span>Отчество:</span>
-            <input type="text" v-model="patronymic" class="userinfo__input">
-            <br> 
-            
-            <span>Должность:</span>
-            <br>
-            <input type="radio" v-model="role" value="Fireman" @click="info" class="userinfo__input">
-            <span>Пожарный</span>
-            <input type="radio" v-model="role" value="Brigadier" @click="info" class="userinfo__input">
-            <span>Бригадир</span>
-            <br>
-            <input type="radio" v-model="role" value="Operator" @click="info" class="userinfo__input">
-            <span>Оператор</span>
-            <br>
-            <input type="radio" v-model="role" value="Admin" @click="info" class="userinfo__input">
-            <span>Администратор</span>
-            <br>
+            <input type="text" v-model="patronymic" class="userinfo__input" />
+            <br />
 
-            <span :class="{'brigade-text__avaliable': role === 'Fireman' || role === 'Brigadier', 'brigade-text__unavaliable': role !== 'Fireman' && role !== 'Brigadier'}">Бригада:</span>
-            <input min="1" type="number" v-model="brigade" class="userinfo__input" :disabled="role !== 'Fireman' && role !== 'Brigadier'" @blur="correctBrigade">
-            <br>
+            <span>Должность:</span>
+            <br />
+            <input
+                type="radio"
+                v-model="role"
+                value="Fireman"
+                @click="info"
+                class="userinfo__input"
+            />
+            <span>Пожарный</span>
+            <input
+                type="radio"
+                v-model="role"
+                value="Brigadier"
+                @click="info"
+                class="userinfo__input"
+            />
+            <span>Бригадир</span>
+            <br />
+            <input
+                type="radio"
+                v-model="role"
+                value="Operator"
+                @click="info"
+                class="userinfo__input"
+            />
+            <span>Оператор</span>
+            <br />
+            <input
+                type="radio"
+                v-model="role"
+                value="Admin"
+                @click="info"
+                class="userinfo__input"
+            />
+            <span>Администратор</span>
+            <br />
+
+            <span
+                :class="{
+                    'brigade-text__avaliable':
+                        role === 'Fireman' || role === 'Brigadier',
+                    'brigade-text__unavaliable':
+                        role !== 'Fireman' && role !== 'Brigadier',
+                }"
+                >Бригада:</span
+            >
+            <input
+                min="1"
+                type="number"
+                v-model="brigade"
+                class="userinfo__input"
+                :disabled="role !== 'Fireman' && role !== 'Brigadier'"
+                @blur="correctBrigade"
+            />
+            <br />
 
             <span>Дата регистрации:</span>
-            <span style="margin-left: 100px;">от:</span><input type="date" class="date__input userinfo__input" v-model="registrationDate_begin">
-            <span style="margin-left: 40px;">до:</span><input type="date" class="date__input userinfo__input" v-model="registrationDate_end">
-            <br>
+            <span style="margin-left: 100px">от:</span
+            ><input
+                type="date"
+                class="date__input userinfo__input"
+                v-model="registrationDate_begin"
+            />
+            <span style="margin-left: 40px">до:</span
+            ><input
+                type="date"
+                class="date__input userinfo__input"
+                v-model="registrationDate_end"
+            />
+            <br />
             <span>Дата редактирования:</span>
-            <span style="margin-left: 58px;">от:</span><input type="date" class="date__input userinfo__input" v-model="changeDate_begin">
-            <span style="margin-left: 40px;">до:</span><input type="date" class="date__input userinfo__input" v-model="changeDate_end">
-            <br>
+            <span style="margin-left: 58px">от:</span
+            ><input
+                type="date"
+                class="date__input userinfo__input"
+                v-model="changeDate_begin"
+            />
+            <span style="margin-left: 40px">до:</span
+            ><input
+                type="date"
+                class="date__input userinfo__input"
+                v-model="changeDate_end"
+            />
+            <br />
 
             <button id="submit-button" @click="searchUsers">Найти</button>
 
             <div class="table__container">
                 <table class="users__table">
-                    <thead style="position: sticky; top: 0; background-color: white; border: 1px solid black; z-index: 10;">
+                    <thead
+                        style="
+                            position: sticky;
+                            top: 0;
+                            background-color: white;
+                            border: 1px solid black;
+                            z-index: 10;
+                        "
+                    >
                         <tr>
                             <th></th>
                             <th>ФИО</th>
@@ -55,17 +126,48 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="row__table" v-for="(user, index) in foundUsers" :key="index">
-                            <td style="width: 3%; text-align: center;">
-                                <img src="/icons/editUser.svg" style="cursor: pointer; transform: scale(1);" @click="goToEditUserData(index)">
+                        <tr
+                            class="row__table"
+                            v-for="(user, index) in foundUsers"
+                            :key="index"
+                        >
+                            <td style="width: 3%; text-align: center">
+                                <img
+                                    src="/icons/editUser.svg"
+                                    style="cursor: pointer; transform: scale(1)"
+                                    @click="goToEditUserData(index)"
+                                />
                             </td>
-                            <td style="width: 50%; padding-left: 10px;">{{ user.familyName + ' ' + user.firstName + ' ' + user.fatherName }}</td>
-                            <td style="padding-left: 10px;">{{ rolesTranslations[findRole(user)] }}</td>
-                            <td style="text-align: center; width: 8%">{{ user.brigadeNumber > 0 ? user.brigadeNumber : '-' }}</td>
-                        </tr>    
-                        <tr class="row__table" v-if="foundUsers.length < 4" v-for="index in (4 - foundUsers.length)">
-                            <td style="width: 3%; text-align: center;">
-                                <img src="/icons/editUser.svg" style="cursor: pointer; transform: scale(1);">
+                            <td style="width: 50%; padding-left: 10px">
+                                {{
+                                    user.familyName +
+                                    " " +
+                                    user.firstName +
+                                    " " +
+                                    user.fatherName
+                                }}
+                            </td>
+                            <td style="padding-left: 10px">
+                                {{ rolesTranslations[findRole(user)] }}
+                            </td>
+                            <td style="text-align: center; width: 8%">
+                                {{
+                                    user.brigadeNumber > 0
+                                        ? user.brigadeNumber
+                                        : "-"
+                                }}
+                            </td>
+                        </tr>
+                        <tr
+                            class="row__table"
+                            v-if="foundUsers.length < 4"
+                            v-for="index in 4 - foundUsers.length"
+                        >
+                            <td style="width: 3%; text-align: center">
+                                <img
+                                    src="/icons/editUser.svg"
+                                    style="cursor: pointer; transform: scale(1)"
+                                />
                             </td>
                             <td style="width: 50%"></td>
                             <td></td>
@@ -79,80 +181,76 @@
 </template>
 
 <script>
-import { useEditedUser } from '@/stores/editedUser';
-import axios from 'axios';
+import { useEditedUser } from "@/stores/editedUser";
+import query from "../common/query.js";
+import range from "../common/range.js";
 
 export default {
-    name: 'SearchUserComponent',
+    name: "SearchUserComponent",
     data() {
         return {
-            name: '',
-            surname: '',
-            patronymic: '',
-            role: '',
-            brigade: '',
+            name: "",
+            surname: "",
+            patronymic: "",
+            role: "",
+            brigade: "",
 
-            registrationDate_begin: '',
-            registrationDate_end: '',
-            changeDate_begin: '',
-            changeDate_end: '',
+            registrationDate_begin: "",
+            registrationDate_end: "",
+            changeDate_begin: "",
+            changeDate_end: "",
 
             foundUsers: [],
             rolesTranslations: {
-                "Brigadier": "Бригадир",
-                "Fireman": "Пожарный",
-                "Operator": "Оператор",
-                "Admin": "Администратор"
-            }
-        }
+                Brigadier: "Бригадир",
+                Fireman: "Пожарный",
+                Operator: "Оператор",
+                Admin: "Администратор",
+            },
+        };
     },
     methods: {
-        async searchUsers(){
-            await axios.get(`http://localhost:3000/api/user_search?${this.stringifyURLParams()}`)
-                .then(res => this.foundUsers = res.data);
-        },
-        goToEditUserData(index){
-            const editedUser = useEditedUser();
-            editedUser.updateData(this.foundUsers[index], this.findRole(this.foundUsers[index]), index);
-
-            this.$emit('component-change', 'editUser');
-            this.foundUsers = [];
-        },
-        findRole(user){
-            return user.labels.find(label => (label === "Brigadier" || label === "Fireman" || label === "Operator" || label === "Admin"))
-        },
-        stringifyURLParams(){
-            const processDateRange = (from, to) => {
-                const today = new Date().toISOString().split('T')[0];
-                const defaultFrom = '1990-01-01';
-                
-                if (from && to) return `${from};${to}`;
-
-                if (from && !to) return `${from};${today}`;
-
-                if (!from && to) return `${defaultFrom};${to}`;
-
-                return '';
-            };
-            
-            let params = {
+        async searchUsers() {
+            const data = await query("user_search", {
                 familyName: this.surname,
                 firstName: this.name,
                 fatherName: this.patronymic,
                 role: this.role,
-                brigadeNumber: this.role === 'Fireman' || this.role === 'Brigadier' ? this.brigade : '',
-                registeredAt: processDateRange(this.registrationDate_begin, this.registrationDate_end),
-                modifiedAt: processDateRange(this.changeDate_begin, this.changeDate_end)
-            }
+                brigadeNumber:
+                    this.role === "Fireman" || this.role === "Brigadier"
+                        ? this.brigade
+                        : "",
+                registeredAt: range(
+                    this.registrationDate_begin,
+                    this.registrationDate_end,
+                ),
+                modifiedAt: range(this.changeDate_begin, this.changeDate_end),
+            });
+            if (data === null) return;
+            this.foundUsers = data;
+        },
+        goToEditUserData(index) {
+            const editedUser = useEditedUser();
+            editedUser.updateData(
+                this.foundUsers[index],
+                this.findRole(this.foundUsers[index]),
+                index,
+            );
 
-            params = new URLSearchParams(Object.fromEntries(
-                Object.entries(params).filter(([_, v]) => v !== undefined && v !== '' && v !== ';')
-            )).toString();
-
-            return params;
-        }
-    }
-}
+            this.$emit("component-change", "editUser");
+            this.foundUsers = [];
+        },
+        findRole(user) {
+            return user.labels.find(
+                (label) =>
+                    label === "Brigadier" ||
+                    label === "Fireman" ||
+                    label === "Operator" ||
+                    label === "Admin",
+            );
+        },
+    },
+};
 </script>
 
 <style scoped>
@@ -172,7 +270,7 @@ export default {
     background-color: white;
 }
 
-.component-label__container>label {
+.component-label__container > label {
     font-size: x-large;
     font-weight: bolder;
 }
@@ -198,7 +296,8 @@ export default {
     padding: 24px;
 }
 
-.userinfo__input, span {
+.userinfo__input,
+span {
     font-size: large;
     margin-bottom: 10px;
 }
@@ -207,18 +306,18 @@ export default {
     margin-left: 20px;
 }
 
-input[type="text"]{
+input[type="text"] {
     width: 600px;
 }
 
-input[type="number"]{
+input[type="number"] {
     width: 50px;
 }
 
 input[type="radio"] {
     cursor: pointer;
     transform: scale(1.5);
-    margin: 15px
+    margin: 15px;
 }
 
 .brigade-text__avaliable {
@@ -239,11 +338,11 @@ input[type="radio"] {
     border-radius: 10px;
     border: none;
     padding: 10px 20px 10px 20px;
-    background-color: #A7A3CC;
+    background-color: #a7a3cc;
 }
 
 #submit-button:hover {
-    background-color: #766EBF;
+    background-color: #766ebf;
 }
 
 .table__container {
@@ -259,7 +358,7 @@ input[type="radio"] {
     border-spacing: 0;
 }
 
-.row__table>td {
+.row__table > td {
     border: 1px solid black;
     height: 23px;
 }
