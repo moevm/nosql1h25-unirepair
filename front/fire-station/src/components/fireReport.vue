@@ -194,8 +194,7 @@
 </template>
 
 <script>
-// import { onMounted, ref } from 'vue'
-// import L from 'leaflet'
+import { useUserStore } from "@/stores/user";
 import query from "../common/query.js";
 
 export default {
@@ -387,11 +386,10 @@ export default {
                 this.availableVehicles = [];
             }
         },
-
         async sendToBrigades() {
             try {
                 const response = await query("create_callform", {
-                    login: "<userhook> operator who creates it",
+                    login: useUserStore().user.login,
                     callSource: this.callSource,
                     fireAddress: this.incidentAddress,
                     fireType: this.fireType,
@@ -414,7 +412,6 @@ export default {
                 return false;
             }
         },
-
         async confirmSave() {
             if (!this.createdFormData) {
                 alert("Сначала создайте форму!");
@@ -438,7 +435,6 @@ export default {
                 alert(`ошибка завершения формы: ${error.message}`);
             }
         },
-
         resetForm() {
             this.incidentAddress = "";
             this.fireType = "";

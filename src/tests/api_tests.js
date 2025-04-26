@@ -93,7 +93,6 @@ const tests = {
       cf: callFormPattern,
     }),
     new_reports: listOf({
-      u: userPattern,
       o: userPattern,
       r: reportPattern,
       cf: callFormPattern,

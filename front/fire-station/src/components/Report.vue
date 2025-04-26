@@ -125,6 +125,7 @@
 </template>
 
 <script setup>
+import { useUserStore } from "@/stores/user";
 import query from "../common/query.js";
 
 const props = defineProps({
@@ -142,7 +143,10 @@ async function sendReport() {
     try {
         const report = props.reportData;
         const response = await query("fill_report", {
-            login: "<userhook> brigadier who fills it in",
+            login:
+                props.reportData.status == "new"
+                    ? useUserStore().user.login
+                    : undefined,
             reportId: report.id,
             waterSpent: report.waterSpent ?? 0,
             foamSpent: report.foamSpent ?? 0,
