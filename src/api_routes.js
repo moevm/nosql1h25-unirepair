@@ -61,13 +61,16 @@ const api_routes = {
     };
   },
   // 4. Fill in a report
-  "fill_report/reportId:id waterSpent:uint foamSpent:uint allegedFireCause damage:uint additionalNotes":
+  "fill_report/login:string reportId:id waterSpent:uint foamSpent:uint allegedFireCause damage:uint additionalNotes":
     async (args) => {
+      const login = fishOut(args, ({ k }) => k === "login");
       return await matchOne("r:Report:New", fishOutTypes(args, ["id"]), {
+        match: `(u:User:Brigadier${props(login)})`,
+        create: `(u)-[:FILLED_IN]->(r)`,
         remove: { r: ["New"] },
         set: { r: { ...args, label: makeLabel("Complete") } },
         results: ["r"],
-        orelse: error("Report not found"),
+        orelse: error("Report or Brigadier not found"),
       });
     },
   // 5. Create a new callform
@@ -180,12 +183,9 @@ const api_routes = {
     };
   },
   // 11. Create a new report based on complete callform
-  "new_report/callformId:id login:string": async ({ callformId, login }) => {
-    return await matchOne(
-      "cf:CallForm:Complete",
-      { callformId },
-      {
-        create: `(r:Report:New {
+  "new_report/callformId:id": async (args) => {
+    return await matchOne("cf:CallForm:Complete", args, {
+      create: `(r:Report:New {
           waterSpent: 0,
           foamSpent: 0,
           allegedFireCause: "неизвестно",
@@ -193,14 +193,10 @@ const api_routes = {
           additionalNotes: "Данные ещё не внесены, ожидается завершение отчёта.",
           modifiedAt: datetime()
         })
-        CREATE (r)-[:ON_CALL]->(cf)
-        WITH r, cf
-        MATCH(b:User:Brigadier${props({ login })})
-        CREATE (b)-[:FILLED_IN]->(r)`,
-        results: ["r"],
-        orelse: error("Either CallForm or Brigadier not found"),
-      },
-    );
+        CREATE (r)-[:ON_CALL]->(cf)`,
+      results: ["r"],
+      orelse: error("CallForm not found"),
+    });
   },
   "test_query/query:string": async ({ query }) => {
     const result = await rawQuery(query.value);

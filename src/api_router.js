@@ -20,7 +20,7 @@ class ApiRoute {
       console.log(
         `Failed to process query: ${query}\nQuery was: ${JSON.stringify(rawQuery)}`,
       );
-      return null;
+      return { error: "Internal server error" };
     }
     return await this.handler(query, prehandledState);
   }
@@ -64,7 +64,7 @@ export default class ApiRouter {
       result.get(`/${this.apiName}/${name}`, async (req, res) => {
         if (!isReady()) {
           console.log("Got a query, but the server is not ready yet");
-          res.send(null);
+          res.send({ error: "Internal server error" });
         }
         try {
           let answer = await route.apply(req.query);
@@ -73,7 +73,7 @@ export default class ApiRouter {
           console.error(
             `Error occured when proccessing route /${this.apiName}/${name}\nError: ${err}\nQuery: ${JSON.stringify(req.query)}`,
           );
-          res.send(null);
+          res.send({ error: "Internal server error" });
         }
       });
     }

@@ -99,8 +99,8 @@ const tests = {
       cf: callFormPattern,
     }),
   },
-  "fill_report?reportId=99999d&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere":
-    err("Report not found"),
+  "fill_report?login=brigadier_igor&reportId=99999d&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere":
+    err("Report or Brigadier not found"),
   "create_callform?login=operator_dmitriy&callSource=Anatoliy": err(
     "Incomplete callforms are not supported yet",
   ),
@@ -112,11 +112,11 @@ const tests = {
       query: "complete_callform?callformId=$id",
       then: {
         ensure: callFormPattern,
-        query: "new_report?login=brigadier_igor&callformId=$id",
+        query: "new_report?callformId=$id",
         then: {
           ensure: reportPattern,
           query:
-            "fill_report?reportId=$id&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere",
+            "fill_report?login=brigadier_igor&reportId=$id&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere",
           then: {
             ensure: reportPattern,
             query: "operator_callforms?login=operator_dmitriy",
@@ -139,9 +139,7 @@ const tests = {
         },
       },
     },
-  "new_report?callformId=919294&login=brigadier_igor": err(
-    "Either CallForm or Brigadier not found",
-  ),
+  "new_report?callformId=919294": err("CallForm not found"),
   "complete_callform?callformId=209824": err("CallForm not found"),
   "operator_callforms?login=operator_dmitriy": {
     complete_callforms: listOf(callFormPattern),
@@ -206,7 +204,7 @@ const tests = {
 };
 
 async function checkQueryResult(router, runner, result, checker) {
-  if (checker.constructor === {}.constructor) {
+  if (checker.constructor === {}.constructor || typeof checker === "string") {
     if (checker.ensure) {
       await checkQueryResult(router, runner, result, checker.ensure);
       if (checker.query) {

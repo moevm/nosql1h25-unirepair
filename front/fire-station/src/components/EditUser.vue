@@ -1,114 +1,223 @@
 <template>
     <div class="addUser__container">
         <div class="component-label__container">
-            <img id="exit-icon" src="/icons/exit.svg" @click=" () => {$emit('component-change', 'searchUser'); dropState()}">
+            <img
+                id="exit-icon"
+                src="/icons/exit.svg"
+                @click="
+                    () => {
+                        $emit('component-change', 'searchUser');
+                        dropState();
+                    }
+                "
+            />
             <label>Редактирование данных пользователя</label>
         </div>
         <div class="component-userinfo__container">
             <span>Фамилия:</span>
-            <input type="text" v-model="editedUser.user.surname" class="userinfo__input">
-            <span v-show="!editedUser.user.surname && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
-            <br>
+            <input
+                type="text"
+                v-model="editedUser.user.surname"
+                class="userinfo__input"
+            />
+            <span
+                v-show="!editedUser.user.surname && addUserAttempt"
+                style="color: red; margin-left: 15px"
+                >Заполните это поле</span
+            >
+            <br />
             <span>Имя:</span>
-            <input type="text" v-model="editedUser.user.name" class="userinfo__input">
-            <span v-show="!editedUser.user.name && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
-            <br>
+            <input
+                type="text"
+                v-model="editedUser.user.name"
+                class="userinfo__input"
+            />
+            <span
+                v-show="!editedUser.user.name && addUserAttempt"
+                style="color: red; margin-left: 15px"
+                >Заполните это поле</span
+            >
+            <br />
             <span>Отчество:</span>
-            <input type="text" v-model="editedUser.user.patronymic" class="userinfo__input">
-            <br> 
-            
-            <span>Должность:</span>
-            <br>
-            <input type="radio" v-model="editedUser.user.role" value="Fireman" class="userinfo__input">
-            <span>Пожарный</span>
-            <input type="radio" v-model="editedUser.user.role" value="Brigadier" class="userinfo__input">
-            <span>Бригадир</span>
-            <br>
-            <input type="radio" v-model="editedUser.user.role" value="Operator" class="userinfo__input">
-            <span>Оператор</span>
-            <br>
-            <input type="radio" v-model="editedUser.user.role" value="Admin" class="userinfo__input"><span>Администратор</span>
-            <br>
+            <input
+                type="text"
+                v-model="editedUser.user.patronymic"
+                class="userinfo__input"
+            />
+            <br />
 
-            <span :class="{'brigade-text__avaliable': editedUser.user.role === 'Fireman' || editedUser.user.role === 'Brigadier', 'brigade-text__unavaliable': editedUser.user.role !== 'Fireman' &&  editedUser.user.role !== 'Brigadier'}">Бригада:</span>
-            <input min="1" type="number" v-model="editedUser.user.brigade" class="userinfo__input" :disabled="editedUser.user.role !== 'Fireman' && editedUser.user.role !== 'Brigadier'" @blur="correctBrigade">
-            <span v-show="!editedUser.user.brigade && addUserAttempt && (editedUser.user.role === 'Fireman' || editedUser.user.role === 'Brigadier')" style="color: red; margin-left: 15px;">Назначьте бригаду</span>
-            <br>
+            <span>Должность:</span>
+            <br />
+            <input
+                type="radio"
+                v-model="editedUser.user.role"
+                value="Fireman"
+                class="userinfo__input"
+            />
+            <span>Пожарный</span>
+            <input
+                type="radio"
+                v-model="editedUser.user.role"
+                value="Brigadier"
+                class="userinfo__input"
+            />
+            <span>Бригадир</span>
+            <br />
+            <input
+                type="radio"
+                v-model="editedUser.user.role"
+                value="Operator"
+                class="userinfo__input"
+            />
+            <span>Оператор</span>
+            <br />
+            <input
+                type="radio"
+                v-model="editedUser.user.role"
+                value="Admin"
+                class="userinfo__input"
+            /><span>Администратор</span>
+            <br />
+
+            <span
+                :class="{
+                    'brigade-text__avaliable':
+                        editedUser.user.role === 'Fireman' ||
+                        editedUser.user.role === 'Brigadier',
+                    'brigade-text__unavaliable':
+                        editedUser.user.role !== 'Fireman' &&
+                        editedUser.user.role !== 'Brigadier',
+                }"
+                >Бригада:</span
+            >
+            <input
+                min="1"
+                type="number"
+                v-model="editedUser.user.brigade"
+                class="userinfo__input"
+                :disabled="
+                    editedUser.user.role !== 'Fireman' &&
+                    editedUser.user.role !== 'Brigadier'
+                "
+                @blur="correctBrigade"
+            />
+            <span
+                v-show="
+                    !editedUser.user.brigade &&
+                    addUserAttempt &&
+                    (editedUser.user.role === 'Fireman' ||
+                        editedUser.user.role === 'Brigadier')
+                "
+                style="color: red; margin-left: 15px"
+                >Назначьте бригаду</span
+            >
+            <br />
             <span>Телефон:</span>
-            <input type="text" v-model="editedUser.user.phone" class="userinfo__input">
-            <br>
+            <input
+                type="text"
+                v-model="editedUser.user.phone"
+                class="userinfo__input"
+            />
+            <br />
             <span>Эл. почта:</span>
-            <input type="text" v-model="editedUser.user.email" class="userinfo__input">
-            <br>
+            <input
+                type="text"
+                v-model="editedUser.user.email"
+                class="userinfo__input"
+            />
+            <br />
             <span>Адрес:</span>
-            <input type="text" v-model="editedUser.user.address" class="userinfo__input">
-            <span v-show="!editedUser.user.address && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
-            <br>
+            <input
+                type="text"
+                v-model="editedUser.user.address"
+                class="userinfo__input"
+            />
+            <span
+                v-show="!editedUser.user.address && addUserAttempt"
+                style="color: red; margin-left: 15px"
+                >Заполните это поле</span
+            >
+            <br />
             <span class="brigade-text__unavaliable">Логин:</span>
-            <input type="text" v-model="editedUser.user.login" disabled class="userinfo__input">
-            <span v-show="!editedUser.user.login && addUserAttempt" style="color: red; margin-left: 15px;">Заполните это поле</span>
-            <br>
+            <input
+                type="text"
+                v-model="editedUser.user.login"
+                disabled
+                class="userinfo__input"
+            />
+            <span
+                v-show="!editedUser.user.login && addUserAttempt"
+                style="color: red; margin-left: 15px"
+                >Заполните это поле</span
+            >
+            <br />
             <span>Пароль:</span>
-            <input type="text" v-model="editedUser.user.password" class="userinfo__input">
-            <br>
-        
-            <button @click="updateUser" id="submit-button">Сохранить изменения</button>
+            <input
+                type="text"
+                v-model="editedUser.user.password"
+                class="userinfo__input"
+            />
+            <br />
+
+            <button @click="updateUser" id="submit-button">
+                Сохранить изменения
+            </button>
         </div>
     </div>
 </template>
 
 <script>
-import { useEditedUser } from '@/stores/editedUser';
-import axios from 'axios';
+import { useEditedUser } from "@/stores/editedUser";
+import query from "../common/query.js";
 
-export default{
-    name: 'EditUserComponent',
-    setup(){
+export default {
+    name: "EditUserComponent",
+    setup() {
         const editedUser = useEditedUser();
         return { editedUser };
     },
-    data(){
+    data() {
         return {
-            addUserAttempt: false
-        }
+            addUserAttempt: false,
+        };
     },
     methods: {
-        async updateUser(){
+        async updateUser() {
             const user = useEditedUser().user;
-            console.log(user)
-            if(!user.name || !user.surname || !user.role || (!user.brigade && (user.role === "Fireman" || user.role === 'Brigadier')) || !user.address || !user.login){    
+            console.log(user);
+            if (
+                !user.name ||
+                !user.surname ||
+                !user.role ||
+                (!user.brigade &&
+                    (user.role === "Fireman" || user.role === "Brigadier")) ||
+                !user.address ||
+                !user.login
+            ) {
                 this.addUserAttempt = true;
                 return false;
             }
-            
-            await axios.get(`http://localhost:3000/api/modify_user?${this.stringifyURLParams()}`);
-            console.log(`http://localhost:3000/api/modify_user?${decodeURIComponent(this.stringifyURLParams())}`)   
 
-            this.$emit('component-change', 'searchUser');
-        },
-        stringifyURLParams(){
-            const user = useEditedUser().user;
-            let params = {
+            await query("modify_user", {
                 familyName: user.surname,
                 firstName: user.name,
                 fatherName: user.patronymic,
                 role: user.role,
-                brigadeNumber: user.role === 'Fireman' || user.role === 'Brigadier' ? user.brigade : 0,
+                brigadeNumber:
+                    user.role === "Fireman" || user.role === "Brigadier"
+                        ? user.brigade
+                        : 0,
                 phone: user.phone,
                 address: user.address,
                 email: user.email,
                 login: useEditedUser().oldLogin,
-                password: user.password
-            }
-            
-            params = new URLSearchParams(Object.fromEntries(
-                Object.entries(params).filter(([_, v]) => v !== undefined && v !== '' && v !== ',')
-            )).toString();
+                password: user.password,
+            });
 
-            return params;
-        }
-    }
-}
+            this.$emit("component-change", "searchUser");
+        },
+    },
+};
 </script>
 
 <style scoped>
@@ -128,7 +237,7 @@ export default{
     background-color: white;
 }
 
-.component-label__container>label {
+.component-label__container > label {
     font-size: x-large;
     font-weight: bolder;
 }
@@ -154,7 +263,8 @@ export default{
     padding: 24px;
 }
 
-.userinfo__input, span {
+.userinfo__input,
+span {
     font-size: large;
     margin-bottom: 25px;
 }
@@ -163,11 +273,11 @@ export default{
     margin-left: 20px;
 }
 
-input[type="text"]{
+input[type="text"] {
     width: 600px;
 }
 
-input[type="number"]{
+input[type="number"] {
     width: 50px;
 }
 
@@ -186,11 +296,11 @@ input[type="radio"] {
     border-radius: 10px;
     border: none;
     padding: 20px;
-    background-color: #A7A3CC;
+    background-color: #a7a3cc;
 }
 
 #submit-button:hover {
-    background-color: #766EBF;
+    background-color: #766ebf;
 }
 
 .brigade-text__avaliable {

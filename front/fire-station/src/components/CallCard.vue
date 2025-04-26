@@ -40,7 +40,7 @@ onMounted(() => {
 })
 </script>
 
-<style>
+<style scoped>
 .call-card {
   box-sizing: border-box;
   margin: 24px;
