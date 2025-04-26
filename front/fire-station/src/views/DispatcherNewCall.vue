@@ -1,7 +1,7 @@
 <template>
   <div class="layout">
-    <miniSidebar/>
-    <fireReport/>
+    <miniSidebar style="z-index: 0;"/>
+    <fireReport style="z-index: 1;"/>
   </div>
 </template>
 
@@ -20,6 +20,6 @@ export default {
   display: flex;
   margin: 0;
   padding: 0;
-  width: 100vw;
+  width: 100%;
 }
 </style>

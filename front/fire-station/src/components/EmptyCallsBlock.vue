@@ -6,7 +6,7 @@
   </section>
 </template>
 
-<style>
+<style scoped>
 .empty-call {
   box-sizing: border-box;
   margin: 24px;

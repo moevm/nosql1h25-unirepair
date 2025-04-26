@@ -4,20 +4,20 @@
     <h2 class="report__title">Отчет №{{ reportData.number }}</h2>
 
     <section class="report__block report__block__border">
-      <div><b>Бригадир:</b> {{ reportData.brigadier }}</div>
-      <div><b>Оператор:</b> {{ reportData.operator }}</div>
-      <div><b>Время вызова:</b> {{ reportData.callTime }}</div>
-      <div><b>Вызов завершен:</b> {{ reportData.endTime }}</div>
+      <div><b>№ Бригады:</b> {{ reportData.assignedTo }}</div>
+      <div><b>Оператор:</b> {{ operator.fullName}}</div>
+      <div><b>Время вызова:</b> {{ formDate(reportData.createdAt) }}</div>
+      <div><b>Вызов завершен:</b> {{ formDate(reportData.modifiedAt) }}</div>
     </section>
     <section class="report__block">
-      <div><b>Адрес:</b> {{ reportData.address }}</div>
-      <div><b>Категория:</b> {{ reportData.category }}</div>
-      <div><b>Пострадавшие:</b> {{ reportData.victims }}</div>
+      <div><b>Адрес:</b> {{ reportData.fireAddress }}</div>
+      <div><b>Категория:</b> {{ reportData.fireRank }}</div>
+      <div><b>Пострадавшие:</b> {{ reportData.victimsCount }}</div>
 
       <div>
         <b>Бригада и техника:</b>
         <ul>
-          <li v-for="(item, index) in reportData.team" :key="index">{{ item }}</li>
+          <li>{{ reportData.auto }}</li>
         </ul>
       </div>
 <!--      карта будет позже-->
@@ -28,10 +28,34 @@
     </section>
   </div>
 </template>
+
 <script setup>
-  defineProps({
+import { useUserStore } from '@/stores/user';
+
+defineProps({
   reportData: Object
 })
+
+const formDate = (date) => {
+    let day = date.day.toString();
+    while(day.length < 2) day = '0' + day;
+
+    let month = date.month.toString();
+    while(month.length < 2) month = '0' + month;
+
+    let year = date.year.toString();
+    while(year.length < 4) year = '0' + year;
+
+    let hour = date.hour.toString();
+    while(hour.length < 2) hour = '0' + hour
+
+    let minute = date.minute.toString();
+    while(minute.length < 2) minute = '0' + minute
+
+    return `${hour}:${minute}, ${year}-${month}-${day}`
+}
+
+const operator = useUserStore().user;
 
 </script>
 

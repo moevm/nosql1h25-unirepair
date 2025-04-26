@@ -60,7 +60,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .chart__container {
     width: 100%;
     max-height: 45%;

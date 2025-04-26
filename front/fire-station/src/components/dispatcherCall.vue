@@ -65,9 +65,7 @@ td, th {
   border-radius: 10px;
 }
 .call-card {
-  box-sizing: border-box;
-  min-width: 70vw;
-  width: 100%;
+  margin: 0 24px 0 24px;
   background: #fff;
   padding: 24px;
   border-radius: 12px;
