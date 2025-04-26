@@ -61,12 +61,12 @@ function mismatchWithPattern(obj, pattern) {
   } else if (typeof pattern === "string") {
     if (!pattern.includes(":")) {
       if (!new RegExp(pattern).test(JSON.stringify(obj)))
-        return `${stringify(obj)} NOT LIKE ${pattern}`;
+        return `${JSON.stringify(obj)} NOT LIKE ${pattern}`;
     } else {
       const [type, test] = pattern.split(":");
       if (mismatchWithType(obj, type)) return mismatchWithType(obj, type);
       if (test && !new RegExp(test).test(JSON.stringify(obj)))
-        return `${stringify(obj)} NOT LIKE ${pattern}`;
+        return `${JSON.stringify(obj)} NOT LIKE ${pattern}`;
     }
   }
 }
