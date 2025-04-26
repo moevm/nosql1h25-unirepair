@@ -17,7 +17,7 @@ function isDate(obj) {
 function stringifyDate(date) {
   if (!date || date.year === undefined) return "-";
   const pad = (num) => num.toString().padStart(2, "0");
-  return `${pad(date.year)}-${pad(date.month + 1)}-${pad(date.day)}T${pad(date.hour)}:${pad(date.minute)}:${pad(date.second)}`;
+  return `${pad(date.year)}-${pad(date.month)}-${pad(date.day)}T${pad(date.hour)}:${pad(date.minute)}:${pad(date.second)}`;
 }
 
 function stringifyDates(obj) {
