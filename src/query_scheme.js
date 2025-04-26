@@ -40,9 +40,11 @@ function parseValue(expectedType, key, value) {
     case "substring":
     case "string":
     case "label": {
+      let asStr = decodeURIComponent(value).trim();
+      if (asStr.length === 0)
+        return `${key} is expected to be ${expectedType}, but got an empty value "", which is not allowed`;
       const escapedChars = ["\\", '"', "\'"];
-      let asStr = decodeURIComponent(value);
-      for (const ec of escapedChars) asStr.replaceAll(ec, "\\" + ec);
+      for (const ec of escapedChars) asStr = asStr.replaceAll(ec, "\\" + ec);
       return asStr;
     }
     case "bool": {

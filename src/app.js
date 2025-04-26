@@ -56,22 +56,15 @@ app.listen(PORT, () => {
 const createDatabaseStructure = async () => {
   const session = driver.session();
   try {
-    const result = await session.run(`
-      CALL db.constraints() YIELD name
-      WHERE name CONTAINS 'Login'
-      RETURN name;
-    `);
-
-    if (result.records.length === 0) {
+    const uniques = ["User:login", "Inventory:name"];
+    for (const u of uniques) {
+      const [label, prop] = u.split(":");
+      const name = `${label}_${prop}_constraint`;
       await session.run(
-        `CREATE CONSTRAINT FOR (user:User) REQUIRE user.Login IS UNIQUE;`,
-      );
-      console.log("Ограничение на уникальность логина установлено.");
-    } else {
-      console.log(
-        "Ограничение на логин уже существует, пропускаем его создание.",
+        `CREATE CONSTRAINT ${name} IF NOT EXISTS FOR (n:${label}) REQUIRE n.${prop} IS UNIQUE;`,
       );
     }
+    console.log("Ограничения на уникальность установлены.");
   } catch (error) {
     console.error("Ошибка при создании структуры базы данных:", error);
   } finally {
