@@ -27,7 +27,7 @@
         <div class="report__form">
             <template v-if="reportData.status === 'complete'">
                 <p class="report__data">
-                    <b>Расход воды:</b> {{ reportData.waterSpent }} л
+                    <b>Расход воды:</b> {{ reportData.waterSpent || 0 }} л
                 </p>
                 <p class="report__data">
                     <b>Расход пены:</b> {{ reportData.foamSpent || 0 }} л
@@ -58,7 +58,10 @@
                     id="waterSpent"
                     name="waterSpent"
                     type="number"
+                    min="0"
                     v-model="reportData.waterSpent"
+                    :class="{ 'error-field': errors.waterSpent }"
+                    @input="validateForm"
                 />
 
                 <label for="foamSpent">Расход пены:</label>
@@ -66,7 +69,10 @@
                     id="foamSpent"
                     name="foamSpent"
                     type="number"
+                    min="0"
                     v-model="reportData.foamSpent"
+                    :class="{ 'error-field': errors.foamSpent }"
+                    @input="validateForm"
                 />
 
                 <label for="equipmentDamage">Повреждения оборудования:</label>
@@ -75,6 +81,7 @@
                     name="equipmentDamage"
                     class="report_textarea"
                     v-model="reportData.equipmentDamage"
+                    :disabled="isEquipmentDamageDisabled"
                 />
 
                 <label for="noDamage">
@@ -83,6 +90,7 @@
                         name="noDamage"
                         type="checkbox"
                         v-model="reportData.noDamage"
+                        :disabled="isNoDamageCheckboxDisabled"
                     />
                     оборудование не повреждено
                 </label>
@@ -92,15 +100,20 @@
                     id="allegedFireCause"
                     name="allegedFireCause"
                     class="report_textarea"
+                    :class="{ 'error-field': errors.allegedFireCause }"
                     v-model="reportData.allegedFireCause"
+                    @input="validateForm"
                 />
 
                 <label for="damageAssessment">Оценка ущерба:</label>
-                <textarea
+                <input
                     id="damageAssessment"
                     name="damageAssessment"
-                    class="report_textarea"
+                    type="number"
+                    min="0"
+                    :class="{ 'error-field': errors.damage }"
                     v-model="reportData.damage"
+                    @input="validateForm"
                 />
 
                 <label for="additionalNotes">Дополнительная информация:</label>
@@ -108,7 +121,9 @@
                     id="additionalNotes"
                     name="additionalNotes"
                     class="report_textarea"
+                    :class="{ 'error-field': errors.additionalNotes }"
                     v-model="reportData.additionalNotes"
+                    @input="validateForm"
                 />
             </template>
         </div>
@@ -126,9 +141,25 @@
 
 <script setup>
 import query from "../common/query.js";
+import { ref } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps({
     reportData: Object,
+});
+
+const errors = ref({
+  waterSpent: false,
+  foamSpent: false,
+  allegedFireCause: false,
+  damage: false,
+  additionalNotes: false,
+});
+
+const reportData = props.reportData;
+const isEquipmentDamageDisabled = computed(() => reportData.noDamage);
+const isNoDamageCheckboxDisabled = computed(() => {
+  return (reportData.equipmentDamage || '').length > 0;
 });
 
 const emit = defineEmits(["close"]);
@@ -138,15 +169,61 @@ function saveDraft() {
     // console.log('Черновик сохранен', props.reportData)
 }
 
+function validateForm() {
+  let isValid = true;
+
+  errors.value = {
+    waterSpent: false,
+    foamSpent: false,
+    allegedFireCause: false,
+    damage: false,
+    additionalNotes: false,
+  };
+
+  const report = props.reportData;
+
+  if (report.waterSpent.length === 0 || report.waterSpent < 0 || isNaN(report.waterSpent)) {
+    errors.value.waterSpent = true;
+    isValid = false;
+  }
+
+  if (report.foamSpent.length === 0 || report.foamSpent < 0) {
+    errors.value.foamSpent = true;
+    isValid = false;
+  }
+
+  if (report.allegedFireCause.length === 0) {
+    errors.value.allegedFireCause = true;
+    isValid = false;
+  }
+
+  if (report.damage.length === 0 || report.damage < 0) {
+    errors.value.damage = true;
+    isValid = false;
+  }
+
+  if (report.additionalNotes.length === 0) {
+    errors.value.additionalNotes = true;
+    isValid = false;
+  }
+
+  return isValid;
+}
+
 async function sendReport() {
     try {
+        if (!validateForm()) {
+          console.log('Есть ошибки в форме.');
+          return;
+        }
+
         const report = props.reportData;
         const response = await query("fill_report", {
             reportId: report.id,
             waterSpent: report.waterSpent ?? 0,
             foamSpent: report.foamSpent ?? 0,
             allegedFireCause: report.allegedFireCause ?? "",
-            damage: report.damage ?? "",
+            damage: report.damage ?? 0,
             additionalNotes: report.additionalNotes ?? "",
         });
         if (response === null) return;
@@ -213,6 +290,12 @@ async function sendReport() {
 
 .report__data {
     margin: 0;
+}
+
+.error-field {
+  border: 2px solid red;
+  border-radius: 6px;
+  background-color: #ffe6e6;
 }
 
 .buttons {
