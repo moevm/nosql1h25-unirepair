@@ -17,7 +17,7 @@
                 :key="report.id"
                 @click="$emit('openReport', report)"
             >
-                {{ report.modifiedAt }}
+                {{ report.endTime }}
             </div>
         </div>
 
@@ -38,7 +38,7 @@
                 :key="report.id"
                 @click="$emit('openReport', report)"
             >
-                {{ report.modifiedAt }}
+                {{ report.endTime }}
             </div>
         </div>
     </div>

@@ -32,7 +32,7 @@
           class="reports__file"
       >
         <img class="icon-file" src="/icons/file-text.svg" alt="file-text" />
-        <span class="file_name">{{ report.modifiedAt }}</span>
+        <span class="file_name">{{ report.endTime }}</span>
       </div>
     </div>
   </div>
