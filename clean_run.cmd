@@ -8,6 +8,6 @@ if "%~1"=="-FIXED_CTRL_C" (
    GOTO :EOF
 )
 
-set MODE=prod
+set MODE=clean_run
 docker compose up --build --no-deps -d db
 docker compose up --build --force-recreate --no-deps js
