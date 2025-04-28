@@ -1,9 +1,11 @@
-version: '3.8'
+version: "3.8"
 services:
   js:
     build:
       context: .
       dockerfile: Dockerfile
+    environment:
+      - MODE
     container_name: js-container
     ports:
       - 127.0.0.1:3000:3000
@@ -13,11 +15,20 @@ services:
     depends_on:
       - db
     volumes:
-      - ./src/data:/app/src/data
-      - ./front/fire-station/build:/app/front/fire-station/build
+      - type: bind
+        source: ./front/fire-station/build
+        target: /app/front/fire-station/build
+        bind:
+          create_host_path: true
   db:
     image: neo4j:4.4.42-community
     container_name: neo4j-container
+    volumes:
+      - neo4jdata:/data
+      - neo4jlogs:/logs
     env_file:
       - .env
 
+volumes:
+  neo4jdata:
+  neo4jlogs:

@@ -21,20 +21,20 @@ function parseValue(expectedType, key, value) {
     case "int": {
       const asInt = parseInt(value);
       if (isNaN(asInt) || !isFinite(asInt))
-        return `${key} is expected to be int, but got ${value}`;
+        throw new Error(`${key} is expected to be int, but got ${value}`);
       return asInt;
     }
     case "id":
     case "uint": {
       const asInt = parseInt(value);
       if (isNaN(asInt) || !isFinite(asInt) || asInt < 0)
-        return `${key} is expected to be uint, but got ${value}`;
+        throw new Error(`${key} is expected to be uint, but got ${value}`);
       return asInt;
     }
     case "float": {
       const asFloat = parseFloat(value);
       if (isNaN(asFloat) || !isFinite(asFloat))
-        return `${key} is expected to be float, but got ${value}`;
+        throw new Error(`${key} is expected to be float, but got ${value}`);
       return asFloat;
     }
     case "substring":
@@ -42,19 +42,21 @@ function parseValue(expectedType, key, value) {
     case "label": {
       let asStr = decodeURIComponent(value).trim();
       if (asStr.length === 0)
-        return `${key} is expected to be ${expectedType}, but got an empty value "", which is not allowed`;
+        throw new Error(
+          `${key} is expected to be ${expectedType}, but got an empty value "", which is not allowed`,
+        );
       const escapedChars = ["\\", '"', "\'"];
       for (const ec of escapedChars) asStr = asStr.replaceAll(ec, "\\" + ec);
       return asStr;
     }
     case "bool": {
       if (value !== "true" && value !== "false")
-        return `${key} is expected to be bool, but got ${value}`;
+        throw new Error(`${key} is expected to be bool, but got ${value}`);
       return value === "true";
     }
     case "point": {
       if (!value || !value.includes(";"))
-        return `${key} is expected to be point, but got ${value}`;
+        throw new Error(`${key} is expected to be point, but got ${value}`);
       const [from, to] = value.split(";").map((x) => new Date(x));
       const [latitude, longitude] = value.split(";").map(parseFloat);
       if (
@@ -63,7 +65,7 @@ function parseValue(expectedType, key, value) {
         isNaN(latitude) ||
         !isFinite(latitude)
       )
-        return `${key} is expected to be point, but got ${value}`;
+        throw new Error(`${key} is expected to be point, but got ${value}`);
       return { longitude, latitude };
     }
     case "password": {
@@ -77,7 +79,9 @@ function parseValue(expectedType, key, value) {
     }
     case "datetime": {
       if (!isISODateTime(value))
-        return `${key} is expected to be ISO datetime, but got ${value}`;
+        throw new Error(
+          `${key} is expected to be ISO datetime, but got ${value}`,
+        );
       return value;
     }
   }
@@ -146,7 +150,7 @@ export class QueryScheme {
     let result = { ...this.sampleObject };
     let keys = Object.keys(result);
     for (const [key, value] of Object.entries(query)) {
-      if (!keys.includes(key)) return `Unknown parameter: ${key}`;
+      if (!keys.includes(key)) throw new Error(`Unknown parameter: ${key}`);
       const param = this.parameters.find((param) => param.name === key);
       if (!param.isRange || !value.includes(";")) {
         result[key] = {
@@ -164,7 +168,9 @@ export class QueryScheme {
     }
     for (const p of this.parameters) {
       if (!p.isOptional && result[p.name] === null)
-        return `Required parameter ${p.name} of type ${p.type} not found in the query`;
+        throw new Error(
+          `Required parameter ${p.name} of type ${p.type} not found in the query`,
+        );
     }
     return result;
   }

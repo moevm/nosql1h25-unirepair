@@ -7,9 +7,13 @@ import { apiRouter, router, setDbReady } from "./routes.js";
 import generateData from "./generateData.js";
 import { props } from "./query.js";
 import { runApiTests } from "./tests/api_tests.js";
+import { argv } from "node:process";
 import cors from "cors";
 
 const app = express();
+const PORT = 3000;
+const __dirname = path.resolve();
+
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -18,12 +22,17 @@ app.use(
     credentials: true,
   }),
 );
-const PORT = 3000;
-const __dirname = path.resolve();
 
 dotenv.config();
 
-const retryConnection = async (driver, retries = 10, delay = 5_000) => {
+app.use("/", router);
+app.listen(PORT, () => {
+  console.log(
+    `Сервер запущен на http://localhost:${PORT}, но ожидает подключение базы...`,
+  );
+});
+
+async function retryConnection(driver, retries = 10, delay = 5_000) {
   while (retries > 0) {
     try {
       const session = driver.session();
@@ -43,17 +52,9 @@ const retryConnection = async (driver, retries = 10, delay = 5_000) => {
     "Не удалось подключиться к базе данных после нескольких попыток.",
   );
   return false;
-};
+}
 
-app.use("/", router);
-
-app.listen(PORT, () => {
-  console.log(
-    `Сервер запущен на http://localhost:${PORT}, но ожидает подключение базы...`,
-  );
-});
-
-const createDatabaseStructure = async () => {
+async function createDatabaseStructure() {
   const session = driver.session();
   try {
     const uniques = ["User:login", "Inventory:name"];
@@ -70,14 +71,14 @@ const createDatabaseStructure = async () => {
   } finally {
     await session.close();
   }
-};
+}
 
-const loadJSON = (filename) => {
+function loadJSON(filename) {
   const filePath = path.join(__dirname, "src", "data", filename);
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
-};
+}
 
-const clearDB = async () => {
+async function clearDB() {
   const session = driver.session();
   try {
     await session.run("MATCH (n) DETACH DELETE n;");
@@ -87,12 +88,12 @@ const clearDB = async () => {
   } finally {
     await session.close();
   }
-};
+}
 
-const importData = async () => {
+async function importData() {
   const session = driver.session();
   try {
-    generateData(5, 5, 2, 10, 10, 10);
+    // generateData(5, 5, 2, 10, 10, 10);
     const users = loadJSON("users.json");
     for (const user of users) {
       await session.run(
@@ -139,12 +140,7 @@ const importData = async () => {
 
     const inventoryItems = loadJSON("inventory.json");
     for (const item of inventoryItems) {
-      await session.run(
-        `
-        CREATE (:Inventory { name: $name });
-      `,
-        item,
-      );
+      await session.run(`CREATE (:Inventory { name: $name });`, item);
     }
 
     const reports = loadJSON("reports.json");
@@ -158,8 +154,7 @@ const importData = async () => {
           damage: $damage,
           additionalNotes: $additionalNotes,
           modifiedAt: datetime($modifiedAt)
-        });
-      `,
+        });`,
         report,
       );
     }
@@ -178,9 +173,12 @@ const importData = async () => {
   } finally {
     await session.close();
   }
-};
+}
 
-const initializeDatabase = async () => {
+async function initializeDatabase() {
+  console.log(
+    `Running app with arguments: ${argv.map((arg) => `${arg}`).join(" ")}`,
+  );
   console.log("Ожидание подключения к базе данных...");
 
   const connected = await retryConnection(driver);
@@ -191,15 +189,19 @@ const initializeDatabase = async () => {
 
   await createDatabaseStructure();
 
-  await clearDB();
-  await importData();
-  console.log("Запуск авто-тестов...");
-  await runApiTests(apiRouter);
+  const is_clean_run = argv[2] === "clean_run";
+  if (is_clean_run) {
+    console.log("Выбран чистый запуск");
+    await clearDB();
+    await importData();
+    console.log("Запуск авто-тестов...");
+    await runApiTests(apiRouter);
 
-  await clearDB();
-  await importData();
+    await clearDB();
+    await importData();
+  }
   setDbReady(true);
   console.log("База данных готова принимать запросы.");
-};
+}
 
 initializeDatabase();
