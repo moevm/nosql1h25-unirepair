@@ -247,10 +247,15 @@ const api_routes = {
     async (args) => {
       const matchArgs = fishOutComplexConds(args);
       const rArgs = fishOutTypes(matchArgs, ["datetime"]);
+      const cfArgs = { modifiedAt: rArgs.createdAt };
       return await rawMatch(
         `(u:User${props(args)})-[:FILLED_IN]->(r:Report)-[:ON_CALL]->(cf:CallForm)`,
         {
-          where: matches({ r: rArgs, u: matchArgs }),
+          where: matches({
+            r: { modifiedAt: rArgs.modifiedAt },
+            cf: cfArgs,
+            u: matchArgs,
+          }),
           results: ["r", "u", "cf"],
           orderBy: "r.modifiedAt DESC",
         },

@@ -20,7 +20,7 @@ class ApiRoute {
       return await this.handler(query, prehandledState);
     } catch (error) {
       console.log(
-        `Failed to process query: ${error.message}\nQuery was: ${JSON.stringify(rawQuery)}`,
+        `=====================\nFailed to process query: ${error.stack}\nQuery was: ${JSON.stringify(rawQuery)}\n=====================`,
       );
       return { error: "Internal server error" };
     }
