@@ -171,9 +171,10 @@ const tests = {
   },
   callform_search: listOf(callFormPattern),
   "callform_search?status=Complete": listOf(callFormPattern),
-  "callform_search?status=Incomplete&createdAt=2022-05-05&modifiedAt=2021-06-06;2026-07-01":
+  "callform_search?status=Incomplete&createdAt=2022-05-05;&modifiedAt=2021-06-06;2026-07-01":
     listOf(callFormPattern),
   "callform_search?victimsCount=0;&assignedTo=;10": listOf(callFormPattern),
+  "callform_search?status=Incomplete&firstName=и": listOf(callFormPattern),
   "report_search?status=New": listOf(reportPattern),
   "report_search?status=Incomplete&waterSpent=;": listOf(reportPattern),
   "report_search?status=New&modifiedAt=2004-08-05;": listOf(reportPattern),

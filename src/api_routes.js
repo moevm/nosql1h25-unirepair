@@ -217,9 +217,12 @@ const api_routes = {
     return result;
   },
   // Сall forms search
-  "callform_search/status:label? createdAt:datetime..? modifiedAt:datetime..? callSource? fireAddress? fireType? fireRank? victimsCount:uint..? assignedTo:uint..?":
+  "callform_search/status:label? createdAt:datetime..? modifiedAt:datetime..? callSource? fireAddress? fireType? fireRank? victimsCount:uint..? assignedTo:uint..? familyName? firstName? fatherName?":
     async (args) => {
+      const userArgs = fishOut(args, ({ k }) => k.includes("Name"));
       return await match("cf:CallForm", args, {
+        match: "(u:User:Operator)-[:CREATED]->(cf)",
+        where: matches({ u: userArgs }),
         orderBy: "cf.createdAt DESC",
       });
     },
