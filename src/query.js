@@ -81,6 +81,7 @@ function byId(n, id) {
 export function matches(fieldValues, contains = true) {
   assert.assertObject(fieldValues);
   assert.assertBool(contains);
+  console.log(JSON.stringify(fieldValues));
   return Object.entries(fieldValues)
     .filter(
       ([k, v]) =>
@@ -88,7 +89,10 @@ export function matches(fieldValues, contains = true) {
     )
     .map(([n, fields]) =>
       Object.entries(fields)
-        .filter(([field, value]) => value.from !== null || value.to !== null)
+        .filter(
+          ([field, value]) =>
+            value && (value.from !== null || value.to !== null),
+        )
         .map(([field, value]) => {
           if (isRange(value)) {
             switch (typeOf(value)) {
@@ -97,7 +101,7 @@ export function matches(fieldValues, contains = true) {
               case "float":
                 return `${optpostcat(value.from, " <= ")}${n}.${field}${optcat(" <= ", value.to)}`;
               case "datetime":
-                return `${value.from ? `datetime("${value.from}") <= ` : ""}${n}.${field}${value.to ? `<= datetime("${value.to}")` : ""}`;
+                return `${value.from ? `datetime("${value.from}") <= ` : ""}${n}.${field}${value.to ? ` <= datetime("${value.to}")` : ""}`;
               case "id":
                 return `${optpostcat(value.from, " <= ")}id(${n})${optcat(" <= ", value.to)}`;
               default:
@@ -117,9 +121,9 @@ export function matches(fieldValues, contains = true) {
                 );
             }
           }
-        })
-        .join(" AND "),
+        }),
     )
+    .flat()
     .join(" AND ");
 }
 
