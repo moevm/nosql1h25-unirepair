@@ -32,17 +32,20 @@ const userPattern = {
 
 const callFormPattern = {
   "labels:listOf": "string:",
-  callSource: "string:",
-  fireAddress: "string:",
-  bottomLeft: pointPattern,
-  topRight: pointPattern,
-  fireType: "string:",
-  fireRank: "string:",
-  victimsCount: "number:\\d+",
-  assignedTo: "number:\\d+",
-  auto: "string:",
-  modifiedAt: datePattern,
+  "callSource?": "string:",
+  "fireAddress?": "string:",
+  "bottomLeft?": pointPattern,
+  "topRight?": pointPattern,
+  "fireType?": "string:",
+  "fireRank?": "string:",
+  "victimsCount?": "number:\\d+",
+  "assignedTo?": "number:\\d+",
+  "auto?": "string:",
   createdAt: datePattern,
+  modifiedAt: datePattern,
+  "departureAt?": datePattern,
+  "arrivalAt?": datePattern,
+  "callFinishedAt?": datePattern,
   id: "string:\\d+",
 };
 
@@ -100,39 +103,41 @@ const tests = {
   },
   "fill_report?reportId=99999d&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere":
     err("Report not found"),
-  "create_callform?login=operator_dmitriy&callSource=Anatoliy": err(
-    "Incomplete callforms are not supported yet",
-  ),
   "create_callform?login=operator_inkognito&callSource=Vasya&fireAddress=ITMO&bottomLeft=10;20&topRight=30;40&fireType=expansive&fireRank=3&victimsCount=0&assignedTo=1&auto=Пожарная машина 4":
     err("Operator operator_inkognito not found"),
-  "create_callform?login=operator_dmitriy&callSource=Vasya&fireAddress=ITMO&bottomLeft=10;20&topRight=30;40&fireType=expansive&fireRank=3&victimsCount=0&assignedTo=1&auto=Пожарная машина 4":
+  "create_callform?login=operator_dmitriy&callSource=Vasya&fireAddress=ITMO&bottomLeft=10;20&topRight=30;40&fireType=expansive&fireRank=3":
     {
       ensure: callFormPattern,
-      query: "complete_callform?callformId=$id",
+      query:
+        "fill_callform?callformId=$id&departureAt=2025-02-07T12:30:00&arrivalAt=2025-02-07T13:30:00&callFinishedAt=2025-02-07T15:30:00&victimsCount=0&assignedTo=1&auto=Пожарная машина 4",
       then: {
         ensure: callFormPattern,
-        query: "new_report?callformId=$id",
+        query: "complete_callform?callformId=$id",
         then: {
-          ensure: reportPattern,
-          query:
-            "fill_report?reportId=$id&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere",
+          ensure: callFormPattern,
+          query: "new_report?callformId=$id",
           then: {
             ensure: reportPattern,
-            query: "operator_callforms?login=operator_dmitriy",
+            query:
+              "fill_report?reportId=$id&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere",
             then: {
-              ensure: {
-                complete_callforms: listOf(callFormPattern, "4;4"),
-                incomplete_callforms: listOf(callFormPattern, "2;2"),
-              },
-              query: "report_search_by_author?login=brigadier_igor",
-              then: listOf(
-                {
-                  u: userPattern,
-                  r: reportPattern,
-                  cf: callFormPattern,
+              ensure: reportPattern,
+              query: "operator_callforms?login=operator_dmitriy",
+              then: {
+                ensure: {
+                  complete_callforms: listOf(callFormPattern, "4;4"),
+                  incomplete_callforms: listOf(callFormPattern, "2;2"),
                 },
-                "5;5",
-              ),
+                query: "report_search_by_author?login=brigadier_igor",
+                then: listOf(
+                  {
+                    u: userPattern,
+                    r: reportPattern,
+                    cf: callFormPattern,
+                  },
+                  "5;5",
+                ),
+              },
             },
           },
         },

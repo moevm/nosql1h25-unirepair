@@ -55,7 +55,7 @@ function makeNeo4jLiteral(value) {
   assert.assert(value !== null);
   assert.assert(!isRange(value));
   if (value && typeOf(value) === "datetime")
-    return `datetime("${value.value}")`;
+    return value.value === "none" ? "datetime()" : `datetime("${value.value}")`;
   if (value && typeOf(value) === "point")
     return `point({latitude: ${value.value.latitude}, longitude: ${value.value.longitude}})`;
   if (value && typeOf(value) === "password") return `"${value.value.hash}"`;
