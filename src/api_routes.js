@@ -300,7 +300,7 @@ const api_routes = {
     async (args) => {
         const login = fishOut(args, ({ k }) => k === "login");
         return await matchOne(`r:Report`, fishOutTypes(args, ["id"]), {
-            remove: { r: ["New"] }, // Удаляем другие статусы если были
+            remove: { r: ["New"] }, 
             set: {
                 r: {
                     ...args,
