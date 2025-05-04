@@ -148,5 +148,20 @@
     "registeredAt": "2023-08-25T08:40:00Z",
     "modifiedAt": "2023-09-02T13:20:00Z",
     "status": "Active"
+  },
+  {
+    "role": "Brigadier",
+    "familyName": "Фёдоров",
+    "firstName": "Олег",
+    "fatherName": "Александрович",
+    "brigadeNumber": 2,
+    "address": "г. Ростов-на-Дону, ул. Центральная, д. 51",
+    "phone": "+7 (952) 888-77-66",
+    "email": "fedorov@example.com",
+    "login": "brigadier_AAA",
+    "passwordHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+    "registeredAt": "2023-06-10T11:45:00Z",
+    "modifiedAt": "2023-07-25T16:10:00Z",
+    "status": "Active"
   }
 ]

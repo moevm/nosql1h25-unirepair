@@ -206,6 +206,24 @@ const tests = {
     query: "inventory_search?name=Ант",
     then: listOf(inventoryPattern),
   },
+  "remove_user?login=brigadier_AAA": {
+    ensure: {
+        ...userPattern,
+        "labels": (runner, labels) => {
+            runner.check(
+                labels.includes("Deleted"),
+                `Labels should include "Deleted", but got: ${JSON.stringify(labels)}`
+            );
+        }
+    },
+    query: "user_search?login=brigadier_AAA",
+    then: (runner, users) => {
+        runner.check(
+            users.length === 0,
+            `Deleted user should not be found, but got: ${JSON.stringify(users)}`
+        );
+    }
+  },
 };
 
 async function checkQueryResult(router, runner, result, checker) {

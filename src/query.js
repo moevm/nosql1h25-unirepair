@@ -302,6 +302,28 @@ export async function match(what, conditions, options = {}) {
   return await rawMatch(`(${what}${props(conditions)})`, options);
 }
 
+export async function rawDelete(conditionsStr, options = {}) {
+    assert.assertString(conditionsStr);
+    assert.assertObject(options);
+    if (options.match) assert.assertString(options.match);
+    if (options.where) assert.assertString(options.where);
+
+    return await rawQuery(
+        `MATCH ${conditionsStr}` +
+        optcat('\nMATCH ', options.match) +
+        optcat('\nWHERE ', options.where) +
+        '\nDELETE ' + (options.detach ? 'DETACH ' : '') + conditionsStr.split(':')[0].trim(),
+        (result) => ({ deleted: true })
+    );
+}
+
+export async function deleteNode(what, conditions, options = {}) {
+    assert.assertString(what);
+    assert.assertObject(conditions);
+    const n = what.split(':')[0];
+    return await rawDelete(`(${what}${props(conditions)})`, options);
+}
+
 export async function matchOne(what, conditions, options = {}) {
   if (options.orelse === undefined)
     options.orelse = () =>

@@ -314,9 +314,9 @@ const api_routes = {
   },
   // Delete report
   "delete_report/reportId:id": async (args) => {
-    return await matchOne("r:Report", args, {
-        delete: "r",
-        results: ["r.id AS deletedReportId"],
+    return await deleteNode("r:Report", args, {
+        where: "NOT r:Deleted",
+        detach: true,
         orelse: error("Report not found"),
     });
   },
