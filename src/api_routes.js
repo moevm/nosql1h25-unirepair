@@ -13,6 +13,7 @@ import {
   createIfNotExists,
 } from "./query.js";
 import { subscription } from "./api_subscription.js";
+import options from "./options.js";
 
 const brigadeCallForms = subscription("uint", async (brigadeNumber) => {
   return await match(
@@ -34,7 +35,7 @@ const api_routes = {
   // 1. All information on user from their login and password
   "login_user/login:string password:password": async ({ login, password }) => {
     return await matchOne(
-      "u:User",
+      "u:User:Active",
       { login },
       {
         orelse: { error: "User does not exist" },
@@ -60,7 +61,7 @@ const api_routes = {
   "brigade_reports/brigadeNumber:uint": async (args) => {
     return {
       complete_reports: await rawMatch(
-        `(u:User:Brigadier${props(args)})-[:FILLED_IN]->(r:Report:Complete)-[:ON_CALL]->(cf:CallForm:Complete)-[:CREATED_BY]->(o:User:Operator)`,
+        `(u:User:Brigadier:Active${props(args)})-[:FILLED_IN]->(r:Report:Complete)-[:ON_CALL]->(cf:CallForm:Complete)-[:CREATED_BY]->(o:User:Operator)`,
         {
           results: ["u", "o", "r", "cf"],
           orderBy: "cf.createdAt DESC",
@@ -68,7 +69,7 @@ const api_routes = {
         },
       ),
       incomplete_reports: await rawMatch(
-        `(u:User:Brigadier${props(args)})-[:FILLED_IN]->(r:Report:Incomplete)-[:ON_CALL]->(cf:CallForm:Complete)-[:CREATED_BY]->(o:User:Operator)`,
+        `(u:User:Brigadier:Active${props(args)})-[:FILLED_IN]->(r:Report:Incomplete)-[:ON_CALL]->(cf:CallForm:Complete)-[:CREATED_BY]->(o:User:Operator)`,
         {
           results: ["u", "o", "r", "cf"],
           orderBy: "cf.createdAt DESC",
@@ -76,7 +77,7 @@ const api_routes = {
         },
       ),
       new_reports: await rawMatch(
-        `(u:User:Brigadier${props(args)})-[:FILLED_IN]->(r:Report:New)-[:ON_CALL]->(cf:CallForm:Complete)-[:CREATED_BY]->(o:User:Operator)`,
+        `(u:User:Brigadier:Active${props(args)})-[:FILLED_IN]->(r:Report:New)-[:ON_CALL]->(cf:CallForm:Complete)-[:CREATED_BY]->(o:User:Operator)`,
         {
           results: ["u", "o", "r", "cf"],
           orderBy: "cf.createdAt DESC",
@@ -102,7 +103,7 @@ const api_routes = {
     async (args) => {
       await brigadeCallForms.update();
       const operatorArgs = fishOut(args, ({ k }) => k === "login");
-      return await matchOne("o:User:Operator", operatorArgs, {
+      return await matchOne("o:User:Operator:Active", operatorArgs, {
         create: `(cf:CallForm:Incomplete${props({
           ...args,
           createdAt: now(),
@@ -118,11 +119,11 @@ const api_routes = {
   "operator_callforms/login:string": async (args) => {
     return {
       complete_callforms: await rawMatch(
-        `(u:User:Operator${props(args)})-[:CREATED]->(cf:CallForm:Complete)`,
+        `(u:User:Operator:Active${props(args)})-[:CREATED]->(cf:CallForm:Complete)`,
         { results: ["cf"], orderBy: "cf.createdAt DESC" },
       ),
       incomplete_callforms: await rawMatch(
-        `(u:User:Operator${props(args)})-[:CREATED]->(cf:CallForm:Incomplete)`,
+        `(u:User:Operator:Active${props(args)})-[:CREATED]->(cf:CallForm:Incomplete)`,
         { results: ["cf"], orderBy: "cf.createdAt DESC" },
       ),
     };
@@ -146,7 +147,7 @@ const api_routes = {
   // 8. User search
   "user_search/familyName? firstName? fatherName? role:label? brigadeNumber:uint..? address? phone? email? login? registeredAt:datetime..? modifiedAt:datetime..?":
     async (args) => {
-      return await match("u:User", args, { orderBy: "u.name DESC" });
+      return await match("u:User:Active", args, { orderBy: "u.name DESC" });
     },
   // 9. User modification
   "modify_user/familyName? firstName? fatherName? role:label? brigadeNumber:uint? address? phone? email? login:string password:password?":
@@ -154,7 +155,7 @@ const api_routes = {
       if (Object.keys(args).length === 1) return {};
       const login = fishOutTypes(args, ["string"]).login;
       return await matchOne(
-        "u:User",
+        "u:User:Active",
         { login },
         {
           remove: args.role
@@ -178,7 +179,7 @@ const api_routes = {
     );
     return {
       busyBrigades: await rawMatch(
-        `(u:User:Brigadier)
+        `(u:User:Brigadier:Active)
         WHERE u.brigadeNumber IN ${activeCalls}
         MATCH (brigadeCf:CallForm:Incomplete { assignedTo: u.brigadeNumber })
       `,
@@ -191,7 +192,7 @@ const api_routes = {
         },
       ),
       freeBrigades: await rawMatch(
-        `(u:User:Brigadier)
+        `(u:User:Brigadier:Active)
         WHERE NOT u.brigadeNumber IN ${activeCalls} AND u.brigadeNumber <> 0
         OPTIONAL MATCH (brigadeCf:CallForm:Complete { assignedTo: u.brigadeNumber })
       `,
@@ -208,7 +209,7 @@ const api_routes = {
   // 11. Create a new report based on complete callform
   "new_report/callformId:id": async (args) => {
     return await matchOne("cf:CallForm:Complete", args, {
-      match: `(u:User:Brigadier { brigadeNumber: cf.assignedTo })`,
+      match: `(u:User:Brigadier:Active { brigadeNumber: cf.assignedTo })`,
       create: `(r:Report:New {
           waterSpent: 0,
           foamSpent: 0,
@@ -224,6 +225,8 @@ const api_routes = {
     });
   },
   "test_query/query:string": async ({ query }) => {
+    if (options.mode !== "dev")
+      return error("Test query is only available in development mode");
     const result = await rawQuery(query.value.replaceAll("\\", ""));
     console.log(`Query: ${query.value};\nResult: ${JSON.stringify(result)}`);
     return result;
@@ -233,7 +236,7 @@ const api_routes = {
     async (args) => {
       const userArgs = fishOut(args, ({ k }) => k.includes("Name"));
       return await match("cf:CallForm", args, {
-        match: "(u:User:Operator)-[:CREATED]->(cf)",
+        match: "(u:User:Operator:Active)-[:CREATED]->(cf)",
         where: matches({ u: userArgs }),
         orderBy: "cf.createdAt DESC",
       });
@@ -265,7 +268,7 @@ const api_routes = {
       const rArgs = fishOutTypes(matchArgs, ["datetime"]);
       const cfArgs = { modifiedAt: rArgs.createdAt };
       return await rawMatch(
-        `(u:User${props(args)})-[:FILLED_IN]->(r:Report)-[:ON_CALL]->(cf:CallForm)`,
+        `(u:User:Active${props(args)})-[:FILLED_IN]->(r:Report)-[:ON_CALL]->(cf:CallForm)`,
         {
           where: matches({
             r: { modifiedAt: rArgs.modifiedAt },
@@ -279,7 +282,7 @@ const api_routes = {
     },
   // Find brigade members
   "brigade_members/brigadeNumber:uint..": async (args) => {
-    return await match("u:User", args);
+    return await match("u:User:Active", args);
   },
   // Get auto's state
   "auto_state/auto:string": async (args) => {
