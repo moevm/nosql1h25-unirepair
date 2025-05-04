@@ -298,6 +298,29 @@ const api_routes = {
       orelse: error("Such an item already exists in inventory"),
     });
   },
+// Remove user
+  "remove_user/login:string": async (args) => {
+    return await matchOne("u:User", args, {
+        where: "u:Active", 
+        remove: { u: ["Active"] },
+        set: {
+            u: {
+                label: makeLabel("Deleted"),
+                modifiedAt: now()
+            }
+        },
+        results: ["u"],
+        orelse: error("User not found or already deleted"),
+    });
+  },
+  // Delete report
+  "delete_report/reportId:id": async (args) => {
+    return await matchOne("r:Report", args, {
+        delete: "r",
+        results: ["r.id AS deletedReportId"],
+        orelse: error("Report not found"),
+    });
+  },
   // Fill in an incomplete callform
   "fill_callform/callformId:id departureAt:datetime? arrivalAt:datetime? callFinishedAt:datetime? callSource? fireAddress? bottomLeft:point? topRight:point? fireType? fireRank:string? victimsCount:uint? assignedTo:uint? auto?":
     async (args) => {
