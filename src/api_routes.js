@@ -12,6 +12,19 @@ import {
   matchOne,
   createIfNotExists,
 } from "./query.js";
+import { subscription } from "./api_subscription.js";
+
+const brigadeCallForms = subscription("uint", async (brigadeNumber) => {
+  return await match(
+    "cf:CallForm:Incomplete",
+    { assignedTo: brigadeNumber },
+    {
+      where: "cf.callFinishedAt IS NULL",
+      results: ["cf"],
+      orelse: [],
+    },
+  );
+});
 
 function error(str) {
   return { error: str };
@@ -85,10 +98,9 @@ const api_routes = {
       });
     },
   // 5. Create a new callform
-  "create_callform/login:string callSource? fireAddress? bottomLeft:point? topRight:point? fireType? fireRank:string? victimsCount:uint? assignedTo:uint? auto?":
+  "create_callform/login:string departureAt:datetime? arrivalAt:datetime? callFinishedAt:datetime? callSource? fireAddress? bottomLeft:point? topRight:point? fireType? fireRank:string? victimsCount:uint? assignedTo:uint? auto?":
     async (args) => {
-      if (Object.values(args).includes(null))
-        return error("Incomplete callforms are not supported yet");
+      await brigadeCallForms.update();
       const operatorArgs = fishOut(args, ({ k }) => k === "login");
       return await matchOne("o:User:Operator", operatorArgs, {
         create: `(cf:CallForm:Incomplete${props({
@@ -216,8 +228,8 @@ const api_routes = {
     console.log(`Query: ${query.value};\nResult: ${JSON.stringify(result)}`);
     return result;
   },
-  // Сall forms search
-  "callform_search/status:label? createdAt:datetime..? modifiedAt:datetime..? callSource? fireAddress? fireType? fireRank? victimsCount:uint..? assignedTo:uint..? familyName? firstName? fatherName?":
+  // Call forms search
+  "callform_search/status:label? createdAt:datetime..? modifiedAt:datetime..? departureAt:datetime..? arrivalAt:datetime..? callFinishedAt:datetime..? callSource? fireAddress? fireType? fireRank? victimsCount:uint..? assignedTo:uint..? familyName? firstName? fatherName?":
     async (args) => {
       const userArgs = fishOut(args, ({ k }) => k.includes("Name"));
       return await match("cf:CallForm", args, {
@@ -238,6 +250,7 @@ const api_routes = {
     return await match("i:Inventory", args, { orderBy: "i.name ASC" });
   },
   "complete_callform/callformId:id": async (args) => {
+    await brigadeCallForms.update();
     return await matchOne("cf:CallForm:Incomplete", args, {
       remove: { cf: ["Incomplete"] },
       set: { cf: { label: makeLabel("Complete"), modifiedAt: now() } },
@@ -282,5 +295,20 @@ const api_routes = {
       orelse: error("Such an item already exists in inventory"),
     });
   },
+  // Fill in an incomplete callform
+  "fill_callform/callformId:id departureAt:datetime? arrivalAt:datetime? callFinishedAt:datetime? callSource? fireAddress? bottomLeft:point? topRight:point? fireType? fireRank:string? victimsCount:uint? assignedTo:uint? auto?":
+    async (args) => {
+      await brigadeCallForms.update();
+      return await matchOne(
+        "cf:CallForm:Incomplete",
+        fishOutTypes(args, ["id"]),
+        {
+          set: { cf: { ...args, modifiedAt: now() } },
+          results: ["cf"],
+        },
+      );
+    },
+  // Brigade current callforms subscription
+  ...brigadeCallForms.route("brigade_callforms"),
 };
 export default api_routes;

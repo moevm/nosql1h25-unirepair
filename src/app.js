@@ -123,6 +123,9 @@ async function importData() {
         CREATE (:CallForm:${cf.status} {
           createdAt: datetime($createdAt),
           modifiedAt: datetime($modifiedAt),
+          departureAt: datetime($departureAt),
+          arrivalAt: datetime($arrivalAt),
+          callFinishedAt: datetime($callFinishedAt),
           callSource: $callSource,
           fireAddress: $fireAddress,
           bottomLeft: point($bottomLeft),
