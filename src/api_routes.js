@@ -295,6 +295,23 @@ const api_routes = {
       orelse: error("Such an item already exists in inventory"),
     });
   },
+  //Save report draft (incomplete)
+  "incomplete_report/reportId:id waterSpent:uint? foamSpent:uint? allegedFireCause? damage:uint? additionalNotes?":
+    async (args) => {
+        const login = fishOut(args, ({ k }) => k === "login");
+        return await matchOne(`r:Report`, fishOutTypes(args, ["id"]), {
+            remove: { r: ["New"] }, 
+            set: {
+                r: {
+                    ...args,
+                    label: makeLabel("Incomplete"),
+                    modifiedAt: now()
+                }
+            },
+            results: ["r"],
+            orelse: error("Report not found"),
+        });
+   },
   // Remove user
   "remove_user/login:string": async (args) => {
     return await matchOne("u:User:Active", args, {
