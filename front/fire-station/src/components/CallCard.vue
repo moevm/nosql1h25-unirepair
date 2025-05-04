@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import L from 'leaflet'
 
 const props = defineProps({
@@ -22,11 +22,16 @@ const props = defineProps({
 
 const mapContainer = ref(null)
 const isHidden = ref(false)
+let map = null;
 
-onMounted(() => {
+function initMap() {
   if (!props.call.bottomLeft || !props.call.topRight) return
 
-  const map = L.map(mapContainer.value).setView([
+  if (map) {
+    map.remove();
+  }
+
+  map = L.map(mapContainer.value).setView([
     (props.call.bottomLeft.latitude + props.call.topRight.latitude) / 2,
     (props.call.bottomLeft.longitude + props.call.topRight.longitude) / 2
   ], 16)
@@ -37,7 +42,16 @@ onMounted(() => {
     [props.call.bottomLeft.latitude, props.call.bottomLeft.longitude],
     [props.call.topRight.latitude, props.call.topRight.longitude]
   ], { color: 'red', weight: 2 }).addTo(map)
+}
+
+onMounted(() => {
+  initMap()
 })
+
+// следим за обновлением props.call
+watch(() => props.call, () => {
+  initMap()
+}, { deep: true })
 </script>
 
 <style scoped>

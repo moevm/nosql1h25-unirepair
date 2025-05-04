@@ -7,11 +7,11 @@
                     type="text"
                     v-model="incidentAddress"
                     class="form-input"
+                    placeholder="Введите адрес"
+                    @keyup.enter="() => showMapForAddress(incidentAddress)"
                 />
             </div>
-            <!--      карта будет позже-->
-            <img src="../../public/map.png" />
-
+            <div ref="mapContainer" class="form-group map"></div>
             <div class="form-group">
                 <label>Характер пожара:</label>
                 <input type="text" v-model="fireType" class="form-input" />
@@ -219,6 +219,16 @@ export default {
             fireRank: "1",
             selectedBrigade: null,
             selectedVehicle: "",
+            topRight: {
+              srid: 4326,
+              x: null,
+              y: null,
+            },
+            bottomLeft: {
+              srid: 4326,
+              x: null,
+              y: null,
+            },
 
             fireRanks: [
                 { value: "1", label: "1" },
@@ -232,7 +242,8 @@ export default {
             availableVehicles: [],
             createdFormData: null,
             createdFormDates: null,
-            formSubmitted: false
+            formSubmitted: false,
+            map: null,
         };
     },
     async created() {
@@ -407,8 +418,8 @@ export default {
                         this.hasCasualties === "yes" ? this.casualtiesCount : 0,
                     assignedTo: this.selectedBrigade,
                     auto: "Пожарная машина " + this.selectedVehicle,
-                    bottomLeft: "55.7558;37.6173",
-                    topRight: "55.756;37.618",
+                    bottomLeft: `${this.bottomLeft.y};${this.bottomLeft.x}`,
+                    topRight: `${this.topRight.y};${this.topRight.x}`,
                 });
                 if (response === null) return;
 
@@ -459,15 +470,51 @@ export default {
             this.createdFormDates = null;
             this.showSaveAlert = false;
         },
-    },
+        async geocodeAddress(address) {
+          const response = await fetch(
+              `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
+          )
+          const data = await response.json()
+
+          if (data.length === 0) return null
+          const { lat, lon, boundingbox } = data[0]
+
+          // boundingbox: [south, north, west, east]
+          this.bottomLeft.x = parseFloat(boundingbox[2])
+          this.bottomLeft.y = parseFloat(boundingbox[0])
+          this.topRight.x = parseFloat(boundingbox[3])
+          this.topRight.y = parseFloat(boundingbox[1])
+          return { lat: parseFloat(lat), lon: parseFloat(lon) }
+        },
+
+        async showMapForAddress(address) {
+          const coords = await this.geocodeAddress(address);
+          if (!coords) return;
+
+          if (this.map) {
+            this.map.remove();
+            this.$refs.mapContainer.innerHTML = "";
+          }
+
+          this.map = L.map(this.$refs.mapContainer).setView([coords.lat, coords.lon], 16);
+
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(this.map);
+          L.rectangle([
+            [this.bottomLeft.y, this.bottomLeft.x],
+            [this.topRight.y, this.topRight.x]
+          ], { color: 'red', weight: 2 }).addTo(this.map)
+        },
+      },
 };
 </script>
 
 <style scoped>
-img {
-    padding-left: 150px;
-    height: 400px;
-    width: 400px;
+.map {
+  border: 2px black solid;
+  height: 350px;
+  width: 80%;
+  border-radius: 8px;
+  overflow: hidden;
 }
 .report-form__container {
     width: 95%;
