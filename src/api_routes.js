@@ -295,6 +295,23 @@ const api_routes = {
       orelse: error("Such an item already exists in inventory"),
     });
   },
+  //Save report draft (incomplete)
+  "incomplete_report/reportId:id waterSpent:uint? foamSpent:uint? allegedFireCause? damage:uint? additionalNotes?":
+    async (args) => {
+        const login = fishOut(args, ({ k }) => k === "login");
+        return await matchOne(`r:Report`, fishOutTypes(args, ["id"]), {
+            remove: { r: ["New"] }, // Удаляем другие статусы если были
+            set: {
+                r: {
+                    ...args,
+                    label: makeLabel("Incomplete"),
+                    modifiedAt: now()
+                }
+            },
+            results: ["r"],
+            orelse: error("Report not found"),
+        });
+   },
   // Fill in an incomplete callform
   "fill_callform/callformId:id departureAt:datetime? arrivalAt:datetime? callFinishedAt:datetime? callSource? fireAddress? bottomLeft:point? topRight:point? fireType? fireRank:string? victimsCount:uint? assignedTo:uint? auto?":
     async (args) => {
