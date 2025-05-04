@@ -21,7 +21,6 @@ const brigadeCallForms = subscription("uint", async (brigadeNumber) => {
     { assignedTo: brigadeNumber },
     {
       where: "cf.callFinishedAt IS NULL",
-      results: ["cf"],
       orelse: [],
     },
   );
@@ -94,7 +93,6 @@ const api_routes = {
         where: "NOT r:Complete",
         remove: { r: ["New"] },
         set: { r: { ...args, label: makeLabel("Complete") } },
-        results: ["r"],
         orelse: error("Report not found"),
       });
     },
@@ -257,7 +255,6 @@ const api_routes = {
     return await matchOne("cf:CallForm:Incomplete", args, {
       remove: { cf: ["Incomplete"] },
       set: { cf: { label: makeLabel("Complete"), modifiedAt: now() } },
-      results: ["cf"],
       orelse: error("CallForm not found"),
     });
   },
@@ -298,6 +295,26 @@ const api_routes = {
       orelse: error("Such an item already exists in inventory"),
     });
   },
+  // Remove user
+  "remove_user/login:string": async (args) => {
+    return await matchOne("u:User:Active", args, {
+      remove: { u: ["Active"] },
+      set: {
+        u: {
+          label: makeLabel("Deleted"),
+          modifiedAt: now(),
+        },
+      },
+      orelse: error("User not found or already deleted"),
+    });
+  },
+  // Delete report
+  "delete_report/reportId:id": async (args) => {
+    await matchOne("r:Report", args, {
+      detach: "r",
+    });
+    return null;
+  },
   // Fill in an incomplete callform
   "fill_callform/callformId:id departureAt:datetime? arrivalAt:datetime? callFinishedAt:datetime? callSource? fireAddress? bottomLeft:point? topRight:point? fireType? fireRank:string? victimsCount:uint? assignedTo:uint? auto?":
     async (args) => {
@@ -305,10 +322,7 @@ const api_routes = {
       return await matchOne(
         "cf:CallForm:Incomplete",
         fishOutTypes(args, ["id"]),
-        {
-          set: { cf: { ...args, modifiedAt: now() } },
-          results: ["cf"],
-        },
+        { set: { cf: { ...args, modifiedAt: now() } } },
       );
     },
   // Brigade current callforms subscription

@@ -122,21 +122,12 @@ const tests = {
               "fill_report?reportId=$id&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere",
             then: {
               ensure: reportPattern,
-              query: "operator_callforms?login=operator_dmitriy",
+              query: "delete_report?reportId=$id",
               then: {
-                ensure: {
-                  complete_callforms: listOf(callFormPattern, "4;4"),
-                  incomplete_callforms: listOf(callFormPattern, "2;2"),
-                },
-                query: "report_search_by_author?login=brigadier_igor",
-                then: listOf(
-                  {
-                    u: userPattern,
-                    r: reportPattern,
-                    cf: callFormPattern,
-                  },
-                  "5;5",
-                ),
+                ensure: null,
+                query:
+                  "report_search?waterSpent=8800&foamSpent=555&allegedFireCause=laby",
+                then: listOf(reportPattern, ";0"),
               },
             },
           },
@@ -159,7 +150,15 @@ const tests = {
     {
       ensure: userPattern,
       query: "modify_user?login=rohgadier&address=Germany",
-      then: userPattern,
+      then: {
+        ensure: userPattern,
+        query: "remove_user?login=rohgadier",
+        then: {
+          ensure: userPattern,
+          query: "user_search?login=rohgadier",
+          then: listOf(userPattern, ";0"),
+        },
+      },
     },
   "modify_user?login=victor1998&role=Operator": err("User not found"),
   "user_search?firstName=и&registeredAt=2022-10-10;2024-10-10":
@@ -206,12 +205,14 @@ const tests = {
     query: "inventory_search?name=Ант",
     then: listOf(inventoryPattern),
   },
+  "remove_user?login=nonexistent": err("User not found"),
 };
 
 async function checkQueryResult(router, runner, result, checker) {
   if (checker.constructor === {}.constructor || typeof checker === "string") {
-    if (checker.ensure) {
-      await checkQueryResult(router, runner, result, checker.ensure);
+    if (checker.ensure !== undefined) {
+      if (checker.ensure)
+        await checkQueryResult(router, runner, result, checker.ensure);
       if (checker.query) {
         assert.assertString(checker.query);
         let substitutedCheckQuery = checker.query;
