@@ -300,8 +300,7 @@ const api_routes = {
   },
 // Remove user
   "remove_user/login:string": async (args) => {
-    return await matchOne("u:User", args, {
-        where: "u:Active", 
+    return await matchOne("u:User:Active", args, {
         remove: { u: ["Active"] },
         set: {
             u: {
