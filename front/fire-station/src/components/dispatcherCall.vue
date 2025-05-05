@@ -2,7 +2,7 @@
   <section class="call-card">
     <div class="call-card_text">
       <h3 class="call-card_title">
-        Пожар на {{ call.fireAddress }} ({{ call.createdAt }})
+        Пожар на {{ call.fireAddress }} ({{ formateDate(call.createdAt) }})
       </h3>
       <p class="call-card_info">
         <strong>Адрес:</strong> {{ call.fireAddress }}
@@ -20,59 +20,44 @@
       <div class="time-table">
         <table class="call-timeline">
           <tbody>
-            <tr>
-              <th>
-                <div
+          <tr>
+            <th>
+              <div
                   class="square departureTime_square"
-                  :style="{
-                    backgroundColor:
-                      call.createdAt === null ? '#CFCFCF' : 'black',
-                  }"
-                ></div>
-              </th>
-              <th>
-                <div
+                  :style="{ backgroundColor: call.departureAt ? 'black' : '#CFCFCF', cursor: canSetDeparture ? 'pointer' : 'default' }"
+                  @click="canSetDeparture && handleTimeSet('departureAt')"
+                  title="Установить время выезда"
+              ></div>
+            </th>
+            <th>
+              <div
                   class="square arrivalTime_square"
-                  :style="{
-                    backgroundColor:
-                      call.createdAt === null ? '#CFCFCF' : 'black',
-                  }"
-                ></div>
-              </th>
-              <th>
-                <div
+                  :style="{ backgroundColor: call.arrivalAt ? 'black' : '#CFCFCF', cursor: canSetArrival ? 'pointer' : 'default' }"
+                  @click="canSetArrival && handleTimeSet('arrivalAt')"
+                  title="Установить время прибытия"
+              ></div>
+            </th>
+            <th>
+              <div
                   class="square callEndedAt_square"
-                  :style="{
-                    backgroundColor:
-                      call.modifiedAt === null ? '#CFCFCF' : 'black',
-                  }"
-                ></div>
-              </th>
-            </tr>
+                  :style="{ backgroundColor: call.callFinishedAt ? 'black' : '#CFCFCF', cursor: canSetFinished ? 'pointer' : 'default' }"
+                  @click="canSetFinished && handleTimeSet('callFinishedAt')"
+                  title="Установить время завершения"
+              ></div>
+            </th>
+          </tr>
 
-            <tr>
-              <th class="column_name">Выезд</th>
-              <th class="column_name">На месте</th>
-              <th class="column_name">Вызов завершен</th>
-            </tr>
+          <tr>
+            <th class="column_name">Выезд</th>
+            <th class="column_name">На месте</th>
+            <th class="column_name">Вызов завершен</th>
+          </tr>
 
-            <tr>
-              <td>
-                <p class="caption departureTime_caption">
-                  {{ call.createdAt }}
-                </p>
-              </td>
-              <td>
-                <p class="caption arrivalTime_caption">
-                  {{ call.createdAt }}
-                </p>
-              </td>
-              <td>
-                <p class="caption callEndedAt_caption">
-                  {{ call.modifiedAt }}
-                </p>
-              </td>
-            </tr>
+          <tr>
+            <td><p class="caption departureTime_caption">{{ formateDate(call.departureAt) }}</p></td>
+            <td><p class="caption arrivalTime_caption">{{ formateDate(call.arrivalAt) }}</p></td>
+            <td><p class="caption callEndedAt_caption">{{ formateDate(call.callFinishedAt) }}</p></td>
+          </tr>
           </tbody>
         </table>
       </div>
@@ -81,9 +66,27 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+
 const props = defineProps({
-  call: Object,
-});
+  call: Object
+})
+const emit = defineEmits(['update-time'])
+
+function handleTimeSet(type) {
+  emit('update-time', type)
+}
+
+const canSetDeparture = computed(() => !props.call.departureAt)
+const canSetArrival = computed(() => props.call.departureAt && !props.call.arrivalAt)
+const canSetFinished = computed(() => props.call.arrivalAt && !props.call.callFinishedAt)
+
+function formateDate(date) {
+  if (date) {
+    return date.substring(0, 19).split('T').join(' ');
+  }
+  return '-';
+}
 </script>
 
 <style scoped>
@@ -135,5 +138,9 @@ th {
   font-size: 16px;
   margin: 1px;
   padding: 0;
+}
+
+.square {
+  transition: background-color 1s ease;
 }
 </style>

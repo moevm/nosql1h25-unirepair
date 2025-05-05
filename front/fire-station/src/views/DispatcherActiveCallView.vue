@@ -5,8 +5,7 @@
       <div class="calls__header">
         <span class="calls__header-title">Текущие вызовы</span>
       </div>
-      <dispatcherCall v-for="call in calls" :key="call.id" :call="call" />
-      <dispatcherCall v-for="call in calls" :key="call.id" :call="call" />
+      <dispatcherCall v-for="call in calls" :key="call.id" :call="call" @update-time="(type) => updateCallTime(call.id, type)" />
     </div>
   </div>
 </template>
@@ -22,6 +21,40 @@ let calls = ref([]);
 query("operator_callforms", { login: useUserStore().user.login }).then(
   (res) => (calls.value = res.incomplete_callforms),
 );
+
+async function updateCallTime(callId, type) {
+  const call = calls.value.find((c) => c.id === callId);
+  if (!call) return;
+
+  const now = new Date().toISOString().split('.')[0].replace('Z', '')
+  call[type] = now;
+
+  try {
+    await query("fill_callform", {
+      callformId: callId,
+      [type]: now,
+    });
+  } catch (error) {
+    console.error("Ошибка при обновлении вызова:", error);
+  }
+
+  if (type === "callFinishedAt") {
+    try {
+      await query("complete_callform", {
+        callformId: callId
+      });
+
+      setTimeout(() => {
+        query("operator_callforms", { login: useUserStore().user.login }).then(
+            (res) => (calls.value = res.incomplete_callforms)
+        );
+      }, 1000);
+
+    } catch (error) {
+      console.error("Ошибка при завершении вызова:", error);
+    }
+  }
+}
 </script>
 
 <style scoped>
