@@ -3,8 +3,8 @@ import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
 import driver from "./db.js";
-import { apiRouter, router, setDbReady } from "./routes.js";
-import generateData from "./generateData.js";
+import options from "./options.js";
+import { apiRouter, router } from "./routes.js";
 import { props } from "./query.js";
 import { runApiTests } from "./tests/api_tests.js";
 import { argv } from "node:process";
@@ -123,6 +123,9 @@ async function importData() {
         CREATE (:CallForm:${cf.status} {
           createdAt: datetime($createdAt),
           modifiedAt: datetime($modifiedAt),
+          departureAt: datetime($departureAt),
+          arrivalAt: datetime($arrivalAt),
+          callFinishedAt: datetime($callFinishedAt),
           callSource: $callSource,
           fireAddress: $fireAddress,
           bottomLeft: point($bottomLeft),
@@ -191,6 +194,7 @@ async function initializeDatabase() {
   await createDatabaseStructure();
 
   const is_clean_run = argv[2] === "clean_run";
+  options.mode = is_clean_run ? "dev" : "prod";
   if (is_clean_run) {
     console.log("Выбран чистый запуск");
     await clearDB();
@@ -201,7 +205,7 @@ async function initializeDatabase() {
     await clearDB();
     await importData();
   }
-  setDbReady(true);
+  options.db_ready = true;
   console.log("База данных готова принимать запросы.");
 }
 

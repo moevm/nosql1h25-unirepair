@@ -2,16 +2,12 @@ import express from "express";
 import driver from "./db.js";
 import ApiRouter from "./api_router.js";
 import api_routes from "./api_routes.js";
+import options from "./options.js";
 
 let userCount = null;
-let dbReady = false;
 
 export let apiRouter = new ApiRouter("api", api_routes);
-export let router = apiRouter.toExpressRouter(() => dbReady);
-
-export function setDbReady() {
-  dbReady = true;
-}
+export let router = apiRouter.toExpressRouter(() => options.db_ready);
 
 router.get("/status", async (req, res) => {
   if (dbReady && userCount === null) {

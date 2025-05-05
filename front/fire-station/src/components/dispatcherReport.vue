@@ -20,10 +20,9 @@
           <li>{{ reportData.auto }}</li>
         </ul>
       </div>
-      <!--      карта будет позже-->
       <div class="map-container">
         <div class="map-title">Место</div>
-        <img class="map-image" src="../../public/map.png" />
+        <div ref="mapContainer" class="map"></div>
       </div>
     </section>
   </div>
@@ -31,12 +30,31 @@
 
 <script setup>
 import { useUserStore } from "@/stores/user";
+import {onMounted, ref} from "vue";
+import L from "leaflet";
 
-defineProps({
+const props = defineProps({
   reportData: Object,
 });
 
 const operator = useUserStore().user;
+const mapContainer = ref(null);
+
+onMounted(() => {
+  if (!props.reportData.bottomLeft || !props.reportData.topRight) return
+
+  const map = L.map(mapContainer.value).setView([
+    (props.reportData.bottomLeft.y + props.reportData.topRight.y) / 2,
+    (props.reportData.bottomLeft.x + props.reportData.topRight.x) / 2
+  ], 16)
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map)
+
+  L.rectangle([
+    [props.reportData.bottomLeft.y, props.reportData.bottomLeft.x],
+    [props.reportData.topRight.y, props.reportData.topRight.x]
+  ], { color: 'red', weight: 2 }).addTo(map)
+})
 </script>
 
 <style scoped>
@@ -68,6 +86,7 @@ const operator = useUserStore().user;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
 .report__title {
   font-size: 20px;
   display: flex;
@@ -77,13 +96,16 @@ const operator = useUserStore().user;
   border-bottom: #ced0e9 4px solid;
   justify-content: center;
 }
+
 .report__block {
   padding-bottom: 10px;
   margin-bottom: 10px;
 }
+
 .report__block__border {
   border-bottom: black 2px solid;
 }
+
 .close-btn {
   position: absolute;
   top: 10px;
@@ -93,5 +115,12 @@ const operator = useUserStore().user;
   cursor: pointer;
   color: #900b09;
   font-size: 24px;
+}
+
+.map {
+  height: 350px;
+  width: 80%;
+  border-radius: 8px;
+  overflow: hidden;
 }
 </style>

@@ -55,7 +55,7 @@ function makeNeo4jLiteral(value) {
   assert.assert(value !== null);
   assert.assert(!isRange(value));
   if (value && typeOf(value) === "datetime")
-    return `datetime("${value.value}")`;
+    return value.value === "none" ? "datetime()" : `datetime("${value.value}")`;
   if (value && typeOf(value) === "point")
     return `point({latitude: ${value.value.latitude}, longitude: ${value.value.longitude}})`;
   if (value && typeOf(value) === "password") return `"${value.value.hash}"`;
@@ -200,6 +200,7 @@ export async function rawMatch(conditionsStr, options = {}) {
   if (options.match) assert.assertString(options.match);
   if (options.where) assert.assertString(options.where);
   if (options.create) assert.assertString(options.create);
+  if (options.detach) assert.assertString(options.detach);
   if (options.remove) {
     assert.assertObject(options.remove);
     for (const [k, v] of Object.entries(options.remove)) assert.assertArray(v);
@@ -216,6 +217,7 @@ export async function rawMatch(conditionsStr, options = {}) {
       optcat("\nMATCH ", options.match) +
       optcat("\nWHERE ", options.where) +
       optcat("\nCREATE ", options.create) +
+      optcat("\nDETACH DELETE ", options.detach) +
       (options.remove
         ? "\nREMOVE " +
           Object.entries(options.remove)
@@ -298,7 +300,8 @@ export async function match(what, conditions, options = {}) {
     ).length > 0
   )
     options.where = `${matches({ [n]: complexConds })}${optcat(" AND ", options.where)}`;
-  if (options.results === undefined) options.results = [n];
+  if (options.results === undefined && options.detach === undefined)
+    options.results = [n];
   return await rawMatch(`(${what}${props(conditions)})`, options);
 }
 

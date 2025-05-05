@@ -32,17 +32,20 @@ const userPattern = {
 
 const callFormPattern = {
   "labels:listOf": "string:",
-  callSource: "string:",
-  fireAddress: "string:",
-  bottomLeft: pointPattern,
-  topRight: pointPattern,
-  fireType: "string:",
-  fireRank: "string:",
-  victimsCount: "number:\\d+",
-  assignedTo: "number:\\d+",
-  auto: "string:",
-  modifiedAt: datePattern,
+  "callSource?": "string:",
+  "fireAddress?": "string:",
+  "bottomLeft?": pointPattern,
+  "topRight?": pointPattern,
+  "fireType?": "string:",
+  "fireRank?": "string:",
+  "victimsCount?": "number:\\d+",
+  "assignedTo?": "number:\\d+",
+  "auto?": "string:",
   createdAt: datePattern,
+  modifiedAt: datePattern,
+  "departureAt?": datePattern,
+  "arrivalAt?": datePattern,
+  "callFinishedAt?": datePattern,
   id: "string:\\d+",
 };
 
@@ -100,39 +103,32 @@ const tests = {
   },
   "fill_report?reportId=99999d&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere":
     err("Report not found"),
-  "create_callform?login=operator_dmitriy&callSource=Anatoliy": err(
-    "Incomplete callforms are not supported yet",
-  ),
   "create_callform?login=operator_inkognito&callSource=Vasya&fireAddress=ITMO&bottomLeft=10;20&topRight=30;40&fireType=expansive&fireRank=3&victimsCount=0&assignedTo=1&auto=Пожарная машина 4":
     err("Operator operator_inkognito not found"),
-  "create_callform?login=operator_dmitriy&callSource=Vasya&fireAddress=ITMO&bottomLeft=10;20&topRight=30;40&fireType=expansive&fireRank=3&victimsCount=0&assignedTo=1&auto=Пожарная машина 4":
+  "create_callform?login=operator_dmitriy&callSource=Vasya&fireAddress=ITMO&bottomLeft=10;20&topRight=30;40&fireType=expansive&fireRank=3":
     {
       ensure: callFormPattern,
-      query: "complete_callform?callformId=$id",
+      query:
+        "fill_callform?callformId=$id&departureAt=2025-02-07T12:30:00&arrivalAt=2025-02-07T13:30:00&callFinishedAt=2025-02-07T15:30:00&victimsCount=0&assignedTo=1&auto=Пожарная машина 4",
       then: {
         ensure: callFormPattern,
-        query: "new_report?callformId=$id",
+        query: "complete_callform?callformId=$id",
         then: {
-          ensure: reportPattern,
-          query:
-            "fill_report?reportId=$id&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere",
+          ensure: callFormPattern,
+          query: "new_report?callformId=$id",
           then: {
             ensure: reportPattern,
-            query: "operator_callforms?login=operator_dmitriy",
+            query:
+              "fill_report?reportId=$id&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere",
             then: {
-              ensure: {
-                complete_callforms: listOf(callFormPattern, "4;4"),
-                incomplete_callforms: listOf(callFormPattern, "2;2"),
+              ensure: reportPattern,
+              query: "delete_report?reportId=$id",
+              then: {
+                ensure: null,
+                query:
+                  "report_search?waterSpent=8800&foamSpent=555&allegedFireCause=laby",
+                then: listOf(reportPattern, ";0"),
               },
-              query: "report_search_by_author?login=brigadier_igor",
-              then: listOf(
-                {
-                  u: userPattern,
-                  r: reportPattern,
-                  cf: callFormPattern,
-                },
-                "5;5",
-              ),
             },
           },
         },
@@ -154,7 +150,15 @@ const tests = {
     {
       ensure: userPattern,
       query: "modify_user?login=rohgadier&address=Germany",
-      then: userPattern,
+      then: {
+        ensure: userPattern,
+        query: "remove_user?login=rohgadier",
+        then: {
+          ensure: userPattern,
+          query: "user_search?login=rohgadier",
+          then: listOf(userPattern, ";0"),
+        },
+      },
     },
   "modify_user?login=victor1998&role=Operator": err("User not found"),
   "user_search?firstName=и&registeredAt=2022-10-10;2024-10-10":
@@ -201,12 +205,14 @@ const tests = {
     query: "inventory_search?name=Ант",
     then: listOf(inventoryPattern),
   },
+  "remove_user?login=nonexistent": err("User not found"),
 };
 
 async function checkQueryResult(router, runner, result, checker) {
   if (checker.constructor === {}.constructor || typeof checker === "string") {
-    if (checker.ensure) {
-      await checkQueryResult(router, runner, result, checker.ensure);
+    if (checker.ensure !== undefined) {
+      if (checker.ensure)
+        await checkQueryResult(router, runner, result, checker.ensure);
       if (checker.query) {
         assert.assertString(checker.query);
         let substitutedCheckQuery = checker.query;

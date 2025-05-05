@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import {onMounted, onUnmounted, ref} from "vue";
 import Sidebar from "../components/Sidebar.vue";
 import EmptyCallsBlock from "../components/EmptyCallsBlock.vue";
 import CallCard from "../components/CallCard.vue";
@@ -26,6 +26,7 @@ import query from "../common/query.js";
 
 const callsStore = useCallsStore();
 const userStore = useUserStore();
+const intervalId = ref(null);
 
 const getStatusFromLabels = (labels) => {
     const status = ["Incomplete", "Complete"];
@@ -64,6 +65,8 @@ const fetchCalls = async () => {
                 victimsCount: call.victimsCount,
                 assignedTo: call.assignedTo ?? null,
                 auto: call.auto ?? null,
+                modifiedAt: call.modifiedAt ?? null,
+                id: call.id ?? null,
             }));
             callsStore.setCalls(
                 transformedCalls.filter(
@@ -77,7 +80,15 @@ const fetchCalls = async () => {
 };
 
 onMounted(() => {
+  fetchCalls(); // первый вызов
+
+  intervalId.value = setInterval(() => {
     fetchCalls();
+  }, 7000); // каждые 15 секунд
+});
+
+onUnmounted(() => {
+  clearInterval(intervalId.value);
 });
 </script>
 

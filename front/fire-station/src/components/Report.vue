@@ -164,9 +164,25 @@ const isNoDamageCheckboxDisabled = computed(() => {
 
 const emit = defineEmits(["close"]);
 
-function saveDraft() {
-    props.reportData.status = "incomplete";
-    // console.log('Черновик сохранен', props.reportData)
+async function saveDraft() {
+    try {
+        const report = props.reportData;
+        const response = await query("incomplete_report", {
+            reportId: report.id,
+            waterSpent: report.waterSpent ?? 0,
+            foamSpent: report.foamSpent ?? 0,
+            allegedFireCause: report.allegedFireCause ?? "",
+            damage: report.damage ?? 0,
+            additionalNotes: report.additionalNotes ?? "",
+        });
+        
+        if (response === null) return;
+        
+        props.reportData.status = "incomplete";
+        emit("close");
+    } catch (error) {
+        console.error("Ошибка при сохранении черновика:", error);
+    }
 }
 
 function validateForm() {
