@@ -10,7 +10,7 @@ export let apiRouter = new ApiRouter("api", api_routes);
 export let router = apiRouter.toExpressRouter(() => options.db_ready);
 
 router.get("/status", async (req, res) => {
-  if (dbReady && userCount === null) {
+  if (options.db_ready && userCount === null) {
     const session = driver.session();
     try {
       const result = await session.run(
@@ -25,7 +25,7 @@ router.get("/status", async (req, res) => {
     }
   }
 
-  res.json({ dbReady, userCount });
+  res.json({ db_ready: options.db_ready, userCount });
 });
 
 router.get("/", (req, res) => {
@@ -35,7 +35,7 @@ router.get("/", (req, res) => {
         try {
           const response = await fetch('/status');
           const data = await response.json();
-          if (data.dbReady) {
+          if (data.db_ready) {
             document.body.innerHTML = '<h1>Добро пожаловать! База данных успешно инициализирован.</h1>' +
                                       '<p>Всего пользователей в системе: ' + data.userCount + '</p>';
           } else {
