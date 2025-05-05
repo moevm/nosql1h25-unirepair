@@ -86,7 +86,7 @@ const api_routes = {
     };
   },
   // 4. Fill in a report
-  "fill_report/reportId:id waterSpent:uint foamSpent:uint allegedFireCause damage:uint additionalNotes":
+  "fill_report/reportId:id waterSpent:uint foamSpent:uint allegedFireCause damage:uint additionalNotes equipmentDamage":
     async (args) => {
       const login = fishOut(args, ({ k }) => k === "login");
       return await matchOne(`r:Report`, fishOutTypes(args, ["id"]), {
@@ -213,6 +213,7 @@ const api_routes = {
           foamSpent: 0,
           allegedFireCause: "неизвестно",
           damage: 0,
+          equipmentDamage: "",
           additionalNotes: "Данные ещё не внесены, ожидается завершение отчёта.",
           modifiedAt: datetime()
         })

@@ -155,6 +155,7 @@ async function importData() {
           foamSpent: $foamSpent,
           allegedFireCause: $allegedFireCause,
           damage: $damage,
+          equipmentDamage: $equipmentDamage,
           additionalNotes: $additionalNotes,
           modifiedAt: datetime($modifiedAt)
         });`,
