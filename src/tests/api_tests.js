@@ -39,7 +39,7 @@ const callFormPattern = {
   "fireType?": "string:",
   "fireRank?": "string:",
   "victimsCount?": "number:\\d+",
-  "assignedTo?": "number:\\d+",
+  "assignedTo:listOf?": "number:\\d+",
   "auto?": "string:",
   createdAt: datePattern,
   modifiedAt: datePattern,
@@ -115,7 +115,7 @@ const tests = {
         query: "complete_callform?callformId=$id",
         then: {
           ensure: callFormPattern,
-          query: "new_report?callformId=$id",
+          query: "new_report?callformId=$id&login=brigadier_igor",
           then: {
             ensure: reportPattern,
             query:
@@ -134,7 +134,8 @@ const tests = {
         },
       },
     },
-  "new_report?callformId=919294": err("CallForm not found"),
+  "new_report?callformId=919294&login=brigadier_igor":
+    err("CallForm not found"),
   "complete_callform?callformId=209824": err("CallForm not found"),
   "operator_callforms?login=operator_dmitriy": {
     complete_callforms: listOf(callFormPattern),

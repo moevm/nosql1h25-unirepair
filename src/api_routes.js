@@ -1,11 +1,11 @@
 import {
   match,
-  rawMatch,
   props,
   now,
   fishOut,
   fishOutTypes,
   rawQuery,
+  matchAny,
   matches,
   fishOutComplexConds,
   makeLabel,
@@ -18,9 +18,9 @@ import options from "./options.js";
 const brigadeCallForms = subscription("uint", async (brigadeNumber) => {
   return await match(
     "cf:CallForm:Incomplete",
-    { assignedTo: brigadeNumber },
+    {},
     {
-      where: "cf.callFinishedAt IS NULL",
+      where: `cf.callFinishedAt IS NULL AND any(b IN cf.assignedTo WHERE b = ${brigadeNumber.value})`,
       orelse: [],
     },
   );
@@ -51,38 +51,29 @@ const api_routes = {
     );
   },
   // 2. Current call forms on a brigade
-  "get_callforms/assignedTo:uint..": async (args) => {
-    return await match("cf:CallForm", args, {
-      orderBy: "cf.createdAt DESC",
-    });
+  "get_callforms/assignedTo:uint..": async ({ assignedTo }) => {
+    return await match(
+      "cf:CallForm",
+      {},
+      {
+        where: matchAny("cf.assignedTo", assignedTo),
+        orderBy: "cf.createdAt DESC",
+      },
+    );
   },
   // 3. Reports on a brigade
   "brigade_reports/brigadeNumber:uint": async (args) => {
+    const getReports = async (kind) =>
+      await match("u:User:Brigadier:Active", args, {
+        link: `[:FILLED_IN]->(r:Report:Complete)-[:ON_CALL]->(cf:CallForm:${kind})-[:CREATED_BY]->(o:User:Operator)`,
+        results: ["u", "o", "r", "cf"],
+        orderBy: "cf.createdAt DESC",
+        orelse: [],
+      });
     return {
-      complete_reports: await rawMatch(
-        `(u:User:Brigadier:Active${props(args)})-[:FILLED_IN]->(r:Report:Complete)-[:ON_CALL]->(cf:CallForm:Complete)-[:CREATED_BY]->(o:User:Operator)`,
-        {
-          results: ["u", "o", "r", "cf"],
-          orderBy: "cf.createdAt DESC",
-          orelse: [],
-        },
-      ),
-      incomplete_reports: await rawMatch(
-        `(u:User:Brigadier:Active${props(args)})-[:FILLED_IN]->(r:Report:Incomplete)-[:ON_CALL]->(cf:CallForm:Complete)-[:CREATED_BY]->(o:User:Operator)`,
-        {
-          results: ["u", "o", "r", "cf"],
-          orderBy: "cf.createdAt DESC",
-          orelse: [],
-        },
-      ),
-      new_reports: await rawMatch(
-        `(u:User:Brigadier:Active${props(args)})-[:FILLED_IN]->(r:Report:New)-[:ON_CALL]->(cf:CallForm:Complete)-[:CREATED_BY]->(o:User:Operator)`,
-        {
-          results: ["u", "o", "r", "cf"],
-          orderBy: "cf.createdAt DESC",
-          orelse: [],
-        },
-      ),
+      complete_reports: await getReports("Complete"),
+      incomplete_reports: await getReports("Incomplete"),
+      new_reports: await getReports("New"),
     };
   },
   // 4. Fill in a report
@@ -97,7 +88,7 @@ const api_routes = {
       });
     },
   // 5. Create a new callform
-  "create_callform/login:string departureAt:datetime? arrivalAt:datetime? callFinishedAt:datetime? callSource? fireAddress? bottomLeft:point? topRight:point? fireType? fireRank:string? victimsCount:uint? assignedTo:uint? auto?":
+  "create_callform/login:string departureAt:datetime? arrivalAt:datetime? callFinishedAt:datetime? callSource? fireAddress? bottomLeft:point? topRight:point? fireType? fireRank:string? victimsCount:uint? assignedTo:uint[]? auto?":
     async (args) => {
       await brigadeCallForms.update();
       const operatorArgs = fishOut(args, ({ k }) => k === "login");
@@ -116,14 +107,16 @@ const api_routes = {
   // 6. Find operator's complete callforms
   "operator_callforms/login:string": async (args) => {
     return {
-      complete_callforms: await rawMatch(
-        `(u:User:Operator:Active${props(args)})-[:CREATED]->(cf:CallForm:Complete)`,
-        { results: ["cf"], orderBy: "cf.createdAt DESC" },
-      ),
-      incomplete_callforms: await rawMatch(
-        `(u:User:Operator:Active${props(args)})-[:CREATED]->(cf:CallForm:Incomplete)`,
-        { results: ["cf"], orderBy: "cf.createdAt DESC" },
-      ),
+      complete_callforms: await match("u:User:Operator:Active", args, {
+        link: "[:CREATED]->(cf:CallForm:Complete)",
+        results: ["cf"],
+        orderBy: "cf.createdAt DESC",
+      }),
+      incomplete_callforms: await match("u:User:Operator:Active", args, {
+        link: "[:CREATED]->(cf:CallForm:Incomplete)",
+        results: ["cf"],
+        orderBy: "cf.createdAt DESC",
+      }),
     };
   },
   // 7. Spawn user
@@ -170,18 +163,20 @@ const api_routes = {
       "cf:CallForm:Incomplete",
       {},
       {
-        results: ["COLLECT(DISTINCT cf.assignedTo) AS busybodies"],
+        unwind: "cf.assignedTo AS brigadeNumber",
+        results: ["COLLECT(DISTINCT brigadeNumber) AS busybodies"],
         orelse: "[]",
         then: (rs) => `[ ${rs[0].filter((x) => x !== 0).join(", ")} ]`,
       },
     );
     return {
-      busyBrigades: await rawMatch(
-        `(u:User:Brigadier:Active)
-        WHERE u.brigadeNumber IN ${activeCalls}
-        MATCH (brigadeCf:CallForm:Incomplete { assignedTo: u.brigadeNumber })
-      `,
+      busyBrigades: await match(
+        "u:User:Brigadier:Active",
+        {},
         {
+          where: `u.brigadeNumber IN ${activeCalls}`,
+          match: "(brigadeCf:CallForm:Incomplete)",
+          having: "any(b IN brigadeCf.assignedTo WHERE b = u.brigadeNumber)",
           results: [
             "u.brigadeNumber AS brigadeNumber",
             "brigadeCf.createdAt AS activeCallStartedAt",
@@ -189,12 +184,13 @@ const api_routes = {
           orderBy: "activeCallStartedAt DESC",
         },
       ),
-      freeBrigades: await rawMatch(
-        `(u:User:Brigadier:Active)
-        WHERE NOT u.brigadeNumber IN ${activeCalls} AND u.brigadeNumber <> 0
-        OPTIONAL MATCH (brigadeCf:CallForm:Complete { assignedTo: u.brigadeNumber })
-      `,
+      freeBrigades: await match(
+        "u:User:Brigadier:Active",
+        {},
         {
+          where: `NOT u.brigadeNumber IN ${activeCalls} AND u.brigadeNumber <> 0`,
+          optional_match: "(brigadeCf:CallForm:Complete)",
+          having: "any(b IN brigadeCf.assignedTo WHERE b = u.brigadeNumber)",
           results: [
             "u.brigadeNumber AS brigadeNumber",
             "brigadeCf.modifiedAt AS lastCallEndedAt",
@@ -205,10 +201,13 @@ const api_routes = {
     };
   },
   // 11. Create a new report based on complete callform
-  "new_report/callformId:id": async (args) => {
-    return await matchOne("cf:CallForm:Complete", args, {
-      match: `(u:User:Brigadier:Active { brigadeNumber: cf.assignedTo })`,
-      create: `(r:Report:New {
+  "new_report/callformId:id login:string": async ({ callformId, login }) => {
+    return await matchOne(
+      "cf:CallForm:Complete",
+      { callformId },
+      {
+        match: `(u:User:Brigadier:Active { login: "${login.value}" })`,
+        create: `(r:Report:New {
           waterSpent: 0,
           foamSpent: 0,
           allegedFireCause: "неизвестно",
@@ -218,9 +217,10 @@ const api_routes = {
         })
         CREATE (r)-[:ON_CALL]->(cf)
         CREATE (u)-[:FILLED_IN]->(r)`,
-      results: ["r"],
-      orelse: error("CallForm not found"),
-    });
+        results: ["r"],
+        orelse: error("CallForm not found"),
+      },
+    );
   },
   "test_query/query:string": async ({ query }) => {
     if (options.mode !== "dev")
@@ -235,7 +235,7 @@ const api_routes = {
       const userArgs = fishOut(args, ({ k }) => k.includes("Name"));
       return await match("cf:CallForm", args, {
         match: "(u:User:Operator:Active)-[:CREATED]->(cf)",
-        where: matches({ u: userArgs }),
+        having: matches({ u: userArgs }),
         orderBy: "cf.createdAt DESC",
       });
     },
@@ -264,18 +264,16 @@ const api_routes = {
       const matchArgs = fishOutComplexConds(args);
       const rArgs = fishOutTypes(matchArgs, ["datetime"]);
       const cfArgs = { modifiedAt: rArgs.createdAt };
-      return await rawMatch(
-        `(u:User:Active${props(args)})-[:FILLED_IN]->(r:Report)-[:ON_CALL]->(cf:CallForm)`,
-        {
-          where: matches({
-            r: { modifiedAt: rArgs.modifiedAt },
-            cf: cfArgs,
-            u: matchArgs,
-          }),
-          results: ["r", "u", "cf"],
-          orderBy: "r.modifiedAt DESC",
-        },
-      );
+      return await match("u:User:Active", args, {
+        link: "[:FILLED_IN]->(r:Report)-[:ON_CALL]->(cf:CallForm)",
+        where: matches({
+          r: { modifiedAt: rArgs.modifiedAt },
+          cf: cfArgs,
+          u: matchArgs,
+        }),
+        results: ["r", "u", "cf"],
+        orderBy: "r.modifiedAt DESC",
+      });
     },
   // Find brigade members
   "brigade_members/brigadeNumber:uint..": async (args) => {
@@ -295,23 +293,23 @@ const api_routes = {
       orelse: error("Such an item already exists in inventory"),
     });
   },
-  //Save report draft (incomplete)
+  // Save report draft (incomplete)
   "incomplete_report/reportId:id waterSpent:uint? foamSpent:uint? allegedFireCause? damage:uint? additionalNotes?":
     async (args) => {
-        const login = fishOut(args, ({ k }) => k === "login");
-        return await matchOne(`r:Report`, fishOutTypes(args, ["id"]), {
-            remove: { r: ["New"] }, 
-            set: {
-                r: {
-                    ...args,
-                    label: makeLabel("Incomplete"),
-                    modifiedAt: now()
-                }
-            },
-            results: ["r"],
-            orelse: error("Report not found"),
-        });
-   },
+      const login = fishOut(args, ({ k }) => k === "login");
+      return await matchOne(`r:Report`, fishOutTypes(args, ["id"]), {
+        remove: { r: ["New"] },
+        set: {
+          r: {
+            ...args,
+            label: makeLabel("Incomplete"),
+            modifiedAt: now(),
+          },
+        },
+        results: ["r"],
+        orelse: error("Report not found"),
+      });
+    },
   // Remove user
   "remove_user/login:string": async (args) => {
     return await matchOne("u:User:Active", args, {
@@ -333,7 +331,7 @@ const api_routes = {
     return null;
   },
   // Fill in an incomplete callform
-  "fill_callform/callformId:id departureAt:datetime? arrivalAt:datetime? callFinishedAt:datetime? callSource? fireAddress? bottomLeft:point? topRight:point? fireType? fireRank:string? victimsCount:uint? assignedTo:uint? auto?":
+  "fill_callform/callformId:id departureAt:datetime? arrivalAt:datetime? callFinishedAt:datetime? callSource? fireAddress? bottomLeft:point? topRight:point? fireType? fireRank:string? victimsCount:uint? assignedTo:uint[]? auto?":
     async (args) => {
       await brigadeCallForms.update();
       return await matchOne(

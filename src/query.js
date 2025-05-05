@@ -21,6 +21,10 @@ function isRange(value) {
   return value && value.from !== undefined && value.to !== undefined;
 }
 
+function isArray(value) {
+  return value && value.values !== undefined;
+}
+
 export function fishOut(obj, pred) {
   assert.assertObject(obj);
   assert.assertFunction(pred);
@@ -54,6 +58,11 @@ export function fishOutLabels(obj) {
 function makeNeo4jLiteral(value) {
   assert.assert(value !== null);
   assert.assert(!isRange(value));
+  if (isArray(value))
+    return `[${value.values
+      .map((v) => ({ value: v, type: value.type }))
+      .map(makeNeo4jLiteral)
+      .join(", ")}]`;
   if (value && typeOf(value) === "datetime")
     return value.value === "none" ? "datetime()" : `datetime("${value.value}")`;
   if (value && typeOf(value) === "point")
@@ -78,6 +87,43 @@ function byId(n, id) {
   return `id(${n}) = ${id}`;
 }
 
+function primaryMatch(n, field, value, contains = true) {
+  const n_field = n !== null ? `${n}.${field}` : field;
+  if (isRange(value)) {
+    switch (typeOf(value)) {
+      case "int":
+      case "uint":
+      case "float":
+        return `${optpostcat(value.from, " <= ")}${n_field}${optcat(" <= ", value.to)}`;
+      case "datetime":
+        return `${value.from ? `datetime("${value.from}") <= ` : ""}${n_field}${value.to ? ` <= datetime("${value.to}")` : ""}`;
+      case "id":
+        return `${optpostcat(value.from, " <= ")}id(${n})${optcat(" <= ", value.to)}`;
+      default:
+        throw new Error(
+          `Unexpected value range: ${value.from}..${value.to} of type ${typeOf(value)}`,
+        );
+    }
+  } else {
+    switch (typeOf(value)) {
+      case "substring":
+        return `toLower(${n_field}) ${contains ? "CONTAINS" : "="} "${value.value.toLowerCase()}"`;
+      case "id":
+        return `id(${n}) = ${value.value}`;
+      default:
+        throw new Error(
+          `Unexpected value: ${value.value} of type ${typeOf(value)}`,
+        );
+    }
+  }
+}
+
+export function matchAny(list, value) {
+  assert.assertString(list);
+  assert.assertObject(value);
+  return `any(x IN ${list} WHERE ${isRange(value) ? primaryMatch(null, "x", value) : `x = ${makeNeo4jLiteral(value)}`})`;
+}
+
 export function matches(fieldValues, contains = true) {
   assert.assertObject(fieldValues);
   assert.assertBool(contains);
@@ -93,35 +139,7 @@ export function matches(fieldValues, contains = true) {
           ([field, value]) =>
             value && (value.from !== null || value.to !== null),
         )
-        .map(([field, value]) => {
-          if (isRange(value)) {
-            switch (typeOf(value)) {
-              case "int":
-              case "uint":
-              case "float":
-                return `${optpostcat(value.from, " <= ")}${n}.${field}${optcat(" <= ", value.to)}`;
-              case "datetime":
-                return `${value.from ? `datetime("${value.from}") <= ` : ""}${n}.${field}${value.to ? ` <= datetime("${value.to}")` : ""}`;
-              case "id":
-                return `${optpostcat(value.from, " <= ")}id(${n})${optcat(" <= ", value.to)}`;
-              default:
-                throw new Error(
-                  `Unexpected value range: ${value.from}..${value.to} of type ${typeOf(value)}`,
-                );
-            }
-          } else {
-            switch (typeOf(value)) {
-              case "substring":
-                return `toLower(${n}.${field}) ${contains ? "CONTAINS" : "="} "${value.value.toLowerCase()}"`;
-              case "id":
-                return `id(${n}) = ${value.value}`;
-              default:
-                throw new Error(
-                  `Unexpected value: ${value.value} of type ${typeOf(value)}`,
-                );
-            }
-          }
-        }),
+        .map(([field, value]) => primaryMatch(n, field, value, contains)),
     )
     .flat()
     .join(" AND ");
@@ -166,7 +184,9 @@ export async function rawQuery(query, resultHandler = (x) => x) {
         throw err;
       });
   } catch (e) {
-    console.error(`Error during rawQuery(): ${e}`);
+    console.error(
+      `==========================\nError during rawQuery(): ${e}\n==========================\n`,
+    );
   } finally {
     await session.close();
     return result;
@@ -194,11 +214,14 @@ export async function create(what, values) {
   );
 }
 
-export async function rawMatch(conditionsStr, options = {}) {
+async function rawMatch(conditionsStr, options = {}) {
   assert.assertString(conditionsStr);
   assert.assertObject(options);
-  if (options.match) assert.assertString(options.match);
   if (options.where) assert.assertString(options.where);
+  if (options.unwind) assert.assertString(options.unwind);
+  if (options.match) assert.assertString(options.match);
+  if (options.optional_match) assert.assertString(options.optional_match);
+  if (options.having) assert.assertString(options.having);
   if (options.create) assert.assertString(options.create);
   if (options.detach) assert.assertString(options.detach);
   if (options.remove) {
@@ -214,8 +237,11 @@ export async function rawMatch(conditionsStr, options = {}) {
   if (options.limit) assert.assertString(options.limit);
   const result = await rawQuery(
     `MATCH ${conditionsStr}` +
-      optcat("\nMATCH ", options.match) +
       optcat("\nWHERE ", options.where) +
+      optcat("\nUNWIND ", options.unwind) +
+      optcat("\nMATCH ", options.match) +
+      optcat("\nOPTIONAL MATCH ", options.optional_match) +
+      optcat("\nWHERE ", options.having) +
       optcat("\nCREATE ", options.create) +
       optcat("\nDETACH DELETE ", options.detach) +
       (options.remove
@@ -288,6 +314,7 @@ export async function rawMatch(conditionsStr, options = {}) {
 export async function match(what, conditions, options = {}) {
   assert.assertString(what);
   assert.assertObject(conditions);
+  if (options.link) assert.assertString(options.link);
   for (const key of Object.keys(conditions)) {
     if (conditions[key] === null) delete conditions[key];
   }
@@ -302,13 +329,17 @@ export async function match(what, conditions, options = {}) {
     options.where = `${matches({ [n]: complexConds })}${optcat(" AND ", options.where)}`;
   if (options.results === undefined && options.detach === undefined)
     options.results = [n];
-  return await rawMatch(`(${what}${props(conditions)})`, options);
+  return await rawMatch(
+    `(${what}${props(conditions)})${optcat("-", options.link)}`,
+    options,
+  );
 }
 
 export async function matchOne(what, conditions, options = {}) {
   if (
     options.orelse === undefined &&
-    (options.results !== undefined || options.detach === undefined)
+    options.results !== undefined &&
+    options.detach !== undefined
   )
     options.orelse = () =>
       assert.assert(false, "Got empty result in matchOne function");

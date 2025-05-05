@@ -13,7 +13,7 @@
     "fireType": "лесной пожар",
     "fireRank": "3",
     "victimsCount": 2,
-    "assignedTo": 2,
+    "assignedTo": [2],
     "auto": "Пожарная машина 1"
   },
   {
@@ -30,7 +30,7 @@
     "fireType": "лесной пожар",
     "fireRank": "1",
     "victimsCount": 5,
-    "assignedTo": 1,
+    "assignedTo": [1],
     "auto": "Пожарная машина 2"
   },
   {
@@ -47,7 +47,7 @@
     "fireType": "лесной пожар",
     "fireRank": "2",
     "victimsCount": 3,
-    "assignedTo": 1,
+    "assignedTo": [1],
     "auto": "Пожарная машина 3"
   },
   {
@@ -64,7 +64,7 @@
     "fireType": "лесной пожар",
     "fireRank": "1",
     "victimsCount": 0,
-    "assignedTo": 2,
+    "assignedTo": [2],
     "auto": "Пожарная машина 4"
   },
   {
@@ -81,7 +81,7 @@
     "fireType": "заводской пожар",
     "fireRank": "2",
     "victimsCount": 3,
-    "assignedTo": 1,
+    "assignedTo": [1],
     "auto": "Пожарная машина 5"
   },
   {
@@ -98,7 +98,7 @@
     "fireType": "пожар в жилом доме",
     "fireRank": "1",
     "victimsCount": 1,
-    "assignedTo": 2,
+    "assignedTo": [2],
     "auto": "Пожарная машина 6"
   },
   {
@@ -115,7 +115,7 @@
     "fireType": "заводской пожар",
     "fireRank": "2",
     "victimsCount": 6,
-    "assignedTo": 1,
+    "assignedTo": [1],
     "auto": "Пожарная машина 7"
   },
   {
@@ -132,7 +132,7 @@
     "fireType": "заводской пожар",
     "fireRank": "4",
     "victimsCount": 3,
-    "assignedTo": 1,
+    "assignedTo": [1],
     "auto": "Пожарная машина 8"
   },
   {
@@ -149,7 +149,7 @@
     "fireType": "заводской пожар",
     "fireRank": "1",
     "victimsCount": 3,
-    "assignedTo": 2,
+    "assignedTo": [2],
     "auto": "Пожарная машина 9"
   }
 ]
