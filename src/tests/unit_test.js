@@ -46,7 +46,11 @@ function mismatchWithPattern(obj, pattern) {
       let key = k;
       if (key.endsWith("?")) {
         key = key.slice(0, -1);
-        if (obj[key.split(":")[0]] === null) continue;
+        if (
+          obj[key.split(":")[0]] === null ||
+          obj[key.split(":")[0]] === undefined
+        )
+          continue;
       }
       if (!key.includes(":")) {
         if (mismatchWithPattern(obj[key], value))

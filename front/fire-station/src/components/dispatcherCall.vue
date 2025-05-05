@@ -1,30 +1,79 @@
 <template>
-  <section class="call-card" >
+  <section class="call-card">
     <div class="call-card_text">
-      <h3 class="call-card_title">Пожар на {{ call.fireAddress }} ({{ new Date(call.createdAt).toLocaleString() }})</h3>
-      <p class="call-card_info"><strong>Адрес:</strong> {{ call.fireAddress }}</p>
-      <p class="call-card_info"><strong>Характер пожара:</strong> {{ call.fireType }}</p>
-      <p class="call-card_info"><strong>Пострадавшие:</strong> {{ call.victimsCount }}</p>
-      <p class="call-card_info"><strong>Бригада и техника:</strong> {{ call.assignedTo }} | {{call.auto}}</p>
+      <h3 class="call-card_title">
+        Пожар на {{ call.fireAddress }} ({{ call.createdAt }})
+      </h3>
+      <p class="call-card_info">
+        <strong>Адрес:</strong> {{ call.fireAddress }}
+      </p>
+      <p class="call-card_info">
+        <strong>Характер пожара:</strong> {{ call.fireType }}
+      </p>
+      <p class="call-card_info">
+        <strong>Пострадавшие:</strong> {{ call.victimsCount }}
+      </p>
+      <p class="call-card_info">
+        <strong>Бригада и техника:</strong> {{ call.assignedTo }} |
+        {{ call.auto }}
+      </p>
       <div class="time-table">
         <table class="call-timeline">
-          <tr>
-            <th><div class="square departureTime_square" :style="{ backgroundColor: call.departureTime === null ? '#CFCFCF' : 'black' }"></div></th>
-            <th><div class="square arrivalTime_square" :style="{ backgroundColor: call.arrivalTime === null ? '#CFCFCF' : 'black' }"></div></th>
-            <th><div class="square callEndedAt_square" :style="{ backgroundColor: call.callEndedAt === null ? '#CFCFCF' : 'black' }"></div></th>
-          </tr>
+          <tbody>
+            <tr>
+              <th>
+                <div
+                  class="square departureTime_square"
+                  :style="{
+                    backgroundColor:
+                      call.createdAt === null ? '#CFCFCF' : 'black',
+                  }"
+                ></div>
+              </th>
+              <th>
+                <div
+                  class="square arrivalTime_square"
+                  :style="{
+                    backgroundColor:
+                      call.createdAt === null ? '#CFCFCF' : 'black',
+                  }"
+                ></div>
+              </th>
+              <th>
+                <div
+                  class="square callEndedAt_square"
+                  :style="{
+                    backgroundColor:
+                      call.modifiedAt === null ? '#CFCFCF' : 'black',
+                  }"
+                ></div>
+              </th>
+            </tr>
 
-          <tr>
-            <th class="column_name">Выезд</th>
-            <th class="column_name">На месте</th>
-            <th class="column_name">Вызов завершен</th>
-          </tr>
+            <tr>
+              <th class="column_name">Выезд</th>
+              <th class="column_name">На месте</th>
+              <th class="column_name">Вызов завершен</th>
+            </tr>
 
-          <tr>
-            <td><p class="caption departureTime_caption" >{{call.departureTime !== null ? new Date(call.departureTime).toLocaleString() : ' ' }}</p></td>
-            <td><p class="caption arrivalTime_caption" >{{ call.arrivalTime !== null ? new Date(call.arrivalTime).toLocaleString() : ' ' }}</p></td>
-            <td><p class="caption callEndedAt_caption" >{{ call.callEndedAt !== null ? new Date(call.callEndedAt).toLocaleString() : ' ' }}</p></td>
-          </tr>
+            <tr>
+              <td>
+                <p class="caption departureTime_caption">
+                  {{ call.createdAt }}
+                </p>
+              </td>
+              <td>
+                <p class="caption arrivalTime_caption">
+                  {{ call.createdAt }}
+                </p>
+              </td>
+              <td>
+                <p class="caption callEndedAt_caption">
+                  {{ call.modifiedAt }}
+                </p>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -32,32 +81,31 @@
 </template>
 
 <script setup>
-
 const props = defineProps({
-  call: Object
-})
-
+  call: Object,
+});
 </script>
 
 <style scoped>
-td, th {
+td,
+th {
   width: 33.33%;
 }
 
-.call-timeline{
+.call-timeline {
   width: 60%;
 }
 
-.caption{
+.caption {
   margin: 0;
   padding: 0;
   text-align: start;
 }
-.column_name{
+.column_name {
   text-align: left;
 }
 
-.square{
+.square {
   box-sizing: border-box;
   height: 28px;
   width: 28px;

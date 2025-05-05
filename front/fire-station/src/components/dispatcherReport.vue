@@ -5,9 +5,9 @@
 
     <section class="report__block report__block__border">
       <div><b>№ Бригады:</b> {{ reportData.assignedTo }}</div>
-      <div><b>Оператор:</b> {{ operator.fullName}}</div>
-      <div><b>Время вызова:</b> {{ formDate(reportData.createdAt) }}</div>
-      <div><b>Вызов завершен:</b> {{ formDate(reportData.modifiedAt) }}</div>
+      <div><b>Оператор:</b> {{ operator.fullName }}</div>
+      <div><b>Время вызова:</b> {{ reportData.createdAt }}</div>
+      <div><b>Вызов завершен:</b> {{ reportData.modifiedAt }}</div>
     </section>
     <section class="report__block">
       <div><b>Адрес:</b> {{ reportData.fireAddress }}</div>
@@ -20,47 +20,44 @@
           <li>{{ reportData.auto }}</li>
         </ul>
       </div>
-<!--      карта будет позже-->
       <div class="map-container">
         <div class="map-title">Место</div>
-        <img class="map-image" src='../../public/map.png'>
+        <div ref="mapContainer" class="map"></div>
       </div>
     </section>
   </div>
 </template>
 
 <script setup>
-import { useUserStore } from '@/stores/user';
+import { useUserStore } from "@/stores/user";
+import {onMounted, ref} from "vue";
+import L from "leaflet";
 
-defineProps({
-  reportData: Object
-})
-
-const formDate = (date) => {
-    let day = date.day.toString();
-    while(day.length < 2) day = '0' + day;
-
-    let month = date.month.toString();
-    while(month.length < 2) month = '0' + month;
-
-    let year = date.year.toString();
-    while(year.length < 4) year = '0' + year;
-
-    let hour = date.hour.toString();
-    while(hour.length < 2) hour = '0' + hour
-
-    let minute = date.minute.toString();
-    while(minute.length < 2) minute = '0' + minute
-
-    return `${hour}:${minute}, ${year}-${month}-${day}`
-}
+const props = defineProps({
+  reportData: Object,
+});
 
 const operator = useUserStore().user;
+const mapContainer = ref(null);
 
+onMounted(() => {
+  if (!props.reportData.bottomLeft || !props.reportData.topRight) return
+
+  const map = L.map(mapContainer.value).setView([
+    (props.reportData.bottomLeft.y + props.reportData.topRight.y) / 2,
+    (props.reportData.bottomLeft.x + props.reportData.topRight.x) / 2
+  ], 16)
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map)
+
+  L.rectangle([
+    [props.reportData.bottomLeft.y, props.reportData.bottomLeft.x],
+    [props.reportData.topRight.y, props.reportData.topRight.x]
+  ], { color: 'red', weight: 2 }).addTo(map)
+})
 </script>
 
 <style scoped>
-
 .map-container {
   height: 350px;
 }
@@ -70,7 +67,6 @@ const operator = useUserStore().user;
 }
 
 .map-image {
-
   width: 30%;
   max-width: 600px;
   margin: 0 auto;
@@ -90,6 +86,7 @@ const operator = useUserStore().user;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
 .report__title {
   font-size: 20px;
   display: flex;
@@ -99,13 +96,16 @@ const operator = useUserStore().user;
   border-bottom: #ced0e9 4px solid;
   justify-content: center;
 }
+
 .report__block {
   padding-bottom: 10px;
   margin-bottom: 10px;
 }
+
 .report__block__border {
   border-bottom: black 2px solid;
 }
+
 .close-btn {
   position: absolute;
   top: 10px;
@@ -115,5 +115,12 @@ const operator = useUserStore().user;
   cursor: pointer;
   color: #900b09;
   font-size: 24px;
+}
+
+.map {
+  height: 350px;
+  width: 80%;
+  border-radius: 8px;
+  overflow: hidden;
 }
 </style>

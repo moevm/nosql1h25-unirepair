@@ -1,57 +1,43 @@
 <template>
   <div class="reports__container">
-  <div class="reports">
-    <div class="reports__header">
-      <span class="reports__header-title">Отчеты оператора</span>
-    </div>
+    <div class="reports">
+      <div class="reports__header">
+        <span class="reports__header-title">Отчеты оператора</span>
+      </div>
 
-    <div class="reports__files">
-      <div
+      <div class="reports__files">
+        <div
           v-for="report in reports"
           @click="$emit('openReport', report)"
           class="reports__file"
-      >
-        <img class="icon-file" src="/icons/file-text.svg" alt="file-text" />
-        <span class="file_name">{{ formReportName(report) }}</span>
+        >
+          <img class="icon-file" src="/icons/file-text.svg" alt="file-text" />
+          <span class="file_name">{{ formReportName(report) }}</span>
+        </div>
       </div>
     </div>
-  </div>
   </div>
 </template>
 
 <script setup>
-import { useUserStore } from '@/stores/user';
-import axios from 'axios';
-import { ref, computed } from 'vue'
+import { useUserStore } from "@/stores/user";
+import { ref, computed } from "vue";
+import query from "../common/query.js";
 
 let reports = ref([]);
-
-axios.get(`http://localhost:3000/api/operator_callforms?login=${useUserStore().user.login}`).then(res => reports.value = res.data.complete_callforms);
-const formReportName = (r => {
-    let day = r.createdAt.day.toString();
-    while(day.length < 2) day = '0' + day;
-
-    let month = r.createdAt.month.toString();
-    while(month.length < 2) month = '0' + month;
-
-    let year = r.createdAt.year.toString().slice(-2);
-    while(year.length < 2) year = '0' + year;
-
-    let hour = r.createdAt.hour.toString();
-    while(hour.length < 2) hour = '0' + hour
-
-    let minute = r.createdAt.minute.toString();
-    while(minute.length < 2) minute = '0' + minute
-
-    return `Rep_${day}.${month}.${year}_${hour}:${minute}_B-${r.assignedTo}`
-  })
+query("operator_callforms", { login: useUserStore().user.login }).then(
+  (res) => (reports.value = res.complete_callforms),
+);
+const formReportName = (r) => {
+  return `Rep_${r.createdAt}_B-${r.assignedTo}`;
+};
 </script>
 
 <style scoped>
 .reports__container {
   padding: 20px;
   margin: 0;
-  background-color: #CED0E9;
+  background-color: #ced0e9;
   width: 100vw;
 }
 .reports {
@@ -74,10 +60,9 @@ const formReportName = (r => {
   align-items: center;
 }
 
-.reports__header-title{
+.reports__header-title {
   font-weight: bold;
   font-size: x-large;
-
 }
 
 .reports__files {
@@ -112,5 +97,4 @@ const formReportName = (r => {
   overflow-wrap: break-word;
   padding-bottom: 5px;
 }
-
 </style>
