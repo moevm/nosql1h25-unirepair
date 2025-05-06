@@ -16,22 +16,27 @@
                 <input type="text" v-model="patronymic" class="userinfo__input">
                 <br> 
                 
+                <input
+                    type="checkbox"
+                    v-model="useRole"
+                    style="margin-right: 10px; transform: scale(1.5)"
+                />
                 <span>Должность:</span>
                 <br>
-                <input type="radio" v-model="role" value="Fireman" @click="info" class="userinfo__input">
+                <input type="radio" v-model="role" value="Fireman" @click="info" class="userinfo__input" :disabled="!useRole">
                 <span>Пожарный</span>
-                <input type="radio" v-model="role" value="Brigadier" @click="info" class="userinfo__input">
+                <input type="radio" v-model="role" value="Brigadier" @click="info" class="userinfo__input" :disabled="!useRole">
                 <span>Бригадир</span>
                 <br>
-                <input type="radio" v-model="role" value="Operator" @click="info" class="userinfo__input">
+                <input type="radio" v-model="role" value="Operator" @click="info" class="userinfo__input" :disabled="!useRole">
                 <span>Оператор</span>
                 <br>
-                <input type="radio" v-model="role" value="Admin" @click="info" class="userinfo__input"> 
+                <input type="radio" v-model="role" value="Admin" @click="info" class="userinfo__input" :disabled="!useRole"> 
                 <span>Администратор</span>  
                 <br>
 
                 <span :class="{'brigade-text__avaliable': role === 'Fireman' || role === 'Brigadier', 'brigade-text__unavaliable': role !== 'Fireman' && role !== 'Brigadier'}">Бригада:</span>
-                <input min="1" type="number" v-model="brigade" class="userinfo__input" :disabled="role !== 'Fireman' && role !== 'Brigadier'" @blur="correctBrigade">
+                <input min="1" type="number" v-model="brigade" class="userinfo__input" :disabled="role !== 'Fireman' && role !== 'Brigadier' && useRole" @blur="correctBrigade">
                 <br>
 
                 <span>Дата вызова:</span>
@@ -51,7 +56,7 @@
                             <tr>
                                 <th>
                                     <input type="checkbox" class="checkbox" :disabled="!foundReports.length" v-model="allSelected" @click="() => {allSelected = !allSelected; selectedReports.fill(allSelected)}">
-                                    <span style="position: absolute; top: 0px; margin-left: 10px; font-size: small;">Выбрать<br>всех</span>
+                                    <span style="position: absolute; top: -3px; margin-left: 10px; font-size: small;">Выбрать<br>всех</span>
                                 </th>
                                 <th>Название отчета</th>
                                 <th>ФИО</th>
@@ -85,7 +90,7 @@
                     </table>
                 </div>
                 <div style="display: flex; justify-content: space-between; padding-right: 72px;">
-                    <button id="submit-button" @click="" :disabled="!selectedReports.reduce((acc, num) => acc || num, false)">Скачать</button>
+                    <button id="submit-button" @click="downloadSelectedReports" :disabled="!selectedReports.reduce((acc, num) => acc || num, false)">Скачать</button>
                     <button id="submit-button" @click="showAlert=true" :disabled="!selectedReports.reduce((acc, num) => acc || num, false)">Удалить</button>
                 </div>
             </div>
@@ -101,6 +106,8 @@
 
 <script>
 import axios from 'axios';
+import JSZip from 'jszip';
+import { saveAs } from "file-saver"
 
 export default {
     name: 'DownloadDeleteReportComponent',
@@ -109,7 +116,7 @@ export default {
             name: '',
             surname: '',
             patronymic: '',
-            role: '',
+            role: 'Fireman',
             brigade: '',
             reportName: '',
             createDate: '',
@@ -128,7 +135,8 @@ export default {
                 "Fireman": "Пожарный",
                 "Operator": "Оператор",
                 "Admin": "Администратор"
-            }
+            },
+            useRole: false
         }
     },
     methods: {
@@ -138,17 +146,14 @@ export default {
             this.selectedReports = Array(this.foundReports.length).fill(false);
             this.allSelected = false;
         },
-        deleteSelectedReports(){
+         async deleteSelectedReports(){
             this.showAlert = false;
-            console.log(this.selectedReports)
 
-            let names = [];
-            this.selectedReports.forEach((isSelected, index) => {
-                if(isSelected) names.push(this.foundReports[index].reportName)
-            })
-
-            // Представим что тут есть запрос на удаление пользователей по взятым логинам
-            this.DBResult = this.DBResult.filter(item => !names.includes(item.reportName))
+            for(let i = 0; i < this.foundReports.length; i++){
+                if(this.selectedReports[i]){
+                    await axios.get(`http://localhost:3000/api/delete_report?reportId=${this.foundReports[i].r.id}`);
+                }
+            }
 
             this.foundReports = [];
             this.selectedReports = [];    
@@ -162,16 +167,37 @@ export default {
                 if(this.selectedReports.reduce((acc, num) => acc && num)) this.allSelected = true;
             }
         },
-        downloadSelectedReports(){
-            console.log('404: DB is still unavailable :3');
+        async downloadSelectedReports(){
+            const zip = new JSZip();
+
+            this.selectedReports.forEach((selected, index) => {
+                if(selected){
+                    const fileName = `${this.formReportName(this.foundReports[index].cf)}.json`;
+                    const jsonData = JSON.stringify(this.foundReports[index].r, null, 2)
+                    zip.file(fileName, jsonData);
+                }
+            })
+
+            const content = await zip.generateAsync({ type: 'blob' });
+            saveAs(content, this.formArchiveName());
+        },
+        formArchiveName(){
+            let fullname = [this.surname ?? '', this.name ?? '', this.patronymic ?? ''].join('-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+            let role = this.useRole ? this.rolesTranslations[this.role] : '';
+            let brigade = this.brigade !== "" ? `Бр_${this.brigade}` : '';
+            let callDate = `Вызов(${this.callDate_begin}~${this.callDate_end})`.replace(/^Вызов\(~\)$/g, '');
+            let createDate = `Создан(${this.createDate_begin}~${this.createDate_end})`.replace(/^Создан\(~\)$/g, '');
+
+            let archiveName = ["Отчеты", fullname, role, brigade, callDate, createDate].join(';').replace(/;+/g, ';').replace(/^;|;$/g, '')
+            return `${archiveName}.zip`;
         },
         stringifyURLParams(){
             let params = {
                 familyName: this.surname,
                 firstName: this.name,
                 fatherName: this.patronymic,
-                role: this.role,
-                brigadeNumber: this.role === 'Fireman' || this.role === 'Brigadier' ? this.brigade : '',
+                role: this.useRole ? this.role : undefined,
+                brigadeNumber: (this.role === 'Fireman' || this.role === 'Brigadier') && this.useRole || !this.useRole ? this.brigade : '',
                 createdAt: `${this.callDate_begin};${this.callDate_end}`,
                 modifiedAt: `${this.createDate_begin};${this.createDate_end}`
             }
@@ -436,12 +462,12 @@ th {
     .row__table>td {
         border: 1px solid black;
         height: 3.5vh;
-        font-size: small;
+        font-size: medium;
     }
 
     th {
         height: 3.5vh;
-        font-size: small;
+        font-size: medium;
     }
 }
 </style>

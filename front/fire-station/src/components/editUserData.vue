@@ -36,7 +36,7 @@
       <div class="input-group">
       <label>
         <strong>Логин:</strong>
-        <input type="text" class="edit_profile__contact-settings-item" v-model="userData.login ">
+        <input type="text" class="edit_profile__contact-settings-item" v-model="userData.login" disabled>
       </label>
       </div>
 

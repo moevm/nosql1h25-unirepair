@@ -15,22 +15,27 @@
             <input type="text" v-model="patronymic" class="userinfo__input">
             <br> 
             
+            <input
+                type="checkbox"
+                v-model="useRole"
+                style="margin-right: 10px; transform: scale(1.5)"
+            />
             <span>Должность:</span>
             <br>
-            <input type="radio" v-model="role" value="Fireman" @click="info" class="userinfo__input">
+            <input type="radio" v-model="role" value="Fireman" @click="info" class="userinfo__input" :disabled="!useRole">
             <span>Пожарный</span>
-            <input type="radio" v-model="role" value="Brigadier" @click="info" class="userinfo__input">
+            <input type="radio" v-model="role" value="Brigadier" @click="info" class="userinfo__input" :disabled="!useRole">
             <span>Бригадир</span>
             <br>
-            <input type="radio" v-model="role" value="Operator" @click="info" class="userinfo__input">
+            <input type="radio" v-model="role" value="Operator" @click="info" class="userinfo__input" :disabled="!useRole">
             <span>Оператор</span>
             <br>
-            <input type="radio" v-model="role" value="Admin" @click="info" class="userinfo__input">
+            <input type="radio" v-model="role" value="Admin" @click="info" class="userinfo__input" :disabled="!useRole">
             <span>Администратор</span>
             <br>
 
             <span :class="{'brigade-text__avaliable': role === 'Fireman' || role === 'Brigadier', 'brigade-text__unavaliable': role !== 'Fireman' && role !== 'Brigadier'}">Бригада:</span>
-            <input min="1" type="number" v-model="brigade" class="userinfo__input" :disabled="role !== 'Fireman' && role !== 'Brigadier'" @blur="correctBrigade">
+            <input min="1" type="number" v-model="brigade" class="userinfo__input" :disabled="role !== 'Fireman' && role !== 'Brigadier' && useRole" @blur="correctBrigade">
             <br>
 
             <span>Дата регистрации:</span>
@@ -89,7 +94,7 @@ export default {
             name: '',
             surname: '',
             patronymic: '',
-            role: '',
+            role: 'Fireman',
             brigade: '',
 
             registrationDate_begin: '',
@@ -103,7 +108,8 @@ export default {
                 "Fireman": "Пожарный",
                 "Operator": "Оператор",
                 "Admin": "Администратор"
-            }
+            },
+            useRole: false
         }
     },
     methods: {
@@ -139,8 +145,8 @@ export default {
                 familyName: this.surname,
                 firstName: this.name,
                 fatherName: this.patronymic,
-                role: this.role,
-                brigadeNumber: this.role === 'Fireman' || this.role === 'Brigadier' ? this.brigade : '',
+                role: this.useRole ? this.role : undefined,
+                brigadeNumber: (this.role === 'Fireman' || this.role === 'Brigadier') && this.useRole || !this.useRole ? this.brigade : '',
                 registeredAt: processDateRange(this.registrationDate_begin, this.registrationDate_end),
                 modifiedAt: processDateRange(this.changeDate_begin, this.changeDate_end)
             }
@@ -280,7 +286,7 @@ th {
         font-weight: bolder;
     }
     .userinfo__input, span {
-        font-size: medium;
+        font-size: large;
         margin-bottom: 5px;
     }
     input[type="radio"] {

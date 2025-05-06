@@ -27,6 +27,11 @@
                 />
                 <br />
 
+                <input
+                    type="checkbox"
+                    v-model="useRole"
+                    style="margin-right: 10px; transform: scale(1.5)"
+                />
                 <span>Должность:</span>
                 <br />
                 <input
@@ -35,6 +40,7 @@
                     value="Fireman"
                     @click="info"
                     class="userinfo__input"
+                    :disabled="!useRole"
                 />
                 <span>Пожарный</span>
                 <input
@@ -43,6 +49,7 @@
                     value="Brigadier"
                     @click="info"
                     class="userinfo__input"
+                    :disabled="!useRole"
                 />
                 <span>Бригадир</span>
                 <br />
@@ -52,6 +59,7 @@
                     value="Operator"
                     @click="info"
                     class="userinfo__input"
+                    :disabled="!useRole"
                 />
                 <span>Оператор</span>
                 <br />
@@ -61,6 +69,7 @@
                     value="Admin"
                     @click="info"
                     class="userinfo__input"
+                    :disabled="!useRole"
                 />
                 <span>Администратор</span>
                 <br />
@@ -79,7 +88,7 @@
                     type="number"
                     v-model="brigade"
                     class="userinfo__input"
-                    :disabled="role !== 'Fireman' && role !== 'Brigadier'"
+                    :disabled="role !== 'Fireman' && role !== 'Brigadier' && useRole"
                     @blur="correctBrigade"
                 />
                 <br />
@@ -235,6 +244,7 @@
 </template>
 
 <script>
+import axios from "axios";
 import query from "../common/query.js";
 import range from "../common/range.js";
 
@@ -245,7 +255,7 @@ export default {
             name: "",
             surname: "",
             patronymic: "",
-            role: "",
+            role: "Fireman",
             brigade: "",
 
             registrationDate_begin: "",
@@ -263,6 +273,7 @@ export default {
                 Operator: "Оператор",
                 Admin: "Администратор",
             },
+            useRole: false
         };
     },
     methods: {
@@ -271,9 +282,9 @@ export default {
                 familyName: this.surname,
                 firstName: this.name,
                 fatherName: this.patronymic,
-                role: this.role,
+                role: this.useRole ? this.role : undefined,
                 brigadeNumber:
-                    this.role === "Fireman" || this.role === "Brigadier"
+                    (this.role === "Fireman" || this.role === "Brigadier") && this.useRole || !this.useRole
                         ? this.brigade
                         : "",
                 registeredAt: range(
@@ -287,12 +298,14 @@ export default {
             this.allSelected = false;
             this.selectedUsers = Array(this.foundUsers.length).fill(false);
         },
-        deleteSelectedUsers() {
+        async deleteSelectedUsers() {
             this.showAlert = false;
 
-            this.selectedUsers.forEach((isSelected, index) => {
-                if (isSelected) true; // deletion
-            });
+            for(let i = 0; i < this.foundUsers.length; i++){
+                if(this.selectedUsers[i]){
+                    await axios.get(`http://localhost:3000/api/remove_user?login=${this.foundUsers[i].login}`);
+                }
+            }
 
             this.foundUsers = [];
             this.selectedUsers = [];

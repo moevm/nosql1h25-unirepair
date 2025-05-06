@@ -29,7 +29,9 @@
 </template>
 
 <script>
+import axios from 'axios';
 import Chart from './Chart.vue';
+import range from '@/common/range';
 
 export default {
     name: 'StatisticsComponent',
@@ -42,43 +44,58 @@ export default {
             date_begin: '',
             date_end: '',
 
-            DBResult: {
-                labels: ['2025-01-01', '2025-01-02', '2025-01-03'],
-                datasets: [{
-                    label: 'Вызовы',
-                    data: [13, 5, 9]
-                }]
-            }
+            statisticsData: []
         }
     },
     methods: {
-        showChart(){
-            let labels = ['2025-01-01', '2025-01-02', '2025-01-03'];
+        async showChart(){
+            let labels = [];
             let datasets = [];
             if(this.selected === 'calls'){
+                await axios.get(`http://localhost:3000/api/callform_search?createdAt=${range(this.date_begin, this.date_end)}`).then(req => this.statisticsData = req.data);
+                labels = [...new Set(this.statisticsData.map(r => this.formDate(r)))];
+                
+                let callsData = [];
+                labels.forEach(label => {
+                    callsData.push(this.statisticsData.filter(r => this.formDate(r) === label).length)
+                })
+
                 datasets.push(
                     {
                         label: 'Вызовы',
-                        data: [13, 5, 9],
+                        data: callsData,
                         borderColor: '#ff0000'
                     }
                 ) 
             }
             else if(this.selected === 'usage'){
+                await axios.get(`http://localhost:3000/api/report_search?modifiedAt=${range(this.date_begin, this.date_end)}`).then(req => this.statisticsData = req.data);
+                labels = [...new Set(this.statisticsData.map(r => this.formDate(r)))];
+
                 if(this.waterUsage){
+                    let waterData = [];
+                    labels.forEach(label => {
+                        waterData.push(this.statisticsData.filter(r => this.formDate(r) === label).reduce((acc, r) => acc + r.waterSpent, 0));
+                    })
+
                     datasets.push(
                         {
                             label: 'Расход воды',
-                            data: [24, 6, 16],
+                            data: waterData,
                             borderColor: '#33a0fa'
                         }
                     )
                 }
                 if(this.foamUsage){
+                    let foamData = [];
+                    labels.forEach(label => {
+                        foamData.push(this.statisticsData.filter(r => this.formDate(r) === label).reduce((acc, r) => acc + r.foamSpent, 0));
+                    })
+
                     datasets.push(
                         {
                             label: 'Расход пены',
-                            data: [1, 2, 8],
+                            data: foamData,
                             borderColor: '#808080'
                         }
                     )
@@ -99,6 +116,18 @@ export default {
         },
         uploadJSON(){
 
+        },
+        formDate(r){
+            let day = r.modifiedAt.day.toString();
+            while(day.length < 2) day = '0' + day
+
+            let month = r.modifiedAt.month.toString();
+            while(month.length < 2) month = '0' + month
+
+            let year = r.modifiedAt.year.toString();
+            while(year.length < 2) year = '0' + year
+
+            return `${year}-${month}-${day}`
         }
     }
 }
