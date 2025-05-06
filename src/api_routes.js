@@ -31,6 +31,7 @@ function error(str) {
 }
 
 async function ensureFilledInBy(reportId, login) {
+  if (login === null) return;
   const relation = await matchOne(
     "u:User:Active",
     {},
@@ -86,14 +87,20 @@ const api_routes = {
     );
   },
   // 3. Reports on a brigade
-  "brigade_reports/brigadeNumber:uint": async (args) => {
+  "brigade_reports/brigadeNumber:uint": async ({ brigadeNumber }) => {
     const getReports = async (kind) =>
-      await match("u:User:Brigadier:Active", args, {
-        link: `[:FILLED_IN]->(r:Report:Complete)-[:ON_CALL]->(cf:CallForm:${kind})-[:CREATED_BY]->(o:User:Operator)`,
-        results: ["u", "o", "r", "cf"],
-        orderBy: "cf.createdAt DESC",
-        orelse: [],
-      });
+      await match(
+        `r:Report:${kind}`,
+        {},
+        {
+          link: `[:ON_CALL]->(cf:CallForm:Complete)-[:CREATED_BY]->(o:User:Operator)`,
+          where: matchAny("cf.assignedTo", brigadeNumber),
+          optional_match: "(u:User:Brigadier:Active)-[:FILLED_IN]->(r)",
+          results: ["u", "o", "r", "cf"],
+          orderBy: "cf.createdAt DESC",
+          orelse: [],
+        },
+      );
     return {
       complete_reports: await getReports("Complete"),
       incomplete_reports: await getReports("Incomplete"),
