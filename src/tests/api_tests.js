@@ -101,7 +101,7 @@ const tests = {
       cf: callFormPattern,
     }),
   },
-  "fill_report?reportId=99999d&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere":
+  "fill_report?reportId=99999&login=brigadier_igor&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere":
     err("Report not found"),
   "create_callform?login=operator_inkognito&callSource=Vasya&fireAddress=ITMO&bottomLeft=10;20&topRight=30;40&fireType=expansive&fireRank=3&victimsCount=0&assignedTo=1&auto=Пожарная машина 4":
     err("Operator operator_inkognito not found"),
@@ -115,11 +115,11 @@ const tests = {
         query: "complete_callform?callformId=$id",
         then: {
           ensure: callFormPattern,
-          query: "new_report?callformId=$id&login=brigadier_igor",
+          query: "new_report?callformId=$id",
           then: {
             ensure: reportPattern,
             query:
-              "fill_report?reportId=$id&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere",
+              "fill_report?reportId=$id&login=brigadier_igor&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere",
             then: {
               ensure: reportPattern,
               query: "delete_report?reportId=$id",
@@ -134,8 +134,7 @@ const tests = {
         },
       },
     },
-  "new_report?callformId=919294&login=brigadier_igor":
-    err("CallForm not found"),
+  "new_report?callformId=919294": err("CallForm not found"),
   "complete_callform?callformId=209824": err("CallForm not found"),
   "operator_callforms?login=operator_dmitriy": {
     complete_callforms: listOf(callFormPattern),

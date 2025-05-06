@@ -30,6 +30,30 @@ function error(str) {
   return { error: str };
 }
 
+async function ensureFilledInBy(reportId, login) {
+  const relation = await matchOne(
+    "u:User:Active",
+    {},
+    {
+      link: `[:FILLED_IN]->(r:Report${props({ reportId })})`,
+      results: ["u"],
+      then: (user) => user.login,
+      orelse: () => null,
+    },
+  );
+  if (relation === null)
+    await matchOne(
+      "u:User:Active",
+      { login },
+      {
+        match: `(r:Report${props({ reportId })})`,
+        create: "(u)-[:FILLED_IN]->(r)",
+      },
+    );
+  else if (relation.login !== login.value)
+    return error("The report is already created by another user");
+}
+
 const api_routes = {
   // 1. All information on user from their login and password
   "login_user/login:string password:password": async ({ login, password }) => {
@@ -77,15 +101,18 @@ const api_routes = {
     };
   },
   // 4. Fill in a report
-  "fill_report/reportId:id waterSpent:uint foamSpent:uint allegedFireCause damage:uint additionalNotes":
+  "fill_report/reportId:id login:string waterSpent:uint foamSpent:uint allegedFireCause damage:uint additionalNotes":
     async (args) => {
       const login = fishOut(args, ({ k }) => k === "login");
-      return await matchOne(`r:Report`, fishOutTypes(args, ["id"]), {
-        where: "NOT r:Complete",
-        remove: { r: ["New"] },
-        set: { r: { ...args, label: makeLabel("Complete") } },
-        orelse: error("Report not found"),
-      });
+      return (
+        (await ensureFilledInBy(args.reportId, login)) ??
+        (await matchOne(`r:Report`, fishOutTypes(args, ["id"]), {
+          where: "NOT r:Complete",
+          remove: { r: ["New"] },
+          set: { r: { ...args, label: makeLabel("Complete") } },
+          orelse: error("Report not found"),
+        }))
+      );
     },
   // 5. Create a new callform
   "create_callform/login:string departureAt:datetime? arrivalAt:datetime? callFinishedAt:datetime? callSource? fireAddress? bottomLeft:point? topRight:point? fireType? fireRank:string? victimsCount:uint? assignedTo:uint[]? auto?":
@@ -201,12 +228,11 @@ const api_routes = {
     };
   },
   // 11. Create a new report based on complete callform
-  "new_report/callformId:id login:string": async ({ callformId, login }) => {
+  "new_report/callformId:id": async ({ callformId }) => {
     return await matchOne(
       "cf:CallForm:Complete",
       { callformId },
       {
-        match: `(u:User:Brigadier:Active { login: "${login.value}" })`,
         create: `(r:Report:New {
           waterSpent: 0,
           foamSpent: 0,
@@ -215,8 +241,7 @@ const api_routes = {
           additionalNotes: "Данные ещё не внесены, ожидается завершение отчёта.",
           modifiedAt: datetime()
         })
-        CREATE (r)-[:ON_CALL]->(cf)
-        CREATE (u)-[:FILLED_IN]->(r)`,
+        CREATE (r)-[:ON_CALL]->(cf)`,
         results: ["r"],
         orelse: error("CallForm not found"),
       },
@@ -294,21 +319,24 @@ const api_routes = {
     });
   },
   // Save report draft (incomplete)
-  "incomplete_report/reportId:id waterSpent:uint? foamSpent:uint? allegedFireCause? damage:uint? additionalNotes?":
+  "incomplete_report/reportId:id login:string waterSpent:uint? foamSpent:uint? allegedFireCause? damage:uint? additionalNotes?":
     async (args) => {
       const login = fishOut(args, ({ k }) => k === "login");
-      return await matchOne(`r:Report`, fishOutTypes(args, ["id"]), {
-        remove: { r: ["New"] },
-        set: {
-          r: {
-            ...args,
-            label: makeLabel("Incomplete"),
-            modifiedAt: now(),
+      return (
+        (await ensureFilledInBy(args.reportId, login)) ??
+        (await matchOne(`r:Report`, fishOutTypes(args, ["id"]), {
+          remove: { r: ["New"] },
+          set: {
+            r: {
+              ...args,
+              label: makeLabel("Incomplete"),
+              modifiedAt: now(),
+            },
           },
-        },
-        results: ["r"],
-        orelse: error("Report not found"),
-      });
+          results: ["r"],
+          orelse: error("Report not found"),
+        }))
+      );
     },
   // Remove user
   "remove_user/login:string": async (args) => {
