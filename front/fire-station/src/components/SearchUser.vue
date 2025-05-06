@@ -270,8 +270,8 @@ export default {
     background-color: white;
 }
 
-.component-label__container > label {
-    font-size: x-large;
+.component-label__container>label {
+    font-size: xx-large;
     font-weight: bolder;
 }
 
@@ -293,12 +293,12 @@ export default {
     border-radius: 0 0 20px 20px;
     background-color: white;
     height: 100%;
-    padding: 24px;
+    padding-left: 4vw;
+    padding-top: 2vw;
 }
 
-.userinfo__input,
-span {
-    font-size: large;
+.userinfo__input, span {
+    font-size: x-large;
     margin-bottom: 10px;
 }
 
@@ -306,8 +306,8 @@ span {
     margin-left: 20px;
 }
 
-input[type="text"] {
-    width: 600px;
+input[type="text"]{
+    width: 30vw;
 }
 
 input[type="number"] {
@@ -316,8 +316,8 @@ input[type="number"] {
 
 input[type="radio"] {
     cursor: pointer;
-    transform: scale(1.5);
-    margin: 15px;
+    transform: scale(2.5);
+    margin: 20px;
 }
 
 .brigade-text__avaliable {
@@ -329,12 +329,12 @@ input[type="radio"] {
 }
 
 .date__input {
-    padding: 5px;
+    padding: 0.5vw;
 }
 
 #submit-button {
     cursor: pointer;
-    font-size: large;
+    font-size: x-large;
     border-radius: 10px;
     border: none;
     padding: 10px 20px 10px 20px;
@@ -347,8 +347,8 @@ input[type="radio"] {
 
 .table__container {
     width: 95%;
-    font-size: medium;
-    max-height: 185px;
+    font-size: large;
+    max-height: 19.5vh;
     overflow-y: scroll;
 }
 
@@ -360,10 +360,44 @@ input[type="radio"] {
 
 .row__table > td {
     border: 1px solid black;
-    height: 23px;
+    height: 3.5vh;
 }
 
 th {
-    height: 25px;
+    height: 3.5vh;
+}
+
+.editButton {
+    cursor: pointer;
+    transform: scale(1.2);
+}
+
+@media (max-width: 1500px){
+    .component-label__container>label {
+        font-size: x-large;
+        font-weight: bolder;
+    }
+    .userinfo__input, span {
+        font-size: medium;
+        margin-bottom: 5px;
+    }
+    input[type="radio"] {
+        cursor: pointer;
+        transform: scale(2);
+        margin: 15px;
+    }
+    #submit-button {
+        cursor: pointer;
+        font-size: large;
+        border-radius: 10px;
+        border: none;
+        padding: 10px 20px 10px 20px;
+        background-color: #A7A3CC;
+    }
+    .editButton {
+        cursor: pointer;
+        transform: scale(1);
+    }
+
 }
 </style>

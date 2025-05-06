@@ -188,4 +188,19 @@ export default {
 .submit-button:hover:not(:disabled) {
     background-color: #766EBF;
 }
+
+@media (max-width: 1500px) {
+    .statistics__text {
+        font-size: 15px;
+    }
+    .submit-button {
+        font-size: 15px;
+        font-weight: 500;
+        border-radius: 8px;
+        border: none;
+        padding: 0.5rem 1rem;
+        background-color: #A7A3CC;
+        margin: 0;
+    }
+}
 </style>
