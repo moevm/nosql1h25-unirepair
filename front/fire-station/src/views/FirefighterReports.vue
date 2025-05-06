@@ -51,7 +51,7 @@ onMounted(async () => {
 
     const transformReports = (reportsArr, status) =>
       reportsArr.map(({ u, o, r, cf }) => ({
-        brigadier: `${u.familyName} ${u.firstName} ${u.fatherName}`,
+        brigadier: u ? `${u.familyName} ${u.firstName} ${u.fatherName}` : "-",
         operator: `${o.familyName} ${o.firstName} ${o.fatherName}`,
         id: r.id,
         damage: r.damage,
