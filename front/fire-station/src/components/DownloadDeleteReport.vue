@@ -470,4 +470,45 @@ th {
         font-size: medium;
     }
 }
+
+@media (max-width: 1500px){
+    .component-label__container>label {
+        font-size: x-large;
+        font-weight: bolder;
+    }
+    .userinfo__input, span {
+        font-size: large;
+        margin-bottom: 5px;
+    }
+    input[type="radio"] {
+        cursor: pointer;
+        transform: scale(2);
+        margin: 15px;
+    }
+    #submit-button {
+        cursor: pointer;
+        font-size: medium;
+        border-radius: 10px;
+        border: none;
+        padding: 10px 20px 10px 20px;
+        background-color: #A7A3CC;
+    }
+    .editButton {
+        cursor: pointer;
+        transform: scale(1);
+    }
+    .checkbox {
+        transform: scale(150%);
+    }
+    .row__table>td {
+        border: 1px solid black;
+        height: 3.5vh;
+        font-size: small;
+    }
+
+    th {
+        height: 3.5vh;
+        font-size: small;
+    }
+}
 </style>
