@@ -5,6 +5,7 @@
     "foamSpent": 200,
     "allegedFireCause": "неосторожное обращение с огнём",
     "damage": 50000,
+    "equipmentDamage": "сломано крепление на лестнице",
     "additionalNotes": "Пожар был локализован быстро.",
     "modifiedAt": "2025-03-01T12:00:00Z"
   },
@@ -14,6 +15,7 @@
     "foamSpent": 150,
     "allegedFireCause": "короткое замыкание",
     "damage": 150000,
+    "equipmentDamage": "повреждена рукавная линия высокого давления",
     "additionalNotes": "Возникло сильное задымление, необходима вентиляция.",
     "modifiedAt": "2025-03-20T17:30:00Z"
   },
@@ -23,6 +25,7 @@
     "foamSpent": 50,
     "allegedFireCause": "поджог",
     "damage": 25000,
+    "equipmentDamage": "неисправность в системе подачи пены",
     "additionalNotes": "Пожар был быстро потушен, но требуется расследование.",
     "modifiedAt": "2025-03-22T14:15:00Z"
   },
@@ -32,6 +35,7 @@
     "foamSpent": 0,
     "allegedFireCause": "неизвестно",
     "damage": 0,
+    "equipmentDamage": "",
     "additionalNotes": "Данные ещё не внесены, ожидается завершение отчёта.",
     "modifiedAt": "2025-03-30T10:50:00Z"
   },
@@ -41,6 +45,7 @@
     "foamSpent": 0,
     "allegedFireCause": "неизвестно",
     "damage": 0,
+    "equipmentDamage": "",
     "additionalNotes": "Данные ещё не внесены, ожидается завершение отчёта.",
     "modifiedAt": "2025-02-25T10:00:00Z"
   },
@@ -50,6 +55,7 @@
     "foamSpent": 0,
     "allegedFireCause": "неизвестно",
     "damage": 0,
+    "equipmentDamage": "",
     "additionalNotes": "Данные ещё не внесены, ожидается завершение отчёта.",
     "modifiedAt": "2025-03-04T10:30:00Z"
   },
@@ -59,6 +65,7 @@
     "foamSpent": 0,
     "allegedFireCause": "неизвестно",
     "damage": 0,
+    "equipmentDamage": "",
     "additionalNotes": "Данные ещё не внесены, ожидается завершение отчёта.",
     "modifiedAt": "2025-03-03T10:20:00Z"
   }

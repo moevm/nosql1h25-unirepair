@@ -12,17 +12,18 @@ class ApiRoute {
 
   async apply(rawQuery, prehandledState) {
     assert.assertObject(rawQuery);
-    const query = this.scheme.applyScheme(rawQuery);
-    console.log(
-      `GET with query: ${JSON.stringify(rawQuery)} -> ${JSON.stringify(query)}`,
-    );
-    if (query.constructor === "".constructor) {
+    try {
+      const query = this.scheme.applyScheme(rawQuery);
       console.log(
-        `Failed to process query: ${query}\nQuery was: ${JSON.stringify(rawQuery)}`,
+        `GET with query: ${JSON.stringify(rawQuery)} -> ${JSON.stringify(query)}`,
       );
-      return null;
+      return await this.handler(query, prehandledState);
+    } catch (error) {
+      console.log(
+        `=====================\nFailed to process query: ${error.stack}\nQuery was: ${JSON.stringify(rawQuery)}\n=====================`,
+      );
+      return { error: "Internal server error" };
     }
-    return await this.handler(query, prehandledState);
   }
 }
 
@@ -62,18 +63,19 @@ export default class ApiRouter {
     const result = express.Router();
     for (const [name, route] of Object.entries(this.apiRoutes)) {
       result.get(`/${this.apiName}/${name}`, async (req, res) => {
-        if (!isReady()) {
-          console.log("Got a query, but the server is not ready yet");
-          res.send(null);
-        }
         try {
-          let answer = await route.apply(req.query);
-          res.send(answer);
+          if (!isReady()) {
+            console.log("Got a query, but the server is not ready yet");
+            res.send({ error: "Server not ready" });
+          } else {
+            let answer = await route.apply(req.query);
+            res.send(answer);
+          }
         } catch (err) {
           console.error(
             `Error occured when proccessing route /${this.apiName}/${name}\nError: ${err}\nQuery: ${JSON.stringify(req.query)}`,
           );
-          res.send(null);
+          if (!res.headersSent) res.send({ error: "Internal server error" });
         }
       });
     }
