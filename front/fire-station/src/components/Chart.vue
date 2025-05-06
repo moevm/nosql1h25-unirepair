@@ -32,6 +32,8 @@ export default {
                 type: 'line',
                 data: this.chartData,
                 options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             display: true, // Явно включите отображение
@@ -62,7 +64,6 @@ export default {
 
 <style scoped>
 .chart__container {
-    width: 100%;
-    max-height: 45%;
+    height: 45vh;
 }
 </style>

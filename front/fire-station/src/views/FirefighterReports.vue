@@ -57,6 +57,7 @@ onMounted(async () => {
         damage: r.damage,
         waterSpent: r.waterSpent,
         foamSpent: r.foamSpent,
+        equipmentDamage: r.equipmentDamage,
         additionalNotes: r.additionalNotes,
         allegedFireCause: r.allegedFireCause,
         status,
@@ -71,6 +72,7 @@ onMounted(async () => {
         assignedTo: cf.assignedTo,
         callId: cf.id,
       }));
+
 
     const allReports = [
       ...transformReports(complete_reports, "complete"),

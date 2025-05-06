@@ -1,5 +1,5 @@
 <template>
-    <div class="edit-options">
+    <div class="edit-options font-settings">
         <button @click="$emit('component-change', 'addUser')" class="edit-options__link">
             <img class="sidebar__icon" src="/icons/addUser.svg" />
             Добавить пользователя
@@ -42,15 +42,15 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;  
+    justify-content: center;
     background-color: white;
-    padding: 60px;
+    padding: 100px;
     border-radius: 20px;
-    width: 100%;
-    max-width: 400px;
-    max-height: 300px;
+    max-width: 25vw;
+    height: 40vh;
     text-decoration: none;
     color: black;
-    font-size: x-large;
+    font-size: xx-large;
     text-align: center;
     gap: 30px;
     border: none;
@@ -58,11 +58,32 @@ export default {
 }
 
 .edit-options__link>img {
-    height: 100px;
+    height: 20vw;
     width: auto;
 }
 
 .edit-options__link:hover {
     background-color: #766EBF;
+}
+
+@media (max-width: 1300px){
+    .edit-options__link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;  
+        justify-content: center;
+        background-color: white;
+        padding: 100px;
+        border-radius: 20px;
+        max-width: 30vw;
+        height: 40vh;
+        text-decoration: none;
+        color: black;
+        font-size: x-large;
+        text-align: center;
+        gap: 30px;
+        border: none;
+        cursor: pointer;
+    }
 }
 </style>
