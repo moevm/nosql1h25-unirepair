@@ -240,6 +240,7 @@ async function sendReport() {
             foamSpent: report.foamSpent ?? 0,
             allegedFireCause: report.allegedFireCause ?? "",
             damage: report.damage ?? 0,
+            equipmentDamage: report.equipmentDamage?.trim() || "Оборудование не повреждено",
             additionalNotes: report.additionalNotes ?? "",
         });
         if (response === null) return;

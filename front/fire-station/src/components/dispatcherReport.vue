@@ -1,7 +1,7 @@
 <template xmlns="http://www.w3.org/1999/html">
   <div class="report">
     <button class="close-btn" @click="$emit('close')">✖</button>
-    <h2 class="report__title">Отчет №{{ reportData.number }}</h2>
+    <h2 class="report__title">Отчет №{{ reportData.id }}</h2>
 
     <section class="report__block report__block__border">
       <div><b>№ Бригады:</b> {{ reportData.assignedTo }}</div>

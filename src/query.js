@@ -306,7 +306,10 @@ export async function match(what, conditions, options = {}) {
 }
 
 export async function matchOne(what, conditions, options = {}) {
-  if (options.orelse === undefined)
+  if (
+    options.orelse === undefined &&
+    (options.results !== undefined || options.detach === undefined)
+  )
     options.orelse = () =>
       assert.assert(false, "Got empty result in matchOne function");
   if (typeof options.then === "function") {
