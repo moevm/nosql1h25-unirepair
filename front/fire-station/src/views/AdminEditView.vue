@@ -1,14 +1,16 @@
 <template>
     <div class="layout">
         <Sidebar class="sidebar"/>
-        <AdminEditOptions @component-change="activeComponent = $event" v-show="activeComponent === 'menu'"/>
-        
-        <!--Ниже будут остальные компоненты редактирования, которые будут переключаться между собой-->
-        <AddUser @component-change="activeComponent = $event" v-show="activeComponent === 'addUser'"/>
-        <SearchUser @component-change="activeComponent = $event" v-show="activeComponent === 'searchUser'" />
-        <EditUser @component-change="activeComponent = $event" v-show="activeComponent === 'editUser'" />
-        <DeleteUser @component-change="activeComponent = $event" v-show="activeComponent === 'deleteUser'" />
-        <DownloadDeleteReport @component-change="activeComponent = $event" v-show="activeComponent === 'downloadDeleteReport'" />
+        <div class="block">
+            <AdminEditOptions @component-change="activeComponent = $event" v-show="activeComponent === 'menu'"/>
+            
+            <!--Ниже будут остальные компоненты редактирования, которые будут переключаться между собой-->
+            <AddUser @component-change="activeComponent = $event" v-show="activeComponent === 'addUser'"/>
+            <SearchUser @component-change="activeComponent = $event" v-show="activeComponent === 'searchUser'" />
+            <EditUser @component-change="activeComponent = $event" v-show="activeComponent === 'editUser'" />
+            <DeleteUser @component-change="activeComponent = $event" v-show="activeComponent === 'deleteUser'" />
+            <DownloadDeleteReport @component-change="activeComponent = $event" v-show="activeComponent === 'downloadDeleteReport'" />
+        </div>
     </div>
 </template>
 
@@ -37,5 +39,13 @@ export default {
 .layout {
   display: flex;
   background-color: #CED0E9;
+}
+
+.block {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    overflow-y: auto;
+    position: relative;
 }
 </style>

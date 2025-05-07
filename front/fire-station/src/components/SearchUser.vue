@@ -52,7 +52,7 @@
             <div class="table__container">
                 <table class="users__table">
                     <thead style="position: sticky; top: 0; background-color: white; border: 1px solid black; z-index: 10;">
-                        <tr>
+                        <tr style="height: var(--head-row-height)">
                             <th></th>
                             <th>ФИО</th>
                             <th>Должность</th>
@@ -61,7 +61,7 @@
                     </thead>
                     <tbody>
                         <tr class="row__table" v-for="(user, index) in foundUsers" :key="index">
-                            <td style="width: 3%; text-align: center;">
+                            <td style="width: 3%">
                                 <img src="/icons/editUser.svg" class="editButton" @click="goToEditUserData(index)">
                             </td>
                             <td style="width: 50%; padding-left: 10px;">{{ user.familyName + ' ' + user.firstName + ' ' + user.fatherName }}</td>
@@ -69,7 +69,7 @@
                             <td style="text-align: center; width: 8%">{{ user.brigadeNumber > 0 ? user.brigadeNumber : '-' }}</td>
                         </tr>    
                         <tr class="row__table" v-if="foundUsers.length < 4" v-for="index in (4 - foundUsers.length)">
-                            <td style="width: 3%; text-align: center;">
+                            <td style="width: 3%">
                                 <img src="/icons/editUser.svg" class="editButton">
                             </td>
                             <td style="width: 50%"></td>
@@ -89,6 +89,7 @@ import axios from 'axios';
 
 export default {
     name: 'SearchUserComponent',
+
     data() {
         return {
             name: '',
@@ -109,7 +110,10 @@ export default {
                 "Operator": "Оператор",
                 "Admin": "Администратор"
             },
-            useRole: false
+            useRole: false,
+            
+            cellHeight: 33,
+            border: 1
         }
     },
     methods: {
@@ -164,11 +168,10 @@ export default {
 <style scoped>
 .searchUser__container {
     width: 100%;
-    margin: 24px;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    box-sizing: border-box;
+    margin: 24px;
 }
 
 .component-label__container {
@@ -176,6 +179,7 @@ export default {
     border-radius: 20px 20px 0 0;
     padding: 10px;
     background-color: white;
+    position: relative;
 }
 
 .component-label__container>label {
@@ -187,8 +191,8 @@ export default {
     position: absolute;
     cursor: pointer;
     padding: 10px;
-    right: 30px;
-    top: 30px;
+    right: 5px;
+    top: 5px;
     height: auto;
 }
 
@@ -203,11 +207,12 @@ export default {
     height: 100%;
     padding-left: 4vw;
     padding-top: 2vw;
+    padding-bottom: 2vh;
 }
 
 .userinfo__input, span {
     font-size: x-large;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
 .userinfo__input {
@@ -254,10 +259,15 @@ input[type="radio"] {
 }
 
 .table__container {
+    --row-height: 35px;
+    --head-row-height: 33px;
+
     width: 95%;
     font-size: large;
-    max-height: 19.5vh;
     overflow-y: scroll;
+    max-height: calc(
+        var(--head-row-height) + 4 * var(--row-height)
+    );
 }
 
 .users__table {
@@ -266,27 +276,29 @@ input[type="radio"] {
     border-spacing: 0;
 }
 
-.row__table>td {
-    border: 1px solid black;
-    height: 3.5vh;
+.row__table {
+    height: var(--row-height);
 }
 
-th {
-    height: 3.5vh;
+.row__table>td {
+    border: 1px solid black;
+    position: relative;
 }
 
 .editButton {
     cursor: pointer;
-    transform: scale(1.2);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1.2);
 }
 
 @media (max-width: 1500px){
     .component-label__container>label {
         font-size: x-large;
-        font-weight: bolder;
     }
     .userinfo__input, span {
-        font-size: large;
+        font-size: medium;
         margin-bottom: 5px;
     }
     input[type="radio"] {
@@ -295,17 +307,15 @@ th {
         margin: 15px;
     }
     #submit-button {
-        cursor: pointer;
         font-size: large;
-        border-radius: 10px;
-        border: none;
-        padding: 10px 20px 10px 20px;
-        background-color: #A7A3CC;
     }
     .editButton {
         cursor: pointer;
-        transform: scale(1);
+        transform: translate(-50%, -50%) scale(1);
     }
-
+    .table__container {
+        width: 95%;
+        font-size: medium;
+    }
 }
 </style>

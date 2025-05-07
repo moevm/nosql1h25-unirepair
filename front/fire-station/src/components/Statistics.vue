@@ -36,6 +36,10 @@ import range from '@/common/range';
 export default {
     name: 'StatisticsComponent',
     components: {Chart},
+    setup(){
+        const a = document.createElement('a');
+        return {a}
+    },
     data(){
         return {
             selected: 'calls',
@@ -43,6 +47,7 @@ export default {
             foamUsage: true,
             date_begin: '',
             date_end: '',
+            fileName: 'Вызовы',
 
             statisticsData: []
         }
@@ -67,6 +72,7 @@ export default {
                         borderColor: '#ff0000'
                     }
                 ) 
+                this.fileName = "Вызовы"
             }
             else if(this.selected === 'usage'){
                 await axios.get(`http://localhost:3000/api/report_search?modifiedAt=${range(this.date_begin, this.date_end)}`).then(req => this.statisticsData = req.data);
@@ -100,6 +106,7 @@ export default {
                         }
                     )
                 }
+                this.fileName = "Расход"
             } 
 
             this.$refs.chart.updateChart({
@@ -109,7 +116,9 @@ export default {
             )
         },
         downloadData(){
-
+            this.a.href = this.$refs.chart.getImageString();
+            this.a.download = `Статистика-${this.fileName}.png`
+            this.a.click();
         },
         saveJSON(){
 
@@ -200,13 +209,13 @@ export default {
 
 .save-button {
     position: absolute;
-    bottom: 20px;
+    bottom: 10px;
     left: 20px;
 }
 
 .load-button {
     position: absolute;
-    bottom: 20px;
+    bottom: 10px;
     right: 20px;
 }
 

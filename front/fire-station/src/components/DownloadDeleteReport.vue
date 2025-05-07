@@ -1,98 +1,92 @@
 <template>
     <div class="searchUser__container">
-        <div style="display: flex; flex-direction: column; gap: 2px;" :class="{'blured-content__container': showAlert}">
-            <div class="component-label__container">
-                <img id="exit-icon" src="/icons/exit.svg" @click="$emit('component-change', 'menu')">
-                <label>Найти/удалить отчеты</label>
+        <div class="component-label__container">
+            <img id="exit-icon" src="/icons/exit.svg" @click="$emit('component-change', 'menu')">
+            <label>Найти/удалить отчеты</label>
+        </div>
+        <div class="component-userinfo__container">
+            <span>Фамилия:</span>
+            <input type="text" v-model="surname" class="userinfo__input">
+            <br>
+            <span>Имя:</span>
+            <input type="text" v-model="name" class="userinfo__input">
+            <br>
+            <span>Отчество:</span>
+            <input type="text" v-model="patronymic" class="userinfo__input">
+            <br> 
+            
+            <input
+                type="checkbox"
+                v-model="useRole"
+                style="margin-right: 10px; transform: scale(1.5)"
+            />
+            <span>Должность:</span>
+            <br>
+            <input type="radio" v-model="role" value="Fireman" @click="info" class="userinfo__input" :disabled="!useRole">
+            <span>Пожарный</span>
+            <input type="radio" v-model="role" value="Brigadier" @click="info" class="userinfo__input" :disabled="!useRole">
+            <span>Бригадир</span>
+            <br>
+            <input type="radio" v-model="role" value="Operator" @click="info" class="userinfo__input" :disabled="!useRole">
+            <span>Оператор</span>
+            <br>
+            <input type="radio" v-model="role" value="Admin" @click="info" class="userinfo__input" :disabled="!useRole"> 
+            <span>Администратор</span>  
+            <br>
+            <span :class="{'brigade-text__avaliable': role === 'Fireman' || role === 'Brigadier', 'brigade-text__unavaliable': role !== 'Fireman' && role !== 'Brigadier'}">Бригада:</span>
+            <input min="1" type="number" v-model="brigade" class="userinfo__input" :disabled="role !== 'Fireman' && role !== 'Brigadier' && useRole" @blur="correctBrigade">
+            <br>
+            <span>Дата вызова:</span>
+            <span style="margin-left: 160px;">от:</span><input type="date" class="date__input userinfo__input" v-model="callDate_begin">
+            <span style="margin-left: 40px;">до:</span><input type="date" class="date__input userinfo__input" v-model="callDate_end">
+            <br>
+            <span>Дата создания отчета:</span>
+            <span style="margin-left: 58px;">от:</span><input type="date" class="date__input userinfo__input" v-model="createDate_begin">
+            <span style="margin-left: 40px;">до:</span><input type="date" class="date__input userinfo__input" v-model="createDate_end">
+            <br>
+            <button id="submit-button" @click="searchReports">Отобразить</button>
+            <div class="table__container">
+                <table class="users__table">
+                    <thead style="position: sticky; top: 0; background-color: white; border: 1px solid black; z-index: 10;">
+                        <tr style="height: var(--head-row-height);">
+                            <th>
+                                <input type="checkbox" class="checkbox" :disabled="!foundReports.length" v-model="allSelected" @click="() => {allSelected = !allSelected; selectedReports.fill(allSelected)}">
+                                <span style="position: absolute; top: -3px; margin-left: 10px; font-size: small;">Выбрать<br>всех</span>
+                            </th>
+                            <th>Название отчета</th>
+                            <th>ФИО</th>
+                            <th>Должность</th>
+                            <th>Бр.</th>
+                            <th>Дата создания</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="row__table" v-for="(report, index) in foundReports" :key="index">
+                            <td style="width: 3%; text-align: center;">
+                                <input type="checkbox" class="checkbox" v-model="selectedReports[index]" @click="handleCheckboxClick(index)">
+                            </td>
+                            <td style="width: 30%; padding-left: 10px">{{ formReportName(report.cf) }}</td>
+                            <td style="width: 30%; padding-left: 10px;">{{ report.u.firstName + ' ' + report.u.familyName + ' ' + report.u.fatherName }}</td>
+                            <td style="padding-left: 10px; width: 20%">{{ rolesTranslations[findRole(report.u)] }}</td>
+                            <td style="text-align: center;">{{ report.u.brigadeNumber }}</td>
+                            <td style="width: 15%; text-align: center;">{{ formData(report.r) }}</td>
+                        </tr>    
+                        <tr class="row__table" v-if="foundReports.length < 4" v-for="index in (4 - foundReports.length)">
+                            <td style="width: 3%; text-align: center;">
+                                <input type="checkbox" class="checkbox" disabled>
+                            </td>
+                            <td style="width: 30%"></td>
+                            <td style="width: 30%"></td>
+                            <td style="width: 20%"></td>
+                            <td></td>
+                            <td style="width: 15%"></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="component-userinfo__container">
-                <span>Фамилия:</span>
-                <input type="text" v-model="surname" class="userinfo__input">
-                <br>
-                <span>Имя:</span>
-                <input type="text" v-model="name" class="userinfo__input">
-                <br>
-                <span>Отчество:</span>
-                <input type="text" v-model="patronymic" class="userinfo__input">
-                <br> 
-                
-                <input
-                    type="checkbox"
-                    v-model="useRole"
-                    style="margin-right: 10px; transform: scale(1.5)"
-                />
-                <span>Должность:</span>
-                <br>
-                <input type="radio" v-model="role" value="Fireman" @click="info" class="userinfo__input" :disabled="!useRole">
-                <span>Пожарный</span>
-                <input type="radio" v-model="role" value="Brigadier" @click="info" class="userinfo__input" :disabled="!useRole">
-                <span>Бригадир</span>
-                <br>
-                <input type="radio" v-model="role" value="Operator" @click="info" class="userinfo__input" :disabled="!useRole">
-                <span>Оператор</span>
-                <br>
-                <input type="radio" v-model="role" value="Admin" @click="info" class="userinfo__input" :disabled="!useRole"> 
-                <span>Администратор</span>  
-                <br>
-
-                <span :class="{'brigade-text__avaliable': role === 'Fireman' || role === 'Brigadier', 'brigade-text__unavaliable': role !== 'Fireman' && role !== 'Brigadier'}">Бригада:</span>
-                <input min="1" type="number" v-model="brigade" class="userinfo__input" :disabled="role !== 'Fireman' && role !== 'Brigadier' && useRole" @blur="correctBrigade">
-                <br>
-
-                <span>Дата вызова:</span>
-                <span style="margin-left: 160px;">от:</span><input type="date" class="date__input userinfo__input" v-model="callDate_begin">
-                <span style="margin-left: 40px;">до:</span><input type="date" class="date__input userinfo__input" v-model="callDate_end">
-                <br>
-                <span>Дата создания отчета:</span>
-                <span style="margin-left: 58px;">от:</span><input type="date" class="date__input userinfo__input" v-model="createDate_begin">
-                <span style="margin-left: 40px;">до:</span><input type="date" class="date__input userinfo__input" v-model="createDate_end">
-                <br>
-
-                <button id="submit-button" @click="searchReports">Отобразить</button>
-
-                <div class="table__container">
-                    <table class="users__table">
-                        <thead style="position: sticky; top: 0; background-color: white; border: 1px solid black; z-index: 10;">
-                            <tr>
-                                <th>
-                                    <input type="checkbox" class="checkbox" :disabled="!foundReports.length" v-model="allSelected" @click="() => {allSelected = !allSelected; selectedReports.fill(allSelected)}">
-                                    <span style="position: absolute; top: -3px; margin-left: 10px; font-size: small;">Выбрать<br>всех</span>
-                                </th>
-                                <th>Название отчета</th>
-                                <th>ФИО</th>
-                                <th>Должность</th>
-                                <th>Бр.</th>
-                                <th>Дата создания</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="row__table" v-for="(report, index) in foundReports" :key="index">
-                                <td style="width: 3%; text-align: center;">
-                                    <input type="checkbox" class="checkbox" v-model="selectedReports[index]" @click="handleCheckboxClick(index)">
-                                </td>
-                                <td style="width: 30%; padding-left: 10px">{{ formReportName(report.cf) }}</td>
-                                <td style="width: 30%; padding-left: 10px;">{{ report.u.firstName + ' ' + report.u.familyName + ' ' + report.u.fatherName }}</td>
-                                <td style="padding-left: 10px; width: 20%">{{ rolesTranslations[findRole(report.u)] }}</td>
-                                <td style="text-align: center;">{{ report.u.brigadeNumber }}</td>
-                                <td style="width: 15%; text-align: center;">{{ formData(report.r) }}</td>
-                            </tr>    
-                            <tr class="row__table" v-if="foundReports.length < 4" v-for="index in (4 - foundReports.length)">
-                                <td style="width: 3%; text-align: center;">
-                                    <input type="checkbox" class="checkbox" disabled>
-                                </td>
-                                <td style="width: 30%"></td>
-                                <td style="width: 30%"></td>
-                                <td style="width: 20%"></td>
-                                <td></td>
-                                <td style="width: 15%"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding-right: 72px;">
-                    <button id="submit-button" @click="downloadSelectedReports" :disabled="!selectedReports.reduce((acc, num) => acc || num, false)">Скачать</button>
-                    <button id="submit-button" @click="showAlert=true" :disabled="!selectedReports.reduce((acc, num) => acc || num, false)">Удалить</button>
-                </div>
+            <div style="display: flex; justify-content: space-between; padding-right: 72px;">
+                <button id="submit-button" @click="downloadSelectedReports" :disabled="!selectedReports.reduce((acc, num) => acc || num, false)">Скачать</button>
+                <button id="submit-button" @click="showAlert=true" :disabled="!selectedReports.reduce((acc, num) => acc || num, false)">Удалить</button>
             </div>
         </div>
         <div v-if="showAlert" class="alert__container">
@@ -346,10 +340,15 @@ input[type="radio"] {
 }
 
 .table__container {
+    --row-height: 35px;
+    --head-row-height: 33px;
+
     width: 95%;
     font-size: large;
-    max-height: 16vh;
     overflow-y: scroll;
+    max-height: calc(
+        var(--head-row-height) + 4 * var(--row-height)
+    );
 }
 
 .users__table {
@@ -358,13 +357,13 @@ input[type="radio"] {
     border-spacing: 0;
 }
 
-.row__table>td {
-    border: 1px solid black;
-    height: 3.5vh;
+.row__table {
+    height: var(--row-height)
 }
 
-th {
-    height: 3.5vh;
+.row__table>td {
+    border: 1px solid black;
+    position: relative;
 }
 
 .checkbox {
@@ -436,7 +435,7 @@ th {
         font-weight: bolder;
     }
     .userinfo__input, span {
-        font-size: large;
+        font-size:medium;
         margin-bottom: 5px;
     }
     input[type="radio"] {
@@ -445,12 +444,8 @@ th {
         margin: 15px;
     }
     #submit-button {
-        cursor: pointer;
         font-size: medium;
-        border-radius: 10px;
-        border: none;
-        padding: 10px 20px 10px 20px;
-        background-color: #A7A3CC;
+        margin-bottom: 5px;
     }
     .editButton {
         cursor: pointer;
@@ -459,15 +454,12 @@ th {
     .checkbox {
         transform: scale(150%);
     }
-    .row__table>td {
-        border: 1px solid black;
-        height: 3.5vh;
+    .table__container {
+        margin-bottom: 5px;
         font-size: medium;
-    }
-
-    th {
-        height: 3.5vh;
-        font-size: medium;
+        max-height: calc(
+            var(--head-row-height) + 3 * var(--row-height)
+        );
     }
 }
 </style>
