@@ -292,7 +292,7 @@ input[type="radio"] {
     color: gray;
 }
 
-@media (max-width: 1500px){
+@media (max-height: 800px){
     .component-label__container>label {
         font-size: x-large;
         font-weight: bolder;

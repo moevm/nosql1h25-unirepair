@@ -1,29 +1,31 @@
 <template>
-    <div class="statistics__container">
-        <input type="radio" class="radio__input" v-model="selected" value="calls">
-        <span class="statistics__text text__choice">Вызовы</span>
-        <br>
-        <input type="radio" class="radio__input" v-model="selected" value="usage">
-        <span class="statistics__text text__choice">Расход:</span>
-        <div class="checkboxes__container">
-            <input type="checkbox" :disabled="selected !=='usage'" class="custom__checkbox" v-model="waterUsage"><span class="statistics__text text__choice">Воды</span>
+    <div class="block">
+        <div class="statistics__container">
+            <input type="radio" class="radio__input" v-model="selected" value="calls">
+            <span class="statistics__text text__choice">Вызовы</span>
             <br>
-            <input type="checkbox" :disabled="selected !=='usage'" class="custom__checkbox" v-model="foamUsage"><span class="statistics__text text__choice">Пены</span>
-        </div>
-        <span class="statistics__text">За период:</span>
-        <span class="statistics__text text__date">от:</span><input type="date" class="date__input" v-model="date_begin">
-        <span class="statistics__text text__date">до:</span><input type="date" class="date__input" v-model="date_end" :min="date_begin">
-        <br>
-        <div class="chart-buttons">
-            <button class="submit-button" @click="showChart">Отобразить</button>
-            <button class="submit-button" @click="downloadData" style="margin-left: 200px;">Скачать</button>
-        </div>
+            <input type="radio" class="radio__input" v-model="selected" value="usage">
+            <span class="statistics__text text__choice">Расход:</span>
+            <div class="checkboxes__container">
+                <input type="checkbox" :disabled="selected !=='usage'" class="custom__checkbox" v-model="waterUsage"><span class="statistics__text text__choice">Воды</span>
+                <br>
+                <input type="checkbox" :disabled="selected !=='usage'" class="custom__checkbox" v-model="foamUsage"><span class="statistics__text text__choice">Пены</span>
+            </div>
+            <span class="statistics__text">За период:</span>
+            <span class="statistics__text text__date">от:</span><input type="date" class="date__input" v-model="date_begin">
+            <span class="statistics__text text__date">до:</span><input type="date" class="date__input" v-model="date_end" :min="date_begin">
+            <br>
+            <div class="chart-buttons">
+                <button class="submit-button" @click="showChart">Отобразить</button>
+                <button class="submit-button" @click="downloadData" style="margin-left: 200px;">Скачать</button>
+            </div>
 
-        <Chart ref="chart" />
+            <Chart ref="chart" />
 
-        <div class="profile__buttons">
-            <button class="submit-button save-button" @click="saveJSON">Сохранить данные в json<br>формате</button>
-            <button class="submit-button load-button" @click="uploadJSON">Загрузить данные в json<br>формате</button>
+            <div class="profile__buttons">
+                <button class="submit-button save-button" @click="saveJSON">Сохранить данные в json<br>формате</button>
+                <button class="submit-button load-button" @click="uploadJSON">Загрузить данные в json<br>формате</button>
+            </div>
         </div>
     </div>
 </template>
@@ -154,6 +156,15 @@ export default {
     padding: 46px 50px;
     border-radius: 13px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    flex: 1;
+}
+
+.block {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow-y: auto;
+  position: relative;
 }
 
 .statistics__text {

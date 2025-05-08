@@ -283,7 +283,7 @@ export default {
 .component-userinfo__container {
     border-radius: 0 0 20px 20px;
     background-color: white;
-    height: 100%;
+    flex: 1;
     padding-left: 4vw;
     padding-top: 2vw;
 }
@@ -429,7 +429,7 @@ input[type="radio"] {
   cursor: not-allowed;
 }
 
-@media (max-width: 1500px){
+@media (max-height: 800px){
     .component-label__container>label {
         font-size: x-large;
         font-weight: bolder;

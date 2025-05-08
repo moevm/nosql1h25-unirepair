@@ -272,10 +272,10 @@ export default {
 .component-userinfo__container {
     border-radius: 0 0 20px 20px;
     background-color: white;
-    height: 100%;
     padding-left: 4vw;
     padding-top: 2vw;
     position: relative;
+    flex: 1;
 }
 
 .userinfo__input, span {
@@ -325,7 +325,7 @@ input[type="radio"] {
     color: gray;
 }
 
-@media (max-width: 1500px){
+@media (max-height: 800px){
     .component-label__container>label {
         font-size: x-large;
         font-weight: bolder;
