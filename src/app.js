@@ -9,6 +9,7 @@ import { props } from "./query.js";
 import { runApiTests } from "./tests/api_tests.js";
 import { argv } from "node:process";
 import cors from "cors";
+import { clearDB, loadDB } from "./loader.js";
 
 const app = express();
 const PORT = 3000;
@@ -78,105 +79,14 @@ function loadJSON(filename) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
-async function clearDB() {
-  const session = driver.session();
-  try {
-    await session.run("MATCH (n) DETACH DELETE n;");
-    console.log("База данных очищена.");
-  } catch (error) {
-    console.error("Ошибка при очистке данных: ", error);
-  } finally {
-    await session.close();
-  }
-}
-
 async function importData() {
-  const session = driver.session();
-  try {
-    // generateData(5, 5, 2, 10, 10, 10);
-    const users = loadJSON("users.json");
-    for (const user of users) {
-      await session.run(
-        `
-        CREATE (:User:${user.role}:${user.status} {
-          familyName: $familyName,
-          firstName: $firstName,
-          fatherName: $fatherName,
-          brigadeNumber: $brigadeNumber,
-          address: $address,
-          phone: $phone,
-          email: $email,
-          login: $login,
-          passwordHash: $passwordHash,
-          registeredAt: datetime($registeredAt),
-          modifiedAt: datetime($modifiedAt)
-        });
-      `,
-        user,
-      );
-    }
-
-    const callForms = loadJSON("call_forms.json");
-    for (const cf of callForms) {
-      await session.run(
-        `
-        CREATE (:CallForm:${cf.status} {
-          createdAt: datetime($createdAt),
-          modifiedAt: datetime($modifiedAt),
-          departureAt: datetime($departureAt),
-          arrivalAt: datetime($arrivalAt),
-          callFinishedAt: datetime($callFinishedAt),
-          callSource: $callSource,
-          fireAddress: $fireAddress,
-          bottomLeft: point($bottomLeft),
-          topRight: point($topRight),
-          fireType: $fireType,
-          fireRank: $fireRank,
-          victimsCount: $victimsCount,
-          assignedTo: $assignedTo,
-          auto: $auto
-        });
-      `,
-        cf,
-      );
-    }
-
-    const inventoryItems = loadJSON("inventory.json");
-    for (const item of inventoryItems) {
-      await session.run(`CREATE (:Inventory { name: $name });`, item);
-    }
-
-    const reports = loadJSON("reports.json");
-    for (const report of reports) {
-      await session.run(
-        `
-        CREATE (:Report:${report.status} {
-          waterSpent: $waterSpent,
-          foamSpent: $foamSpent,
-          allegedFireCause: $allegedFireCause,
-          damage: $damage,
-          equipmentDamage: $equipmentDamage,
-          additionalNotes: $additionalNotes,
-          modifiedAt: datetime($modifiedAt)
-        });`,
-        report,
-      );
-    }
-
-    const relationships = loadJSON("relationships.json");
-    for (const relation of relationships) {
-      await session.run(
-        `MATCH (start${props(relation.startNode)}),
-              (end${props(relation.endNode)})
-        CREATE (start)-[:${relation.relationshipType}]->(end);`,
-      );
-    }
-    console.log("Данные загружены");
-  } catch (error) {
-    console.error("Ошибка при импорте данных:", error);
-  } finally {
-    await session.close();
-  }
+  await loadDB({
+    users: loadJSON("users.json"),
+    callforms: loadJSON("call_forms.json"),
+    reports: loadJSON("reports.json"),
+    inventory: loadJSON("inventory.json"),
+    relationships: loadJSON("relationships.json"),
+  });
 }
 
 async function initializeDatabase() {

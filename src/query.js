@@ -1,5 +1,6 @@
 import * as assert from "./assert.js";
 import driver from "./db.js";
+import options from "./options.js";
 
 function optcat(prefix, value) {
   return value !== null && value !== undefined && value !== ""
@@ -176,7 +177,7 @@ export async function rawQuery(query, resultHandler = (x) => x) {
   let result = null;
   const session = driver.session();
   try {
-    console.log(`Query built: ${query}`);
+    if (!options.no_trace) console.log(`Query built: ${query}`);
     result = await session
       .executeWrite((tx) => tx.run(query))
       .then(resultHandler)
@@ -198,19 +199,21 @@ export async function create(what, values) {
   assert.assertObject(values);
   assert.assert(what.includes(":"));
   const key = what.split(":")[0];
+  const defaultHandler = (r) => r;
+  const keyHandler = (r) =>
+    r.records.map((record) => {
+      const tmp = record.get(key);
+      return tmp && tmp.identity !== undefined
+        ? {
+            ...tmp.properties,
+            labels: tmp.labels,
+            id: tmp.elementId,
+          }
+        : tmp;
+    })[0];
   return await rawQuery(
-    `CREATE (${what}${props(values)}) RETURN ${key};`,
-    (result) =>
-      result.records.map((record) => {
-        const tmp = record.get(key);
-        return tmp && tmp.identity !== undefined
-          ? {
-              ...tmp.properties,
-              labels: tmp.labels,
-              id: tmp.elementId,
-            }
-          : tmp;
-      })[0],
+    `CREATE (${what}${props(values)})${optcat(" RETURN ", key)};`,
+    key ? keyHandler : defaultHandler,
   );
 }
 

@@ -5,7 +5,7 @@ import { raw } from "express";
 function isISODateTime(value) {
   if (typeof value !== "string") return false;
   if (
-    /^\d{4}-(0[1-9]|10|11|12)-(0[1-9]|[12]\d|30|31)(T[0-2]\d:[0-5]\d(:[0-5]\d(\.\d+)?)?)?$/.test(
+    /^\d{4}-(0[1-9]|10|11|12)-(0[1-9]|[12]\d|30|31)(T[0-2]\d:[0-5]\d(:[0-5]\d(\.\d+)?Z?)?)?$/.test(
       value,
     ) === false
   )
@@ -13,7 +13,7 @@ function isISODateTime(value) {
   return !isNaN(new Date(value).valueOf());
 }
 
-function parseValue(expectedType, key, value) {
+export function parseValue(expectedType, key, value) {
   assert.assertString(expectedType);
   assert.assertString(key);
   assert.assertString(value);
@@ -57,7 +57,6 @@ function parseValue(expectedType, key, value) {
     case "point": {
       if (!value || !value.includes(";"))
         throw new Error(`${key} is expected to be point, but got ${value}`);
-      const [from, to] = value.split(";").map((x) => new Date(x));
       const [latitude, longitude] = value.split(";").map(parseFloat);
       if (
         isNaN(longitude) ||
