@@ -3,7 +3,7 @@ import options from "./options.js";
 import { create, rawQuery, match, props } from "./query.js";
 import { parseValue } from "./query_scheme.js";
 
-const userScheme = {
+const scheme = {
   role: "label",
   familyName: "string",
   firstName: "string",
@@ -17,12 +17,13 @@ const userScheme = {
   registeredAt: "datetime",
   modifiedAt: "datetime",
   status: "label",
-};
-
-const callFormScheme = {
-  status: "label",
+  waterSpent: "uint",
+  foamSpent: "uint",
+  allegedFireCause: "string",
+  damage: "uint",
+  equipmentDamage: "string",
+  additionalNotes: "string",
   createdAt: "datetime",
-  modifiedAt: "datetime",
   departureAt: "datetime",
   arrivalAt: "datetime",
   callFinishedAt: "datetime",
@@ -35,27 +36,17 @@ const callFormScheme = {
   victimsCount: "uint",
   assignedTo: "uint[]",
   auto: "string",
-};
-
-const reportScheme = {
-  status: "label",
-  waterSpent: "uint",
-  foamSpent: "uint",
-  allegedFireCause: "string",
-  damage: "uint",
-  equipmentDamage: "string",
-  additionalNotes: "string",
-  modifiedAt: "datetime",
-};
-
-const inventoryScheme = {
   name: "string",
 };
 
-function applyTypes(x, scheme) {
-  for (const key of Object.keys(x)) {
-    if (key === "id") continue;
-    if (key === "labels") {
+function applyTypes(x) {
+  const keys = [...Object.keys(x)];
+  for (const key of keys) {
+    if (key === "id") {
+      delete x[key];
+      continue;
+    }
+    if (key.startsWith("label")) {
       let i = 1;
       for (const l of x[key]) x[`label_${i++}`] = { value: l, type: "label" };
       delete x[key];
@@ -73,8 +64,8 @@ function applyTypes(x, scheme) {
     } else {
       if (type === "point") {
         const v = x[key];
-        if (v.longitude !== undefined && v.latitude !== undefined) {
-          x[key] = { value: v, type: "point" };
+        if (v.x !== undefined && v.y !== undefined) {
+          x[key] = { value: { longitude: v.x, latitude: v.y }, type: "point" };
           continue;
         }
       }
@@ -102,17 +93,15 @@ export async function loadDB(data) {
   assert.assertArray(data.inventory);
   assert.assertArray(data.relationships);
   options.no_trace = true;
-  for (const user of data.users)
-    await create(":User", applyTypes(user, userScheme));
-  for (const cf of data.callforms)
-    await create(":CallForm", applyTypes(cf, callFormScheme));
+  for (const user of data.users) await create(":User", applyTypes(user));
+  for (const cf of data.callforms) await create(":CallForm", applyTypes(cf));
   for (const report of data.reports)
-    await create(":Report", applyTypes(report, reportScheme));
+    await create(":Report", applyTypes(report));
   for (const item of data.inventory)
-    await create(":Inventory", applyTypes(item, inventoryScheme));
+    await create(":Inventory", applyTypes(item));
   for (const relation of data.relationships)
-    await match("start", relation.startNode, {
-      match: `(end${props(relation.endNode)})`,
+    await match("start", applyTypes(relation.startNode), {
+      match: `(end${props(applyTypes(relation.endNode))})`,
       create: `(start)-[:${relation.relationshipType}]->(end)`,
     });
   options.no_trace = false;

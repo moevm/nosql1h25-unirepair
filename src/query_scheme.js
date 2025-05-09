@@ -17,46 +17,43 @@ export function parseValue(expectedType, key, value) {
   assert.assertString(expectedType);
   assert.assertString(key);
   assert.assertString(value);
+  const onFailure = () => {
+    throw new Error(
+      `${key} is expected to be ${expectedType}, but got ${JSON.stringify(value)}`,
+    );
+  };
   switch (expectedType) {
     case "int": {
       const asInt = parseInt(value);
-      if (isNaN(asInt) || !isFinite(asInt))
-        throw new Error(`${key} is expected to be int, but got ${value}`);
+      if (isNaN(asInt) || !isFinite(asInt)) onFailure();
       return asInt;
     }
     case "id":
     case "uint": {
       const asInt = parseInt(value);
-      if (isNaN(asInt) || !isFinite(asInt) || asInt < 0)
-        throw new Error(`${key} is expected to be uint, but got ${value}`);
+      if (isNaN(asInt) || !isFinite(asInt) || asInt < 0) onFailure();
       return asInt;
     }
     case "float": {
       const asFloat = parseFloat(value);
-      if (isNaN(asFloat) || !isFinite(asFloat))
-        throw new Error(`${key} is expected to be float, but got ${value}`);
+      if (isNaN(asFloat) || !isFinite(asFloat)) onFailure();
       return asFloat;
     }
     case "substring":
     case "string":
     case "label": {
       let asStr = decodeURIComponent(value).trim();
-      if (asStr.length === 0)
-        throw new Error(
-          `${key} is expected to be ${expectedType}, but got an empty value "", which is not allowed`,
-        );
+      if (asStr.length === 0) onFailure();
       const escapedChars = ["\\", '"', "\'"];
       for (const ec of escapedChars) asStr = asStr.replaceAll(ec, "\\" + ec);
       return asStr;
     }
     case "bool": {
-      if (value !== "true" && value !== "false")
-        throw new Error(`${key} is expected to be bool, but got ${value}`);
+      if (value !== "true" && value !== "false") onFailure();
       return value === "true";
     }
     case "point": {
-      if (!value || !value.includes(";"))
-        throw new Error(`${key} is expected to be point, but got ${value}`);
+      if (!value || !value.includes(";")) onFailure();
       const [latitude, longitude] = value.split(";").map(parseFloat);
       if (
         isNaN(longitude) ||
@@ -64,7 +61,7 @@ export function parseValue(expectedType, key, value) {
         isNaN(latitude) ||
         !isFinite(latitude)
       )
-        throw new Error(`${key} is expected to be point, but got ${value}`);
+        onFailure();
       return { longitude, latitude };
     }
     case "password": {
@@ -77,10 +74,7 @@ export function parseValue(expectedType, key, value) {
       };
     }
     case "datetime": {
-      if (!isISODateTime(value))
-        throw new Error(
-          `${key} is expected to be ISO datetime, but got ${value}`,
-        );
+      if (!isISODateTime(value)) onFailure();
       return value;
     }
   }
