@@ -5,7 +5,7 @@ import { raw } from "express";
 function isISODateTime(value) {
   if (typeof value !== "string") return false;
   if (
-    /^\d{4}-(0[1-9]|10|11|12)-(0[1-9]|[12]\d|30|31)(T[0-2]\d:[0-5]\d(:[0-5]\d(\.\d+)?)?)?$/.test(
+    /^\d{4}-(0[1-9]|10|11|12)-(0[1-9]|[12]\d|30|31)(T[0-2]\d:[0-5]\d(:[0-5]\d(\.\d+)?Z?)?)?$/.test(
       value,
     ) === false
   )
@@ -13,7 +13,7 @@ function isISODateTime(value) {
   return !isNaN(new Date(value).valueOf());
 }
 
-function parseValue(expectedType, key, value) {
+export function parseValue(expectedType, key, value) {
   assert.assertString(expectedType);
   assert.assertString(key);
   assert.assertString(value);
@@ -57,7 +57,6 @@ function parseValue(expectedType, key, value) {
     case "point": {
       if (!value || !value.includes(";"))
         throw new Error(`${key} is expected to be point, but got ${value}`);
-      const [from, to] = value.split(";").map((x) => new Date(x));
       const [latitude, longitude] = value.split(";").map(parseFloat);
       if (
         isNaN(longitude) ||
@@ -91,7 +90,7 @@ export class QueryParameter {
   constructor(rawParam) {
     assert.assertString(rawParam);
     assert.assert(
-      /^([a-zA-Z_][a-zA-Z_0-9]*(:((int|uint|float|id|substring|string|label|bool|point|password|datetime)(\.\.)?))?(\?(=(\d+|"[^"]+"))?)?)$/.test(
+      /^([a-zA-Z_][a-zA-Z_0-9]*(:((int|uint|float|id|substring|string|label|bool|point|password|datetime)((\.\.)|(\[\]))?))?(\?(=(\d+|"[^"]+"))?)?)$/.test(
         rawParam,
       ),
       `Wrong format of query scheme: ${rawParam}`,
@@ -105,8 +104,14 @@ export class QueryParameter {
         defaultValue = defaultValue.slice(1, -1);
     }
     if (isOptional) rawParam = rawParam.slice(0, -1);
+    const isArray = rawParam.endsWith("[]");
+    if (isArray) rawParam = rawParam.slice(0, -2);
     const isRange = rawParam.endsWith("..");
     if (isRange) rawParam = rawParam.slice(0, -2);
+    assert.assert(
+      !isArray || !isRange,
+      "Parameter cannot be both array and range",
+    );
     let [name, type] = rawParam.includes(":")
       ? rawParam.split(":")
       : [rawParam, "substring"];
@@ -122,6 +127,7 @@ export class QueryParameter {
     this.type = type;
     this.isOptional = isOptional;
     this.isRange = isRange;
+    this.isArray = isArray;
     this.defaultValue = defaultValue;
   }
 }
@@ -150,7 +156,12 @@ export class QueryScheme {
     for (const [key, value] of Object.entries(query)) {
       if (!keys.includes(key)) throw new Error(`Unknown parameter: ${key}`);
       const param = this.parameters.find((param) => param.name === key);
-      if (!param.isRange || !value.includes(";")) {
+      if (param.isArray) {
+        result[key] = {
+          values: value.split(",").map((v) => parseValue(param.type, key, v)),
+          type: param.type,
+        };
+      } else if (!param.isRange || !value.includes(";")) {
         result[key] = {
           value: parseValue(param.type, key, value),
           type: param.type,

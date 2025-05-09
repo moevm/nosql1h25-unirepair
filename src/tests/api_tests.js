@@ -39,7 +39,7 @@ const callFormPattern = {
   "fireType?": "string:",
   "fireRank?": "string:",
   "victimsCount?": "number:\\d+",
-  "assignedTo?": "number:\\d+",
+  "assignedTo:listOf?": "number:\\d+",
   "auto?": "string:",
   createdAt: datePattern,
   modifiedAt: datePattern,
@@ -102,7 +102,7 @@ const tests = {
       cf: callFormPattern,
     }),
   },
-  "fill_report?reportId=99999d&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&equipmentDamage=ttt&additionalNotes=nothinghere":
+  "fill_report?reportId=99999&login=brigadier_igor&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere&equipmentDamage=ttt":
     err("Report not found"),
   "create_callform?login=operator_inkognito&callSource=Vasya&fireAddress=ITMO&bottomLeft=10;20&topRight=30;40&fireType=expansive&fireRank=3&victimsCount=0&assignedTo=1&auto=Пожарная машина 4":
     err("Operator operator_inkognito not found"),
@@ -120,7 +120,7 @@ const tests = {
           then: {
             ensure: reportPattern,
             query:
-              "fill_report?reportId=$id&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&equipmentDamage=ttt&additionalNotes=nothinghere",
+              "fill_report?reportId=$id&login=brigadier_igor&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere5&equipmentDamage=ttt",
             then: {
               ensure: reportPattern,
               query: "delete_report?reportId=$id",
