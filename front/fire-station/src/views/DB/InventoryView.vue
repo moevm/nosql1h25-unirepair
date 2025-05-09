@@ -19,7 +19,7 @@
                             class="text__input"
                             v-model="newInventoryName"
                         />
-                        <button @click="addInventory" class="submit-button">
+                        <button @click="addInventory" id="submit-button">
                             Добавить
                         </button>
                         <br />
@@ -31,10 +31,10 @@
                             class="text__input"
                             v-model="searchName"
                         />
-                        <button @click="search" class="submit-button">Найти</button>
+                        <button @click="search" id="submit-button">Найти</button>
                         <button
                             @click="reset"
-                            class="submit-button"
+                            id="submit-button"
                             style="margin-left: 10px"
                         >
                             Сбросить

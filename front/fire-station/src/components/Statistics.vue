@@ -23,8 +23,11 @@
             <Chart ref="chart" />
 
             <div class="profile__buttons">
-                <button class="submit-button save-button" @click="saveJSON">Сохранить данные в json<br>формате</button>
-                <button class="submit-button load-button" @click="uploadJSON">Загрузить данные в json<br>формате</button>
+                <button class="submit-button save-button" @click="exportJSON">Сохранить данные в json<br>формате</button>
+                <button class="submit-button load-button" @click="triggerJSONSelection">
+                    Загрузить данные в json<br>формате
+                    <input type="file" style="display: none;" ref="fs" @change="onFileChange" accept=".json">
+                </button>
             </div>
         </div>
     </div>
@@ -34,6 +37,7 @@
 import axios from 'axios';
 import Chart from './Chart.vue';
 import range from '@/common/range';
+import query from '@/common/query';
 
 export default {
     name: 'StatisticsComponent',
@@ -51,7 +55,8 @@ export default {
             date_end: '',
             fileName: 'Вызовы',
 
-            statisticsData: []
+            statisticsData: [],
+            importData: null
         }
     },
     methods: {
@@ -122,11 +127,39 @@ export default {
             this.a.download = `Статистика-${this.fileName}.png`
             this.a.click();
         },
-        saveJSON(){
+        async exportJSON(){
+            let bd = JSON.stringify(await query("export_data"), null, 2);
 
+            const blob = new Blob([bd], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            this.a.href = url;
+            this.a.download = "export.json"
+            this.a.click();
+
+            URL.revokeObjectURL(url);
         },
-        uploadJSON(){
+        triggerJSONSelection(){
+            this.$refs.fs.click();
+        },
+        async onFileChange(e){
+            let files = e.target.files || e.dataTransfer.files;
+            if (!files.length) return;
+            await this.importJSON(files[0]);
+            this.$refs.fs.value = '';
+        },
+        async importJSON(file){
+            const importData = await this.readJSON(file)
+            console.log(importData)
 
+            await axios.post("http://localhost:3000/api/import_data", importData);
+        },
+        readJSON(file){
+            return new Promise((resolve) => {
+                const fr = new FileReader();
+                fr.onload = e => resolve(JSON.parse(e.target.result));
+
+                fr.readAsText(file)
+            })
         },
         formDate(r){
             let day = r.modifiedAt.day.toString();
