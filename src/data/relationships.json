@@ -2,463 +2,463 @@
   {
     "relationshipType": "INVENTORY_USED",
     "startNode": {
-      "createdAt": { "value": "2025-01-01T09:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-01-01T09:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "name": { "value": "Пожарная машина 1", "type": "string" },
-      "label": { "value": "Inventory", "type": "label" }
+      "name": "Пожарная машина 1",
+      "label": "Inventory"
     }
   },
   {
     "relationshipType": "INVENTORY_USED",
     "startNode": {
-      "createdAt": { "value": "2025-02-01T09:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-01T09:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "name": { "value": "Пожарная машина 2", "type": "string" },
-      "label": { "value": "Inventory", "type": "label" }
+      "name": "Пожарная машина 2",
+      "label": "Inventory"
     }
   },
   {
     "relationshipType": "INVENTORY_USED",
     "startNode": {
-      "createdAt": { "value": "2025-02-02T09:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-02T09:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "name": { "value": "Пожарная машина 3", "type": "string" },
-      "label": { "value": "Inventory", "type": "label" }
+      "name": "Пожарная машина 3",
+      "label": "Inventory"
     }
   },
   {
     "relationshipType": "INVENTORY_USED",
     "startNode": {
-      "createdAt": { "value": "2025-02-05T09:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-05T09:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "name": { "value": "Пожарная машина 4", "type": "string" },
-      "label": { "value": "Inventory", "type": "label" }
+      "name": "Пожарная машина 4",
+      "label": "Inventory"
     }
   },
   {
     "relationshipType": "INVENTORY_USED",
     "startNode": {
-      "createdAt": { "value": "2025-02-20T15:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-20T15:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "name": { "value": "Пожарная машина 5", "type": "string" },
-      "label": { "value": "Inventory", "type": "label" }
+      "name": "Пожарная машина 5",
+      "label": "Inventory"
     }
   },
   {
     "relationshipType": "INVENTORY_USED",
     "startNode": {
-      "createdAt": { "value": "2025-01-05T14:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-01-05T14:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "name": { "value": "Пожарная машина 6", "type": "string" },
-      "label": { "value": "Inventory", "type": "label" }
+      "name": "Пожарная машина 6",
+      "label": "Inventory"
     }
   },
   {
     "relationshipType": "INVENTORY_USED",
     "startNode": {
-      "createdAt": { "value": "2025-01-13T16:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-01-13T16:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "name": { "value": "Пожарная машина 7", "type": "string" },
-      "label": { "value": "Inventory", "type": "label" }
+      "name": "Пожарная машина 7",
+      "label": "Inventory"
     }
   },
   {
     "relationshipType": "INVENTORY_USED",
     "startNode": {
-      "createdAt": { "value": "2025-02-04T10:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-04T10:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "name": { "value": "Пожарная машина 8", "type": "string" },
-      "label": { "value": "Inventory", "type": "label" }
+      "name": "Пожарная машина 8",
+      "label": "Inventory"
     }
   },
   {
     "relationshipType": "INVENTORY_USED",
     "startNode": {
-      "createdAt": { "value": "2025-02-07T12:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-07T12:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "name": { "value": "Пожарная машина 9", "type": "string" },
-      "label": { "value": "Inventory", "type": "label" }
+      "name": "Пожарная машина 9",
+      "label": "Inventory"
     }
   },
   {
     "relationshipType": "ON_CALL",
     "startNode": {
-      "modifiedAt": { "value": "2025-03-01T12:00:00Z", "type": "datetime" },
-      "label": { "value": "Report", "type": "label" }
+      "modifiedAt": "2025-03-01T12:00:00Z",
+      "label": "Report"
     },
     "endNode": {
-      "createdAt": { "value": "2025-01-01T09:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-01-01T09:00:00Z",
+      "label": "CallForm"
     }
   },
   {
     "relationshipType": "ON_CALL",
     "startNode": {
-      "modifiedAt": { "value": "2025-03-20T17:30:00Z", "type": "datetime" },
-      "label": { "value": "Report", "type": "label" }
+      "modifiedAt": "2025-03-20T17:30:00Z",
+      "label": "Report"
     },
     "endNode": {
-      "createdAt": { "value": "2025-02-01T09:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-01T09:00:00Z",
+      "label": "CallForm"
     }
   },
   {
     "relationshipType": "ON_CALL",
     "startNode": {
-      "modifiedAt": { "value": "2025-03-22T14:15:00Z", "type": "datetime" },
-      "label": { "value": "Report", "type": "label" }
+      "modifiedAt": "2025-03-22T14:15:00Z",
+      "label": "Report"
     },
     "endNode": {
-      "createdAt": { "value": "2025-02-02T09:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-02T09:00:00Z",
+      "label": "CallForm"
     }
   },
   {
     "relationshipType": "ON_CALL",
     "startNode": {
-      "modifiedAt": { "value": "2025-03-30T10:50:00Z", "type": "datetime" },
-      "label": { "value": "Report", "type": "label" }
+      "modifiedAt": "2025-03-30T10:50:00Z",
+      "label": "Report"
     },
     "endNode": {
-      "createdAt": { "value": "2025-02-05T09:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-05T09:00:00Z",
+      "label": "CallForm"
     }
   },
   {
     "relationshipType": "ON_CALL",
     "startNode": {
-      "modifiedAt": { "value": "2025-02-25T10:00:00Z", "type": "datetime" },
-      "label": { "value": "Report", "type": "label" }
+      "modifiedAt": "2025-02-25T10:00:00Z",
+      "label": "Report"
     },
     "endNode": {
-      "createdAt": { "value": "2025-01-13T16:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-01-13T16:00:00Z",
+      "label": "CallForm"
     }
   },
   {
     "relationshipType": "ON_CALL",
     "startNode": {
-      "modifiedAt": { "value": "2025-03-04T10:30:00Z", "type": "datetime" },
-      "label": { "value": "Report", "type": "label" }
+      "modifiedAt": "2025-03-04T10:30:00Z",
+      "label": "Report"
     },
     "endNode": {
-      "createdAt": { "value": "2025-02-04T10:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-04T10:00:00Z",
+      "label": "CallForm"
     }
   },
   {
     "relationshipType": "ON_CALL",
     "startNode": {
-      "modifiedAt": { "value": "2025-03-03T10:20:00Z", "type": "datetime" },
-      "label": { "value": "Report", "type": "label" }
+      "modifiedAt": "2025-03-03T10:20:00Z",
+      "label": "Report"
     },
     "endNode": {
-      "createdAt": { "value": "2025-02-07T12:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-07T12:00:00Z",
+      "label": "CallForm"
     }
   },
   {
     "relationshipType": "DAMAGED",
     "startNode": {
-      "modifiedAt": { "value": "2025-03-01T12:00:00Z", "type": "datetime" },
-      "label": { "value": "Report", "type": "label" }
+      "modifiedAt": "2025-03-01T12:00:00Z",
+      "label": "Report"
     },
     "endNode": {
-      "name": { "value": "Пожарная машина 1", "type": "string" },
-      "label": { "value": "Inventory", "type": "label" }
+      "name": "Пожарная машина 1",
+      "label": "Inventory"
     }
   },
   {
     "relationshipType": "CREATED",
     "startNode": {
-      "login": { "value": "operator_dmitriy", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_dmitriy",
+      "label": "User"
     },
     "endNode": {
-      "createdAt": { "value": "2025-01-01T09:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-01-01T09:00:00Z",
+      "label": "CallForm"
     }
   },
   {
     "relationshipType": "CREATED",
     "startNode": {
-      "login": { "value": "operator_vladimir", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_vladimir",
+      "label": "User"
     },
     "endNode": {
-      "createdAt": { "value": "2025-02-01T09:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-01T09:00:00Z",
+      "label": "CallForm"
     }
   },
   {
     "relationshipType": "CREATED",
     "startNode": {
-      "login": { "value": "operator_dmitriy", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_dmitriy",
+      "label": "User"
     },
     "endNode": {
-      "createdAt": { "value": "2025-02-02T09:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-02T09:00:00Z",
+      "label": "CallForm"
     }
   },
   {
     "relationshipType": "CREATED",
     "startNode": {
-      "login": { "value": "operator_vladimir", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_vladimir",
+      "label": "User"
     },
     "endNode": {
-      "createdAt": { "value": "2025-02-05T09:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-05T09:00:00Z",
+      "label": "CallForm"
     }
   },
   {
     "relationshipType": "CREATED",
     "startNode": {
-      "login": { "value": "operator_dmitriy", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_dmitriy",
+      "label": "User"
     },
     "endNode": {
-      "createdAt": { "value": "2025-02-20T15:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-20T15:00:00Z",
+      "label": "CallForm"
     }
   },
   {
     "relationshipType": "CREATED",
     "startNode": {
-      "login": { "value": "operator_dmitriy", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_dmitriy",
+      "label": "User"
     },
     "endNode": {
-      "createdAt": { "value": "2025-01-05T14:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-01-05T14:00:00Z",
+      "label": "CallForm"
     }
   },
   {
     "relationshipType": "CREATED",
     "startNode": {
-      "login": { "value": "operator_dmitriy", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_dmitriy",
+      "label": "User"
     },
     "endNode": {
-      "createdAt": { "value": "2025-01-13T16:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-01-13T16:00:00Z",
+      "label": "CallForm"
     }
   },
   {
     "relationshipType": "CREATED",
     "startNode": {
-      "login": { "value": "operator_vladimir", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_vladimir",
+      "label": "User"
     },
     "endNode": {
-      "createdAt": { "value": "2025-02-04T10:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-04T10:00:00Z",
+      "label": "CallForm"
     }
   },
   {
     "relationshipType": "CREATED",
     "startNode": {
-      "login": { "value": "operator_vladimir", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_vladimir",
+      "label": "User"
     },
     "endNode": {
-      "createdAt": { "value": "2025-02-07T12:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-07T12:00:00Z",
+      "label": "CallForm"
     }
   },
   {
     "relationshipType": "CREATED_BY",
     "startNode": {
-      "createdAt": { "value": "2025-01-01T09:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-01-01T09:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "login": { "value": "operator_dmitriy", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_dmitriy",
+      "label": "User"
     }
   },
   {
     "relationshipType": "CREATED_BY",
     "startNode": {
-      "createdAt": { "value": "2025-02-01T09:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-01T09:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "login": { "value": "operator_vladimir", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_vladimir",
+      "label": "User"
     }
   },
   {
     "relationshipType": "CREATED_BY",
     "startNode": {
-      "createdAt": { "value": "2025-02-02T09:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-02T09:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "login": { "value": "operator_dmitriy", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_dmitriy",
+      "label": "User"
     }
   },
   {
     "relationshipType": "CREATED_BY",
     "startNode": {
-      "createdAt": { "value": "2025-02-05T09:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-05T09:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "login": { "value": "operator_vladimir", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_vladimir",
+      "label": "User"
     }
   },
   {
     "relationshipType": "CREATED_BY",
     "startNode": {
-      "createdAt": { "value": "2025-02-20T15:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-20T15:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "login": { "value": "operator_dmitriy", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_dmitriy",
+      "label": "User"
     }
   },
   {
     "relationshipType": "CREATED_BY",
     "startNode": {
-      "createdAt": { "value": "2025-01-05T14:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-01-05T14:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "login": { "value": "operator_dmitriy", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_dmitriy",
+      "label": "User"
     }
   },
   {
     "relationshipType": "CREATED_BY",
     "startNode": {
-      "createdAt": { "value": "2025-01-13T16:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-01-13T16:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "login": { "value": "operator_dmitriy", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_dmitriy",
+      "label": "User"
     }
   },
   {
     "relationshipType": "CREATED_BY",
     "startNode": {
-      "createdAt": { "value": "2025-02-04T10:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-04T10:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "login": { "value": "operator_vladimir", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_vladimir",
+      "label": "User"
     }
   },
   {
     "relationshipType": "CREATED_BY",
     "startNode": {
-      "createdAt": { "value": "2025-02-07T12:00:00Z", "type": "datetime" },
-      "label": { "value": "CallForm", "type": "label" }
+      "createdAt": "2025-02-07T12:00:00Z",
+      "label": "CallForm"
     },
     "endNode": {
-      "login": { "value": "operator_vladimir", "type": "string" },
-      "label": { "value": "User", "type": "label" }
+      "login": "operator_vladimir",
+      "label": "User"
     }
   },
   {
     "relationshipType": "FILLED_IN",
     "startNode": {
-      "login": { "value": "brigadier_oleg", "type": "string" },
-      "label": { "value": "Brigadier", "type": "label" }
+      "login": "brigadier_oleg",
+      "label": "Brigadier"
     },
     "endNode": {
-      "modifiedAt": { "value": "2025-03-01T12:00:00Z", "type": "datetime" },
-      "label": { "value": "Report", "type": "label" }
+      "modifiedAt": "2025-03-01T12:00:00Z",
+      "label": "Report"
     }
   },
   {
     "relationshipType": "FILLED_IN",
     "startNode": {
-      "login": { "value": "brigadier_igor", "type": "string" },
-      "label": { "value": "Brigadier", "type": "label" }
+      "login": "brigadier_igor",
+      "label": "Brigadier"
     },
     "endNode": {
-      "modifiedAt": { "value": "2025-03-20T17:30:00Z", "type": "datetime" },
-      "label": { "value": "Report", "type": "label" }
+      "modifiedAt": "2025-03-20T17:30:00Z",
+      "label": "Report"
     }
   },
   {
     "relationshipType": "FILLED_IN",
     "startNode": {
-      "login": { "value": "brigadier_igor", "type": "string" },
-      "label": { "value": "Brigadier", "type": "label" }
+      "login": "brigadier_igor",
+      "label": "Brigadier"
     },
     "endNode": {
-      "modifiedAt": { "value": "2025-03-22T14:15:00Z", "type": "datetime" },
-      "label": { "value": "Report", "type": "label" }
+      "modifiedAt": "2025-03-22T14:15:00Z",
+      "label": "Report"
     }
   },
   {
     "relationshipType": "FILLED_IN",
     "startNode": {
-      "login": { "value": "brigadier_oleg", "type": "string" },
-      "label": { "value": "Brigadier", "type": "label" }
+      "login": "brigadier_oleg",
+      "label": "Brigadier"
     },
     "endNode": {
-      "modifiedAt": { "value": "2025-03-30T10:50:00Z", "type": "datetime" },
-      "label": { "value": "Report", "type": "label" }
+      "modifiedAt": "2025-03-30T10:50:00Z",
+      "label": "Report"
     }
   },
   {
     "relationshipType": "FILLED_IN",
     "startNode": {
-      "login": { "value": "brigadier_igor", "type": "string" },
-      "label": { "value": "Brigadier", "type": "label" }
+      "login": "brigadier_igor",
+      "label": "Brigadier"
     },
     "endNode": {
-      "modifiedAt": { "value": "2025-02-25T10:00:00Z", "type": "datetime" },
-      "label": { "value": "Report", "type": "label" }
+      "modifiedAt": "2025-02-25T10:00:00Z",
+      "label": "Report"
     }
   },
   {
     "relationshipType": "FILLED_IN",
     "startNode": {
-      "login": { "value": "brigadier_igor", "type": "string" },
-      "label": { "value": "Brigadier", "type": "label" }
+      "login": "brigadier_igor",
+      "label": "Brigadier"
     },
     "endNode": {
-      "modifiedAt": { "value": "2025-03-04T10:30:00Z", "type": "datetime" },
-      "label": { "value": "Report", "type": "label" }
+      "modifiedAt": "2025-03-04T10:30:00Z",
+      "label": "Report"
     }
   },
   {
     "relationshipType": "FILLED_IN",
     "startNode": {
-      "login": { "value": "brigadier_oleg", "type": "string" },
-      "label": { "value": "Brigadier", "type": "label" }
+      "login": "brigadier_oleg",
+      "label": "Brigadier"
     },
     "endNode": {
-      "modifiedAt": { "value": "2025-03-03T10:20:00Z", "type": "datetime" },
-      "label": { "value": "Report", "type": "label" }
+      "modifiedAt": "2025-03-03T10:20:00Z",
+      "label": "Report"
     }
   }
 ]

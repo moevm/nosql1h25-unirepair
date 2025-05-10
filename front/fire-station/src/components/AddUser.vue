@@ -28,7 +28,7 @@
             <span>Отчество:</span>
             <input type="text" v-model="patronymic" class="userinfo__input" />
             <br />
-
+            
             <span>Должность</span><span style="color: red">*</span
             ><span>:</span>
             <span
@@ -160,6 +160,7 @@ export default {
             login: "",
             password: "",
             addUserAttempt: false,
+            useRole: false
         };
     },
     methods: {
@@ -235,7 +236,7 @@ export default {
 <style scoped>
 .addUser__container {
     width: 100%;
-    margin: 24px;
+    padding: 24px;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -246,6 +247,7 @@ export default {
     border-radius: 20px 20px 0 0;
     padding: 10px;
     background-color: white;
+    position: relative;
 }
 
 .component-label__container>label {
@@ -256,9 +258,9 @@ export default {
 #exit-icon {
     position: absolute;
     cursor: pointer;
+    right: 5px;
+    top: 5px;
     padding: 10px;
-    right: 30px;
-    top: 30px;
     height: auto;
 }
 
@@ -270,9 +272,10 @@ export default {
 .component-userinfo__container {
     border-radius: 0 0 20px 20px;
     background-color: white;
-    height: 100%;
     padding-left: 4vw;
     padding-top: 2vw;
+    position: relative;
+    flex: 1;
 }
 
 .userinfo__input, span {
@@ -301,8 +304,8 @@ input[type="radio"] {
 #submit-button {
     position: absolute;
     cursor: pointer;
-    right: 60px;
-    bottom: 50px;
+    right: 30px;
+    bottom: 25px;
     font-size: xx-large;
     border-radius: 10px;
     border: none;
@@ -322,7 +325,7 @@ input[type="radio"] {
     color: gray;
 }
 
-@media (max-width: 1500px){
+@media (max-height: 800px){
     .component-label__container>label {
         font-size: x-large;
         font-weight: bolder;
@@ -332,20 +335,11 @@ input[type="radio"] {
         margin-bottom: 23px;
     }
     input[type="radio"] {
-        cursor: pointer;
         transform: scale(2);
         margin: 15px;
     }
     #submit-button {
-        position: absolute;
-        cursor: pointer;
-        right: 60px;
-        bottom: 50px;
         font-size: x-large;
-        border-radius: 10px;
-        border: none;
-        padding: 20px;
-        background-color: #A7A3CC;
     }
 }
 </style>

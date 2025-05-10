@@ -10,6 +10,20 @@ import { shallowRef } from 'vue';
 
 export default {
     name: 'ChartComponent',
+    setup(){
+        const plugin = {
+            id: 'setBackgroundColor',
+            beforeDraw: (chart, args, options) => {
+                const {ctx} = chart;
+                ctx.save();
+                ctx.globalCompositeOperation = 'destination-over';
+                ctx.fillStyle = options.color || '#99ffff';
+                ctx.fillRect(0, 0, chart.width, chart.height);
+                ctx.restore();
+            }
+        };
+        return {plugin};
+    },
     data(){
         return {
             chart: null,
@@ -35,13 +49,16 @@ export default {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        setBackgroundColor: {
+                            color: 'white'
+                        },
                         legend: {
-                            display: true, // Явно включите отображение
+                            display: true,
                             position: 'top',
                             labels: {
-                                color: '#333', // Укажите цвет текста
+                                color: '#333',
                                 font: {
-                                    size: 20    // Размер шрифта
+                                    size: 20   
                                 },
                                 usePointStyle: true,
                                 pointStyle: 'line',
@@ -50,13 +67,17 @@ export default {
                             }
                         }
                     }
-                }
+                },
+                plugins: [this.plugin]
             }));
         },
         updateChart(DBResult){
             this.chartData.labels = DBResult.labels;
             this.chartData.datasets = DBResult.datasets;
             this.chart.update();
+        },
+        getImageString(){
+            return this.chart.toBase64Image();
         }
     }
 }

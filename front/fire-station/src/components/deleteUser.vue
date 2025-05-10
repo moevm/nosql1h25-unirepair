@@ -1,227 +1,213 @@
 <template>
     <div class="searchUser__container">
-        <div
-            style="display: flex; flex-direction: column; gap: 2px"
-            :class="{ 'blured-content__container': showAlert }"
-        >
-            <div class="component-label__container">
-                <img
-                    id="exit-icon"
-                    src="/icons/exit.svg"
-                    @click="$emit('component-change', 'menu')"
-                />
-                <label>Удаление пользователя</label>
-            </div>
-            <div class="component-userinfo__container">
-                <span>Фамилия:</span>
-                <input type="text" v-model="surname" class="userinfo__input" />
-                <br />
-                <span>Имя:</span>
-                <input type="text" v-model="name" class="userinfo__input" />
-                <br />
-                <span>Отчество:</span>
-                <input
-                    type="text"
-                    v-model="patronymic"
-                    class="userinfo__input"
-                />
-                <br />
-
-                <span>Должность:</span>
-                <br />
-                <input
-                    type="radio"
-                    v-model="role"
-                    value="Fireman"
-                    @click="info"
-                    class="userinfo__input"
-                />
-                <span>Пожарный</span>
-                <input
-                    type="radio"
-                    v-model="role"
-                    value="Brigadier"
-                    @click="info"
-                    class="userinfo__input"
-                />
-                <span>Бригадир</span>
-                <br />
-                <input
-                    type="radio"
-                    v-model="role"
-                    value="Operator"
-                    @click="info"
-                    class="userinfo__input"
-                />
-                <span>Оператор</span>
-                <br />
-                <input
-                    type="radio"
-                    v-model="role"
-                    value="Admin"
-                    @click="info"
-                    class="userinfo__input"
-                />
-                <span>Администратор</span>
-                <br />
-
-                <span
-                    :class="{
-                        'brigade-text__avaliable':
-                            role === 'Fireman' || role === 'Brigadier',
-                        'brigade-text__unavaliable':
-                            role !== 'Fireman' && role !== 'Brigadier',
-                    }"
-                    >Бригада:</span
-                >
-                <input
-                    min="1"
-                    type="number"
-                    v-model="brigade"
-                    class="userinfo__input"
-                    :disabled="role !== 'Fireman' && role !== 'Brigadier'"
-                    @blur="correctBrigade"
-                />
-                <br />
-
-                <span>Дата регистрации:</span>
-                <span style="margin-left: 100px">от:</span
-                ><input
-                    type="date"
-                    class="date__input userinfo__input"
-                    v-model="registrationDate_begin"
-                />
-                <span style="margin-left: 40px">до:</span
-                ><input
-                    type="date"
-                    class="date__input userinfo__input"
-                    v-model="registrationDate_end"
-                />
-                <br />
-                <span>Дата редактирования:</span>
-                <span style="margin-left: 58px">от:</span
-                ><input
-                    type="date"
-                    class="date__input userinfo__input"
-                    v-model="changeDate_begin"
-                />
-                <span style="margin-left: 40px">до:</span
-                ><input
-                    type="date"
-                    class="date__input userinfo__input"
-                    v-model="changeDate_end"
-                />
-                <br />
-
-                <button id="submit-button" @click="searchUsers">Найти</button>
-
-                <div class="table__container">
-                    <table class="users__table">
-                        <thead
-                            style="
-                                position: sticky;
-                                top: 0;
-                                background-color: white;
-                                border: 1px solid black;
-                                z-index: 10;
-                            "
-                        >
-                            <tr>
-                                <th style="position: absolute; left: 0; top: 0">
-                                    <input
-                                        type="checkbox"
-                                        class="checkbox"
-                                        :disabled="!foundUsers.length"
-                                        v-model="allSelected"
-                                        @click="
-                                            () => {
-                                                allSelected = !allSelected;
-                                                selectedUsers.fill(allSelected);
-                                            }
-                                        "
-                                    />
-                                    <span style="padding-left: 6px"
-                                        >Выбрать всех</span
-                                    >
-                                </th>
-                                <th>ФИО</th>
-                                <th>Должность</th>
-                                <th>Бригада</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                class="row__table"
-                                v-for="(user, index) in foundUsers"
-                                :key="index"
-                            >
-                                <td style="width: 3%; text-align: center">
-                                    <input
-                                        type="checkbox"
-                                        class="checkbox"
-                                        v-model="selectedUsers[index]"
-                                        @click="handleCheckboxClick(index)"
-                                    />
-                                </td>
-                                <td style="width: 50%; padding-left: 10px">
-                                    {{
-                                        user.firstName +
-                                        " " +
-                                        user.familyName +
-                                        " " +
-                                        user.fatherName
-                                    }}
-                                </td>
-                                <td style="padding-left: 10px">
-                                    {{ rolesTranslations[findRole(user)] }}
-                                </td>
-                                <td style="text-align: center; width: 8%">
-                                    {{
-                                        user.brigadeNumber
-                                            ? user.brigadeNumber
-                                            : "-"
-                                    }}
-                                </td>
-                            </tr>
-                            <tr
-                                class="row__table"
-                                v-if="foundUsers.length < 4"
-                                v-for="index in 4 - foundUsers.length"
-                            >
-                                <td style="width: 3%; text-align: center">
-                                    <input
-                                        type="checkbox"
-                                        class="checkbox"
-                                        disabled
-                                    />
-                                </td>
-                                <td style="width: 50%"></td>
-                                <td></td>
-                                <td style="width: 8%"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div
-                    style="
-                        display: flex;
-                        justify-content: center;
-                        padding-right: 80px;
-                    "
-                >
-                    <button
-                        id="submit-button"
-                        @click="showAlert = true"
-                        :disabled="
-                            !selectedUsers.reduce(
-                                (acc, num) => acc || num,
-                                false,
-                            )
+        <div class="component-label__container">
+            <img
+                id="exit-icon"
+                src="/icons/exit.svg"
+                @click="$emit('component-change', 'menu')"
+            />
+            <label>Удаление пользователя</label>
+        </div>
+        <div class="component-userinfo__container">
+            <span>Фамилия:</span>
+            <input type="text" v-model="surname" class="userinfo__input" />
+            <br />
+            <span>Имя:</span>
+            <input type="text" v-model="name" class="userinfo__input" />
+            <br />
+            <span>Отчество:</span>
+            <input
+                type="text"
+                v-model="patronymic"
+                class="userinfo__input"
+            />
+            <br />
+            <input
+                type="checkbox"
+                v-model="useRole"
+                style="margin-right: 10px; transform: scale(1.5)"
+            />
+            <span>Должность:</span>
+            <br />
+            <input
+                type="radio"
+                v-model="role"
+                value="Fireman"
+                @click="info"
+                class="userinfo__input"
+                :disabled="!useRole"
+            />
+            <span>Пожарный</span>
+            <input
+                type="radio"
+                v-model="role"
+                value="Brigadier"
+                @click="info"
+                class="userinfo__input"
+                :disabled="!useRole"
+            />
+            <span>Бригадир</span>
+            <br />
+            <input
+                type="radio"
+                v-model="role"
+                value="Operator"
+                @click="info"
+                class="userinfo__input"
+                :disabled="!useRole"
+            />
+            <span>Оператор</span>
+            <br />
+            <input
+                type="radio"
+                v-model="role"
+                value="Admin"
+                @click="info"
+                class="userinfo__input"
+                :disabled="!useRole"
+            />
+            <span>Администратор</span>
+            <br />
+            <span
+                :class="{
+                    'brigade-text__avaliable':
+                        role === 'Fireman' || role === 'Brigadier',
+                    'brigade-text__unavaliable':
+                        role !== 'Fireman' && role !== 'Brigadier',
+                }"
+                >Бригада:</span
+            >
+            <input
+                min="1"
+                type="number"
+                v-model="brigade"
+                class="userinfo__input"
+                :disabled="role !== 'Fireman' && role !== 'Brigadier' && useRole"
+                @blur="correctBrigade"
+            />
+            <br />
+            <span>Дата регистрации:</span>
+            <span style="margin-left: 100px">от:</span
+            ><input
+                type="date"
+                class="date__input userinfo__input"
+                v-model="registrationDate_begin"
+            />
+            <span style="margin-left: 40px">до:</span
+            ><input
+                type="date"
+                class="date__input userinfo__input"
+                v-model="registrationDate_end"
+            />
+            <br />
+            <span>Дата редактирования:</span>
+            <span style="margin-left: 58px">от:</span
+            ><input
+                type="date"
+                class="date__input userinfo__input"
+                v-model="changeDate_begin"
+            />
+            <span style="margin-left: 40px">до:</span
+            ><input
+                type="date"
+                class="date__input userinfo__input"
+                v-model="changeDate_end"
+            />
+            <br />
+            <button id="submit-button" @click="searchUsers">Найти</button>
+            <div class="table__container">
+                <table class="users__table">
+                    <thead
+                        style="
+                            position: sticky;
+                            top: 0;
+                            background-color: white;
+                            border: 1px solid black;
+                            z-index: 10;
                         "
                     >
-                        Удалить
-                    </button>
-                </div>
+                        <tr style="height: var(--head-row-height)">
+                            <th>
+                                <input type="checkbox" class="checkbox" :disabled="!foundUsers.length" v-model="allSelected" @click="() => {allSelected = !allSelected; selectedUsers.fill(allSelected)}">
+                                <span style="position: absolute; top: -3px; margin-left: 10px; font-size: small;">Выбрать<br>всех</span>
+                            </th>
+                            <th>ФИО</th>
+                            <th>Должность</th>
+                            <th>Бригада</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            class="row__table"
+                            v-for="(user, index) in foundUsers"
+                            :key="index"
+                        >
+                            <td style="width: 3%; text-align: center">
+                                <input
+                                    type="checkbox"
+                                    class="checkbox"
+                                    v-model="selectedUsers[index]"
+                                    @click="handleCheckboxClick(index)"
+                                />
+                            </td>
+                            <td style="width: 50%; padding-left: 10px">
+                                {{
+                                    user.firstName +
+                                    " " +
+                                    user.familyName +
+                                    " " +
+                                    user.fatherName
+                                }}
+                            </td>
+                            <td style="padding-left: 10px">
+                                {{ rolesTranslations[findRole(user)] }}
+                            </td>
+                            <td style="text-align: center; width: 8%">
+                                {{
+                                    user.brigadeNumber
+                                        ? user.brigadeNumber
+                                        : "-"
+                                }}
+                            </td>
+                        </tr>
+                        <tr
+                            class="row__table"
+                            v-if="foundUsers.length < 4"
+                            v-for="index in 4 - foundUsers.length"
+                        >
+                            <td style="width: 3%; text-align: center">
+                                <input
+                                    type="checkbox"
+                                    class="checkbox"
+                                    disabled
+                                />
+                            </td>
+                            <td style="width: 50%"></td>
+                            <td></td>
+                            <td style="width: 8%"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div
+                style="
+                    display: flex;
+                    justify-content: center;
+                    padding-right: 80px;
+                "
+            >
+                <button
+                    id="submit-button"
+                    @click="showAlert = true"
+                    :disabled="
+                        !selectedUsers.reduce(
+                            (acc, num) => acc || num,
+                            false,
+                        )
+                    "
+                >
+                    Удалить
+                </button>
             </div>
         </div>
         <div v-if="showAlert" class="alert__container">
@@ -248,6 +234,7 @@
 </template>
 
 <script>
+import axios from "axios";
 import query from "../common/query.js";
 import range from "../common/range.js";
 
@@ -258,7 +245,7 @@ export default {
             name: "",
             surname: "",
             patronymic: "",
-            role: "",
+            role: "Fireman",
             brigade: "",
 
             registrationDate_begin: "",
@@ -276,6 +263,7 @@ export default {
                 Operator: "Оператор",
                 Admin: "Администратор",
             },
+            useRole: false
         };
     },
     methods: {
@@ -284,9 +272,9 @@ export default {
                 familyName: this.surname,
                 firstName: this.name,
                 fatherName: this.patronymic,
-                role: this.role,
+                role: this.useRole ? this.role : undefined,
                 brigadeNumber:
-                    this.role === "Fireman" || this.role === "Brigadier"
+                    (this.role === "Fireman" || this.role === "Brigadier") && this.useRole || !this.useRole
                         ? this.brigade
                         : "",
                 registeredAt: range(
@@ -300,12 +288,14 @@ export default {
             this.allSelected = false;
             this.selectedUsers = Array(this.foundUsers.length).fill(false);
         },
-        deleteSelectedUsers() {
+        async deleteSelectedUsers() {
             this.showAlert = false;
 
-            this.selectedUsers.forEach((isSelected, index) => {
-                if (isSelected) true; // deletion
-            });
+            for(let i = 0; i < this.foundUsers.length; i++){
+                if(this.selectedUsers[i]){
+                    await axios.get(`http://localhost:3000/api/remove_user?login=${this.foundUsers[i].login}`);
+                }
+            }
 
             this.foundUsers = [];
             this.selectedUsers = [];
@@ -336,16 +326,10 @@ export default {
 <style scoped>
 .searchUser__container {
     width: 100%;
-    margin: 24px;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    position: relative;
-    box-sizing: border-box;
-}
-
-.blured-content__container {
-    pointer-events: none;
+    margin: 24px;
 }
 
 .component-label__container {
@@ -353,6 +337,7 @@ export default {
     border-radius: 20px 20px 0 0;
     padding: 10px;
     background-color: white;
+    position: relative;
 }
 
 .component-label__container>label {
@@ -364,8 +349,8 @@ export default {
     position: absolute;
     cursor: pointer;
     padding: 10px;
-    right: 6px;
-    top: 6px;
+    right: 5px;
+    top: 5px;
     height: auto;
 }
 
@@ -377,12 +362,13 @@ export default {
 .component-userinfo__container {
     border-radius: 0 0 20px 20px;
     background-color: white;
-    height: 100%;
     padding-left: 4vw;
     padding-top: 2vw;
+    padding-bottom: 2vh;
+    flex: 1;
 }
 
-.userinfo__input, span, .table__container, #submit-button {
+.userinfo__input, span {
     font-size: x-large;
     margin-bottom: 10px;
 }
@@ -423,6 +409,7 @@ input[type="radio"] {
     border: none;
     padding: 10px 20px 10px 20px;
     background-color: #a7a3cc;
+    margin-bottom: 10px;
 }
 
 #submit-button:not(:disabled) {
@@ -434,10 +421,16 @@ input[type="radio"] {
 }
 
 .table__container {
+    --row-height: 35px;
+    --head-row-height: 33px;
+
     width: 95%;
     font-size: large;
-    max-height: 16vh;
     overflow-y: scroll;
+    max-height: calc(
+        var(--head-row-height) + 4 * var(--row-height)
+    );
+    margin-bottom: 10px;
 }
 
 .users__table {
@@ -446,13 +439,13 @@ input[type="radio"] {
     border-spacing: 0;
 }
 
-.row__table > td {
-    border: 1px solid black;
-    height: 3.5vh;
+.row__table {
+    height: var(--row-height);
 }
 
-th {
-    height: 3.5vh;
+.row__table > td {
+    border: 1px solid black;
+    position: relative;
 }
 
 .checkbox {
@@ -511,24 +504,13 @@ th {
     background-color: #8d5151;
 }
 
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    cursor: not-allowed;
-}
-
-@media (max-width: 1500px){
+@media (max-height: 800px){
     .component-label__container>label {
         font-size: x-large;
         font-weight: bolder;
     }
     .userinfo__input, span {
-        font-size: large;
+        font-size:medium;
         margin-bottom: 5px;
     }
     input[type="radio"] {
@@ -537,12 +519,8 @@ th {
         margin: 15px;
     }
     #submit-button {
-        cursor: pointer;
         font-size: medium;
-        border-radius: 10px;
-        border: none;
-        padding: 10px 20px 10px 20px;
-        background-color: #A7A3CC;
+        margin-bottom: 5px;
     }
     .editButton {
         cursor: pointer;
@@ -550,6 +528,13 @@ th {
     }
     .checkbox {
         transform: scale(150%);
+    }
+    .table__container {
+        margin-bottom: 5px;
+        font-size: medium;
+        max-height: calc(
+            var(--head-row-height) + 3 * var(--row-height)
+        );
     }
 }
 </style>

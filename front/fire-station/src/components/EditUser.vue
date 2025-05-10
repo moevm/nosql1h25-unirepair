@@ -4,12 +4,7 @@
             <img
                 id="exit-icon"
                 src="/icons/exit.svg"
-                @click="
-                    () => {
-                        $emit('component-change', 'searchUser');
-                        dropState();
-                    }
-                "
+                @click="$emit('component-change', 'searchUser');"
             />
             <label>Редактирование данных пользователя</label>
         </div>
@@ -227,87 +222,91 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    box-sizing: border-box;
 }
-
 .component-label__container {
     text-align: center;
     border-radius: 20px 20px 0 0;
     padding: 10px;
     background-color: white;
+    position: relative;
 }
-
-.component-label__container > label {
-    font-size: x-large;
-    font-weight: bolder;
+.component-label__container>label {
+    font-size: xx-large;
 }
-
 #exit-icon {
     position: absolute;
     cursor: pointer;
+    right: 5px;
+    top: 5px;
     padding: 10px;
-    right: 30px;
-    top: 30px;
     height: auto;
 }
-
 #exit-icon:hover {
     background-color: rgb(128, 128, 128, 0.2);
     border-radius: 10px;
 }
-
 .component-userinfo__container {
     border-radius: 0 0 20px 20px;
     background-color: white;
     height: 100%;
-    padding: 24px;
+    padding-left: 80px;
+    padding-top: 40px;
+    position: relative;
 }
-
-.userinfo__input,
-span {
-    font-size: large;
+.userinfo__input, span {
+    font-size: x-large;
     margin-bottom: 25px;
 }
-
 .userinfo__input {
     margin-left: 20px;
 }
-
-input[type="text"] {
+input[type="text"]{
     width: 600px;
 }
-
-input[type="number"] {
+input[type="number"]{
     width: 50px;
 }
-
 input[type="radio"] {
     cursor: pointer;
-    transform: scale(150%);
-    margin: 15px;
+    transform: scale(3);
+    margin: 30px;
 }
-
 #submit-button {
     position: absolute;
     cursor: pointer;
-    right: 60px;
-    bottom: 50px;
-    font-size: large;
+    right: 30px;
+    bottom: 25px;
+    font-size: xx-large;
     border-radius: 10px;
     border: none;
     padding: 20px;
     background-color: #a7a3cc;
 }
-
 #submit-button:hover {
-    background-color: #766ebf;
+    background-color: #766EBF;
 }
-
 .brigade-text__avaliable {
     color: black;
 }
-
 .brigade-text__unavaliable {
     color: gray;
+}
+
+@media (max-height: 800px){
+    .component-label__container>label {
+        font-size: x-large;
+        font-weight: bolder;
+    }
+    .userinfo__input, span {
+        font-size: large;
+        margin-bottom: 20px;
+    }
+    input[type="radio"] {
+        transform: scale(2);
+        margin: 15px;
+    }
+    #submit-button {
+        font-size: x-large;
+    }
 }
 </style>

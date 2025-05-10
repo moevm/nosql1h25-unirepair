@@ -20,7 +20,9 @@ router.get("/api/export_data", async (req, res) => {
     const result = await exportDB();
     res.send(result);
   } catch (e) {
-    console.log(`============================\nFailed to export db: ${e}\n`);
+    console.log(
+      `============================\nFailed to export db: ${e.stack}\n`,
+    );
     res.send({ error: e.toString() });
   }
 });
@@ -36,7 +38,9 @@ router.post("/api/import_data", async (req, res) => {
     await loadDB(req.body);
     res.send("Ok");
   } catch (e) {
-    console.log(`============================\nFailed to import db: ${e}\n`);
+    console.log(
+      `============================\nFailed to import db: ${e.stack}\n`,
+    );
     res.send({ error: e.toString() });
   }
 });

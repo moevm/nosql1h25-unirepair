@@ -66,7 +66,7 @@ export default {
     background-color: #766EBF;
 }
 
-@media (max-width: 1300px){
+@media (max-height: 800px){
     .edit-options__link {
         display: flex;
         flex-direction: column;

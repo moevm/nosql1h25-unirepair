@@ -54,13 +54,6 @@
             </p>
         </div>
 
-        <RouterLink
-            to="/db"
-            v-if="user && user?.role == 'admin'"
-            class="button DB_button"
-            >База данных</RouterLink
-        >
-
         <div class="profile__buttons">
             <button
                 class="button button_secondary"
