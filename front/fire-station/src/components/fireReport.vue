@@ -89,7 +89,7 @@
               <tr v-for="(brigade, index) in availableBrigades" :key="index">
                 <td>
                   <input
-                    type="radio"
+                    type="checkbox"
                     v-model="selectedBrigade"
                     :value="brigade.number"
                   />
@@ -196,7 +196,7 @@ export default {
       casualtiesCount: 0,
       callSource: "телефонный звонок",
       fireRank: "1",
-      selectedBrigade: null,
+      selectedBrigade: [],
       selectedVehicle: "",
       topRight: {
         srid: 4326,
@@ -425,7 +425,7 @@ export default {
       this.casualtiesCount = 0;
       this.callSource = "телефонный звонок";
       this.fireRank = "1";
-      this.selectedBrigade = null;
+      this.selectedBrigade = [];
       this.selectedVehicle = "";
       this.createdFormData = null;
       this.createdFormDates = null;

@@ -5,7 +5,7 @@
       <p class="call-card_info"><strong>Адрес:</strong> {{ call.fireAddress }}</p>
       <p class="call-card_info"><strong>Характер пожара:</strong> {{ call.fireType }}</p>
       <p class="call-card_info"><strong>Пострадавшие:</strong> {{ call.victimsCount }}</p>
-      <p class="call-card_info"><strong>Бригада и техника:</strong> {{ call.assignedTo }} | {{call.auto}}</p>
+      <p class="call-card_info"><strong>Бригады и техника:</strong> {{ call.assignedTo?.join(', ') || '' }} | {{call.auto}}</p>
       <span :class="['arrow', { 'arrow--up': !isHidden }]"></span>
     </div>
     <div ref="mapContainer" class="call-card_info call-card_info__map" :class="{ hidden: isHidden }"></div>
