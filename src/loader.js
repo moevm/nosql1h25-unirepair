@@ -47,9 +47,13 @@ function applyTypes(x) {
       continue;
     }
     if (key.startsWith("label")) {
-      let i = 1;
-      for (const l of x[key]) x[`label_${i++}`] = { value: l, type: "label" };
-      delete x[key];
+      if (Array.isArray(x[key])) {
+        let i = 1;
+        for (const l of x[key]) x[`label_${i++}`] = { value: l, type: "label" };
+        delete x[key];
+      } else {
+        x[key] = { value: x[key], type: "label" };
+      }
       continue;
     }
 
@@ -91,7 +95,6 @@ export async function loadDB(data) {
   assert.assertArray(data.callforms);
   assert.assertArray(data.reports);
   assert.assertArray(data.inventory);
-  assert.assertArray(data.relationships);
   options.no_trace = true;
   for (const user of data.users) await create(":User", applyTypes(user));
   for (const cf of data.callforms) await create(":CallForm", applyTypes(cf));
@@ -99,6 +102,7 @@ export async function loadDB(data) {
     await create(":Report", applyTypes(report));
   for (const item of data.inventory)
     await create(":Inventory", applyTypes(item));
+
   for (const relation of data.relationships)
     await match("start", applyTypes(relation.startNode), {
       match: `(end${props(applyTypes(relation.endNode))})`,
