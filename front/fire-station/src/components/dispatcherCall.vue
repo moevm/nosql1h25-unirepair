@@ -1,4 +1,5 @@
 <template>
+  <div class="call" @click="openCall">
   <section class="call-card">
     <div class="call-card_text">
       <h3 class="call-card_title">
@@ -63,14 +64,28 @@
       </div>
     </div>
   </section>
+  </div>
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router';
 import { computed } from 'vue'
 
 const props = defineProps({
   call: Object
 })
+
+const router = useRouter();
+function openCall() {
+  console.log('DispatcherCall', props.call);
+  console.log('DispatcherCall', props.call.id);
+  console.log('DispatcherCall', props.call.createdAt);
+  router.push({
+    name: 'DispatcherNewCall',
+    query: { createdAt: props.call.createdAt }
+  });
+}
+
 const emit = defineEmits(['update-time'])
 
 function handleTimeSet(type) {

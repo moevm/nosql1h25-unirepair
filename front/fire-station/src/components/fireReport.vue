@@ -5,16 +5,16 @@
         <label>Адрес происшествия:</label>
         <input
           type="text"
-          v-model="incidentAddress"
+          v-model="this.incidentAddress"
           class="form-input"
           placeholder="Введите адрес"
-          @keyup.enter="() => showMapForAddress(incidentAddress)"
+          @keyup.enter="() => showMapForAddress(this.incidentAddress)"
         />
       </div>
       <div ref="mapContainer" class="form-group map"></div>
       <div class="form-group">
         <label>Характер пожара:</label>
-        <input type="text" v-model="fireType" class="form-input" />
+        <input type="text" v-model="this.fireType" class="form-input" />
       </div>
 
       <div class="form-group">
@@ -186,7 +186,9 @@ import query from "../common/query.js";
 
 export default {
   name: "CreateFireReportComponent",
-
+  props: {
+    callData: Object
+  },
   data() {
     return {
       showSaveAlert: false,
@@ -229,6 +231,20 @@ export default {
     await this.fetchAvailableBrigades();
     await this.fetchAvailableVehicles();
   },
+  watch: {
+    callData: {
+      handler(newVal) {
+        console.log('Получен callData в fireReport.vue:', newVal);
+        if (newVal) {
+          console.log('содержимое callData в fireReport.vue:', newVal[0]);
+          this.incidentAddress = newVal[0].fireAddress || '';
+          this.fireType = newVal.fireType || '';
+        }
+      },
+      immediate: true
+    }
+  },
+
   methods: {
     async fetchAvailableBrigades() {
       try {
