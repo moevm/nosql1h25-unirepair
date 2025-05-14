@@ -153,7 +153,7 @@
         <button
           class="send-button"
           @click="sendToBrigades"
-          :disabled="formSubmitted || !selectedBrigade || !selectedVehicle"
+          :disabled="!selectedBrigade || !selectedVehicle"
         >
           {{ formSubmitted ? "Форма отправлена" : "Отправить бригадам" }}
         </button>
@@ -191,6 +191,7 @@ export default {
   },
   data() {
     return {
+      id: null,
       showSaveAlert: false,
       incidentAddress: "",
       fireType: "",
@@ -237,12 +238,14 @@ export default {
         if (newVal) {
           const data = newVal[0];
 
+          this.id = data.id;
           this.incidentAddress = data.fireAddress || '';
           this.fireType = data.fireType || '';
           this.fireRank = data.fireRank || '1';
           this.callSource = data.callSource || 'телефонный звонок';
           this.topRight = data.topRight || { srid: 4326, x: null, y: null };
           this.bottomLeft = data.bottomLeft || { srid: 4326, x: null, y: null };
+          this.showMapForAddress(this.incidentAddress);
 
           if (data.victimsCount && data.victimsCount > 0) {
             this.hasCasualties = 'yes';
@@ -252,7 +255,7 @@ export default {
             this.casualtiesCount = 0;
           }
           if (Array.isArray(data.assignedTo) && data.assignedTo.length > 0) {
-            this.selectedBrigade = data.assignedTo[0];
+            this.selectedBrigade = data.assignedTo;
           }
 
           const vehicleMatch = data.auto?.match(/(\d+)$/);
@@ -406,8 +409,11 @@ export default {
     },
     async sendToBrigades() {
       try {
-        const response = await query("create_callform", {
-          login: useUserStore().user.login,
+        const isEdit = !!this.callData || this.formSubmitted; // определяем, редактирование ли это
+        const requestName = isEdit ? "fill_callform" : "create_callform";
+
+        // Общие поля для обоих типов формы
+        const commonPayload = {
           callSource: this.callSource,
           fireAddress: this.incidentAddress,
           fireType: this.fireType,
@@ -417,7 +423,18 @@ export default {
           auto: "Пожарная машина " + this.selectedVehicle,
           bottomLeft: `${this.bottomLeft.y ?? 0};${this.bottomLeft.x ?? 0}`,
           topRight: `${this.topRight.y ?? 0};${this.topRight.x ?? 0}`,
+        };
+
+        // Специфичные поля
+        const extraPayload = isEdit
+            ? { callformId: this.id }
+            : { login: useUserStore().user.login };
+
+        const response = await query(requestName, {
+          ...commonPayload,
+          ...extraPayload,
         });
+
         if (response === null) return;
 
         this.createdFormData = response;
@@ -621,6 +638,7 @@ export default {
 
 .send-button:hover {
   background-color: #45a049;
+  cursor: pointer;
 }
 
 .save-button {
@@ -633,6 +651,7 @@ export default {
 
 .save-button:hover {
   background-color: #8d5151;
+  cursor: pointer;
 }
 
 .alert__container {
@@ -664,6 +683,7 @@ export default {
 
 #exit-icon-alert:hover {
   background-color: #8d5151;
+  cursor: pointer;
 }
 .alert-message {
   position: absolute;
@@ -687,6 +707,7 @@ export default {
 }
 .confirm-button:hover {
   background-color: #8d5151;
+  cursor: pointer;
 }
 
 /* добавим прокрутку */
