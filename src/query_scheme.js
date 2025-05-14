@@ -1,6 +1,5 @@
 import crypto from "crypto";
 import * as assert from "./assert.js";
-import { raw } from "express";
 
 function isISODateTime(value) {
   if (typeof value !== "string") return false;

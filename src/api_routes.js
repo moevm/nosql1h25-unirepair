@@ -43,14 +43,10 @@ async function ensureFilledInBy(reportId, login) {
     },
   );
   if (relation === null)
-    await matchOne(
-      "u:User:Active",
-      { login },
-      {
-        match: `(r:Report${props({ reportId })})`,
-        create: "(u)-[:FILLED_IN]->(r)",
-      },
-    );
+    await matchOne("u:User:Active", login, {
+      match: `(r:Report${props({ reportId })})`,
+      create: "(u)-[:FILLED_IN]->(r)",
+    });
   else if (relation.login !== login.value)
     return error("The report is already created by another user");
 }
