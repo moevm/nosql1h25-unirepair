@@ -26,14 +26,10 @@ export default {
   },
   async mounted() {
     const route = useRoute();
-    // const callId = route.query.callId;
     const createdAt = range(route.query.createdAt);
-    console.log("DispatcherNewCall", route.query);
-    console.log("DispatcherNewCall",createdAt);
     if (createdAt) {
       try {
         const res = await query('callform_search', { createdAt});
-        console.log("DispatcherNewCall res", res);
         this.callData = res;
       } catch (error) {
         console.error('Ошибка получения вызова:', error);

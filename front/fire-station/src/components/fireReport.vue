@@ -234,11 +234,31 @@ export default {
   watch: {
     callData: {
       handler(newVal) {
-        console.log('Получен callData в fireReport.vue:', newVal);
         if (newVal) {
-          console.log('содержимое callData в fireReport.vue:', newVal[0]);
-          this.incidentAddress = newVal[0].fireAddress || '';
-          this.fireType = newVal.fireType || '';
+          const data = newVal[0];
+
+          this.incidentAddress = data.fireAddress || '';
+          this.fireType = data.fireType || '';
+          this.fireRank = data.fireRank || '1';
+          this.callSource = data.callSource || 'телефонный звонок';
+          this.topRight = data.topRight || { srid: 4326, x: null, y: null };
+          this.bottomLeft = data.bottomLeft || { srid: 4326, x: null, y: null };
+
+          if (data.victimsCount && data.victimsCount > 0) {
+            this.hasCasualties = 'yes';
+            this.casualtiesCount = data.victimsCount;
+          } else {
+            this.hasCasualties = 'no';
+            this.casualtiesCount = 0;
+          }
+          if (Array.isArray(data.assignedTo) && data.assignedTo.length > 0) {
+            this.selectedBrigade = data.assignedTo[0];
+          }
+
+          const vehicleMatch = data.auto?.match(/(\d+)$/);
+          if (vehicleMatch) {
+            this.selectedVehicle = vehicleMatch[1];
+          }
         }
       },
       immediate: true

@@ -1,7 +1,7 @@
 <template>
-  <div class="call" @click="openCall">
+  <div class="call">
   <section class="call-card">
-    <div class="call-card_text">
+    <div class="call-card_text" @click="openCall">
       <h3 class="call-card_title">
         Пожар на {{ call.fireAddress }} ({{ formateDate(call.createdAt) }})
       </h3>
@@ -18,6 +18,7 @@
         <strong>Бригада и техника:</strong> {{ call.assignedTo }} |
         {{ call.auto }}
       </p>
+    </div>
       <div class="time-table">
         <table class="call-timeline">
           <tbody>
@@ -61,7 +62,6 @@
           </tr>
           </tbody>
         </table>
-      </div>
     </div>
   </section>
   </div>
@@ -77,9 +77,6 @@ const props = defineProps({
 
 const router = useRouter();
 function openCall() {
-  console.log('DispatcherCall', props.call);
-  console.log('DispatcherCall', props.call.id);
-  console.log('DispatcherCall', props.call.createdAt);
   router.push({
     name: 'DispatcherNewCall',
     query: { createdAt: props.call.createdAt }
