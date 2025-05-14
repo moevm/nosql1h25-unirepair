@@ -13,7 +13,6 @@
 import miniSidebar from "@/components/miniSidebar.vue";
 import fireReport from "@/components/fireReport.vue";
 import query from "@/common/query.js";
-import range from "@/common/range.js";
 import { useRoute } from 'vue-router';
 
 export default {
@@ -26,7 +25,7 @@ export default {
   },
   async mounted() {
     const route = useRoute();
-    const createdAt = range(route.query.createdAt);
+    const createdAt = route.query.createdAt;
     if (createdAt) {
       try {
         const res = await query('callform_search', { createdAt});
