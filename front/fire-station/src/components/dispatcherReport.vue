@@ -4,7 +4,7 @@
     <h2 class="report__title">Отчет №{{ reportData.id }}</h2>
 
     <section class="report__block report__block__border">
-      <div><b>№ Бригады:</b> {{ reportData.assignedTo }}</div>
+      <div><b>№ Бригады:</b> {{ reportData.assignedTo?.join(', ') || '' }}</div>
       <div><b>Оператор:</b> {{ operator.fullName }}</div>
       <div><b>Время вызова:</b> {{ reportData.createdAt }}</div>
       <div><b>Вызов завершен:</b> {{ reportData.modifiedAt }}</div>

@@ -15,7 +15,7 @@
         <strong>Пострадавшие:</strong> {{ call.victimsCount }}
       </p>
       <p class="call-card_info">
-        <strong>Бригада и техника:</strong> {{ call.assignedTo }} |
+        <strong>Бригада и техника:</strong> {{ call.assignedTo?.join(', ') || '' }} |
         {{ call.auto }}
       </p>
     </div>
