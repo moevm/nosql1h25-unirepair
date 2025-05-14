@@ -5,16 +5,16 @@
         <label>Адрес происшествия:</label>
         <input
           type="text"
-          v-model="incidentAddress"
+          v-model="this.incidentAddress"
           class="form-input"
           placeholder="Введите адрес"
-          @keyup.enter="() => showMapForAddress(incidentAddress)"
+          @keyup.enter="() => showMapForAddress(this.incidentAddress)"
         />
       </div>
       <div ref="mapContainer" class="form-group map"></div>
       <div class="form-group">
         <label>Характер пожара:</label>
-        <input type="text" v-model="fireType" class="form-input" />
+        <input type="text" v-model="this.fireType" class="form-input" />
       </div>
 
       <div class="form-group">
@@ -186,7 +186,9 @@ import query from "../common/query.js";
 
 export default {
   name: "CreateFireReportComponent",
-
+  props: {
+    callData: Object
+  },
   data() {
     return {
       showSaveAlert: false,
@@ -229,6 +231,40 @@ export default {
     await this.fetchAvailableBrigades();
     await this.fetchAvailableVehicles();
   },
+  watch: {
+    callData: {
+      handler(newVal) {
+        if (newVal) {
+          const data = newVal[0];
+
+          this.incidentAddress = data.fireAddress || '';
+          this.fireType = data.fireType || '';
+          this.fireRank = data.fireRank || '1';
+          this.callSource = data.callSource || 'телефонный звонок';
+          this.topRight = data.topRight || { srid: 4326, x: null, y: null };
+          this.bottomLeft = data.bottomLeft || { srid: 4326, x: null, y: null };
+
+          if (data.victimsCount && data.victimsCount > 0) {
+            this.hasCasualties = 'yes';
+            this.casualtiesCount = data.victimsCount;
+          } else {
+            this.hasCasualties = 'no';
+            this.casualtiesCount = 0;
+          }
+          if (Array.isArray(data.assignedTo) && data.assignedTo.length > 0) {
+            this.selectedBrigade = data.assignedTo[0];
+          }
+
+          const vehicleMatch = data.auto?.match(/(\d+)$/);
+          if (vehicleMatch) {
+            this.selectedVehicle = vehicleMatch[1];
+          }
+        }
+      },
+      immediate: true
+    }
+  },
+
   methods: {
     async fetchAvailableBrigades() {
       try {

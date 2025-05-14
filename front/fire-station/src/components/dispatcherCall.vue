@@ -1,6 +1,7 @@
 <template>
+  <div class="call">
   <section class="call-card">
-    <div class="call-card_text">
+    <div class="call-card_text" @click="openCall">
       <h3 class="call-card_title">
         Пожар на {{ call.fireAddress }} ({{ formateDate(call.createdAt) }})
       </h3>
@@ -17,6 +18,7 @@
         <strong>Бригада и техника:</strong> {{ call.assignedTo }} |
         {{ call.auto }}
       </p>
+    </div>
       <div class="time-table">
         <table class="call-timeline">
           <tbody>
@@ -60,17 +62,27 @@
           </tr>
           </tbody>
         </table>
-      </div>
     </div>
   </section>
+  </div>
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router';
 import { computed } from 'vue'
 
 const props = defineProps({
   call: Object
 })
+
+const router = useRouter();
+function openCall() {
+  router.push({
+    name: 'DispatcherNewCall',
+    query: { createdAt: props.call.createdAt }
+  });
+}
+
 const emit = defineEmits(['update-time'])
 
 function handleTimeSet(type) {
