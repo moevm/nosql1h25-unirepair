@@ -234,10 +234,9 @@ export default {
   },
   watch: {
     callData: {
-      handler(newVal) {
-        if (newVal) {
-          const data = newVal[0];
-
+      handler(data) {
+        if (data) {
+          console.log("fireReport data", data);
           this.id = data.id;
           this.incidentAddress = data.fireAddress || '';
           this.fireType = data.fireType || '';

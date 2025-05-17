@@ -13,8 +13,8 @@
 import miniSidebar from "@/components/miniSidebar.vue";
 import fireReport from "@/components/fireReport.vue";
 import query from "@/common/query.js";
-import range from "@/common/range.js";
 import { useRoute } from 'vue-router';
+import range from "@/common/range.js";
 
 export default {
   name: 'DispatcherNewCall',
@@ -26,11 +26,16 @@ export default {
   },
   async mounted() {
     const route = useRoute();
-    const createdAt = range(route.query.createdAt);
+    const createdAt = route.query.createdAt;
+    console.log("Получены параметры:", route.query);
+    console.log("DispatcherNewCall recieved createdAt:", createdAt);
     if (createdAt) {
       try {
-        const res = await query('callform_search', { createdAt});
-        this.callData = res;
+        const res = await query('callform_search', { createdAt: range(createdAt),
+          status:"Incomplete"});
+        console.log("Данные вызова full:", res);
+        this.callData = res[res.length-1];
+        console.log("DispatcherNewCall callData", this.callData);
       } catch (error) {
         console.error('Ошибка получения вызова:', error);
       }
