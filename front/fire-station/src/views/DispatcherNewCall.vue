@@ -27,11 +27,8 @@ export default {
   async mounted() {
     const route = useRoute();
     const createdAt = route.query.createdAt;
-<<<<<<< Updated upstream
-=======
     console.log("Получены параметры:", route.query);
     console.log("DispatcherNewCall recieved createdAt:", createdAt);
->>>>>>> Stashed changes
     if (createdAt) {
       try {
         const res = await query('callform_search', { createdAt: range(createdAt),
