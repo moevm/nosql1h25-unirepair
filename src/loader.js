@@ -13,7 +13,7 @@ const scheme = {
   phone: "string",
   email: "string",
   login: "string",
-  passwordHash: "password",
+  password: "password",
   registeredAt: "datetime",
   modifiedAt: "datetime",
   status: "label",

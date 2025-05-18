@@ -24,7 +24,7 @@ const userPattern = {
   email: "string:",
   login: "string:",
   brigadeNumber: "number:\\d+",
-  passwordHash: "string:[a-zA-Z\\d]+",
+  password: "string:[a-zA-Z\\d]+",
   modifiedAt: datePattern,
   registeredAt: datePattern,
   id: "string:\\d+",
@@ -56,7 +56,7 @@ const reportPattern = {
   waterSpent: "number:\\d+",
   foamSpent: "number:\\d+",
   damage: "number:",
-  equipmentDamage:"string:",
+  equipmentDamage: "string:",
   modifiedAt: datePattern,
   id: "string:\\d+",
 };
