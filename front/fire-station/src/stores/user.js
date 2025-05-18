@@ -9,5 +9,14 @@ export const useUserStore = defineStore('user', {
     setUser(data) {
       this.user = data;
     },
+    updateUser(partialUser) {
+      if (!this.user) return;
+
+      Object.entries(partialUser).forEach(([key, value]) => {
+        if (key in this.user) {
+          this.user[key] = value;
+        }
+      });
+    }
   },
 });

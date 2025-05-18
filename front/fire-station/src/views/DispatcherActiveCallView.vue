@@ -43,6 +43,9 @@ async function updateCallTime(callId, type) {
       await query("complete_callform", {
         callformId: callId
       });
+      await query("new_report", {
+        callformId: callId
+      });
 
       setTimeout(() => {
         query("operator_callforms", { login: useUserStore().user.login }).then(

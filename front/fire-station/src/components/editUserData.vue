@@ -1,63 +1,66 @@
 <template>
-  <div v-if="userData" class="edit-form">
-  <section class="edit_profile">
-    <div v-if="userData" class="profile__header">
-      <div class="edit_profile__avatar"></div>
-      <div class="edit_profile__info">
-        <p class="edit_profile__name"><strong>ФИО:</strong> {{ userData.fullName }}</p>
-        <p class="edit_profile__position"><strong>Должность:</strong> {{ userData.role }}</p>
-      </div>
-    </div>
-    <div v-if="userData" class="edit_profile__contact-settings">
-      <h3 class="edit_profile__contact-settings-header">Контактная информация:</h3>
-      <div class="input-group">
-      <label>
-        <strong>Тел.:</strong>
-        <input type="tel" v-model="userData.phone" class="edit_profile__contact-settings-item">
-      </label>
+  <div v-if="formData" class="edit-form">
+    <section class="edit_profile">
+      <div class="profile__header">
+        <div class="edit_profile__avatar"></div>
+        <div class="edit_profile__info">
+          <p class="edit_profile__name"><strong>ФИО:</strong> {{ formData.fullName }}</p>
+          <p class="edit_profile__position"><strong>Должность:</strong> {{ formData.role }}</p>
+        </div>
       </div>
 
-      <div class="input-group">
-      <label>
-        <strong>Email:</strong>
-        <input type="email" class="edit_profile__contact-settings-item" v-model="userData.email">
-      </label>
-      </div>
+      <form @submit.prevent="saveChanges" class="edit_profile__contact-settings">
+        <h3 class="edit_profile__contact-settings-header">Контактная информация:</h3>
 
-      <div class="input-group">
-      <label>
-        <strong>Адрес:</strong>
-        <input type="text" class="edit_profile__contact-settings-item" v-model="userData.address ">
-      </label>
-      </div>
+        <div class="input-group">
+          <label>
+            <strong>Тел.:</strong>
+            <input type="tel" v-model="formData.phone" class="edit_profile__contact-settings-item">
+          </label>
+        </div>
 
-      <h3 class="edit_profile__contact-settings-header">Настройки:</h3>
+        <div class="input-group">
+          <label>
+            <strong>Email:</strong>
+            <input type="email" class="edit_profile__contact-settings-item" v-model="formData.email" autocomplete="email">
+          </label>
+        </div>
 
-      <div class="input-group">
-      <label>
-        <strong>Логин:</strong>
-        <input type="text" class="edit_profile__contact-settings-item" v-model="userData.login" disabled>
-      </label>
-      </div>
+        <div class="input-group">
+          <label>
+            <strong>Адрес:</strong>
+            <input type="text" class="edit_profile__contact-settings-item" v-model="formData.address">
+          </label>
+        </div>
 
-      <div class="input-group">
-      <label>
-        <strong>Пароль:</strong>
-        <input type="password" class="edit_profile__contact-settings-item" v-model="userData.login ">
-      </label>
-      </div>
-      <div class="buttons">
-        <button class="close_button" @click="$emit('close')">Отмена</button>
-        <button class="submit_button" @click="$emit('save')">Ок</button>
-      </div>
-    </div>
-  </section>
+        <h3 class="edit_profile__contact-settings-header">Настройки:</h3>
 
+        <div class="input-group">
+          <label>
+            <strong>Логин:</strong>
+            <input type="text" class="edit_profile__contact-settings-item" v-model="formData.login" disabled>
+          </label>
+        </div>
+
+        <div class="input-group">
+          <label>
+            <strong>Пароль:</strong>
+            <input type="password" class="edit_profile__contact-settings-item" v-model="formData.password" autocomplete="current-password">
+          </label>
+        </div>
+
+        <div class="buttons">
+          <button type="button" class="close_button" @click="$emit('close')">Отмена</button>
+          <button type="submit" class="submit_button">Ок</button>
+        </div>
+      </form>
+    </section>
   </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref } from "vue";
+
 const props = defineProps({
   userData: {
     type: Object,
@@ -65,11 +68,24 @@ const props = defineProps({
   }
 });
 
-defineEmits(['close'])
-const formData = ref({...props.userData});
+const emit = defineEmits(['close', 'save']);
+const formData = ref({ ...props.userData });
 
 const saveChanges = () => {
-  emit('save', formData.value);
+  const payload = {
+    familyName: formData.value.familyName,
+    firstName: formData.value.firstName,
+    fatherName: formData.value.fatherName,
+    role: formData.value.role?.label,
+    brigadeNumber: formData.value.brigadeNumber,
+    address: formData.value.address,
+    phone: formData.value.phone,
+    email: formData.value.email,
+    login: formData.value.login,
+    password: formData.value.password
+  };
+
+  emit('save', payload);
   emit('close');
 };
 </script>
@@ -100,8 +116,9 @@ const saveChanges = () => {
   flex-direction: column;
   gap: 4px;
 }
+
 .input-group label {
-  font-weight: bold;
+  font-weight: 400;
   margin-bottom: 4px;
   padding-left: 4px;
   padding-top: 0;
@@ -140,25 +157,29 @@ const saveChanges = () => {
 }
 
 .edit_profile__contact-settings-item {
-  margin: 5px 0;
+  margin: 7px 4px;
 }
 
 .buttons {
   height: 40px;
   display: flex;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 4px 24px;
   align-items: center;
 }
 .close_button{
+  font-size: 18px;
+  font-weight: 500;
   border: none;
   border-radius: 3px;
-  height: 20px;
+  height: 24px;
   width: 80px;
   background-color: #a7a3cc;
 }
 .submit_button{
-  height: 20px;
+  font-size: 18px;
+  font-weight: 500;
+  height: 24px;
   width: 80px;
   border: none;
   border-radius: 3px;

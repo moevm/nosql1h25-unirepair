@@ -24,7 +24,10 @@ import { ref } from 'vue'
 import Sidebar from '../components/Sidebar.vue'
 import UserData from "../components/UserData.vue";
 import editUserData from "../components/editUserData.vue";
+import query from "@/common/query.js";
+import { useUserStore } from "@/stores/user";
 
+const userStore = useUserStore();
 const showEditForm = ref(false);
 const currentUser = ref(null);
 const handleEdit = (userData) => {
@@ -32,10 +35,15 @@ const handleEdit = (userData) => {
   currentUser.value = userData
 
 }
-const handleSave = (updatedUser) => {
-  //как я понимаю здесь данные должны отдаваться бд
-  showEditForm.value = false
-}
+const handleSave = async (updatedUser) => {
+  try {
+    const response = await query("modify_user", updatedUser);
+    userStore.updateUser(response);
+    showEditForm.value = false;
+  } catch (error) {
+    console.error("Ошибка при сохранении данных пользователя:", error);
+  }
+};
 </script>
 
 <style scoped>

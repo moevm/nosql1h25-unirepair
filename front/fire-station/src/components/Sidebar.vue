@@ -60,7 +60,7 @@ export default {
       admin: [
         { label: 'Статистика', icon: '/icons/statistics.svg', route: '/stats' },
         { label: 'Редактировать', icon: '/icons/edit.svg', route: '/edit' },
-        { label: 'База данных', icon: '/icons/BD.svg', route: '/db'}
+        { label: 'База данных', icon: '/icons/database.svg', route: '/db'}
       ],
     }
 
