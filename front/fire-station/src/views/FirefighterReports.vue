@@ -105,4 +105,30 @@ onMounted(async () => {
 .block {
   margin-left: 22vw;
 }
+
+@media (max-width: 768px) {
+  .layout {
+    min-height: 200px;
+    display: flex;
+    background-color: #CED0E9;
+    justify-content: center;
+
+  }
+  .sidebar{
+    position: fixed;
+    top: auto;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: 80px;
+    z-index: 100000;
+    height: 12vh;
+    min-height: 55px;
+  }
+  .block{
+    height: 88vh;
+    overflow: auto;
+    margin: 12px;
+  }
+}
 </style>

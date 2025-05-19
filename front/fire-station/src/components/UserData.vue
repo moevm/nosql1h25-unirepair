@@ -183,16 +183,31 @@ export default {
     background-color: #a7a3cc;
 }
 
-.DB_button {
-    position: absolute;
-    bottom: 60px;
-    left: 20px;
-    background-color: #a7a3cc;
-    text-decoration: none;
-    color: black;
+@media (max-width: 768px) {
+  .profile__avatar {
+    width: 60px;
+    height: 60px;
+    background: #d9d9d9;
+    border-radius: 50%;
+  }
+
+  .profile__buttons {
+    display: flex;
+    flex-direction: column-reverse;
+    height: 150px;
+    gap: 16px;
+    justify-content: flex-end;
+
+  }
+  .button_secondary {
+    height: 40px;
+    position: static;
+  }
+
+  .button_primary {
+    height: 40px;
+    position: static;
 }
 
-.DB_button:hover {
-    background-color: #766ebf;
 }
 </style>

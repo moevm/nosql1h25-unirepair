@@ -107,4 +107,38 @@ onUnmounted(() => {
 .block {
     margin-left: 20vw;
 }
+
+@media (max-width: 768px) {
+  .layout {
+    min-height: 200px;
+    display: flex;
+    background-color: #CED0E9;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+
+  }
+  .sidebar{
+    position: fixed;
+    top: auto;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: 80px;
+    z-index: 100000;
+    height: 12vh;
+    min-height: 55px;
+  }
+  .block{
+
+    margin-top: 12px;
+    margin-bottom: 12px;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0;
+    height: 88vh;
+    overflow: auto;
+
+  }
+}
 </style>

@@ -3,7 +3,7 @@
   <div class="layout">
     <Sidebar class="sidebar"/>
 
-    <template v-if="showEditForm">
+    <template v-if="showEditForm" class="block">
       <editUserData
           :userData="currentUser"
           @close="showEditForm = false"
@@ -50,5 +50,25 @@ const handleSave = async (updatedUser) => {
 .layout {
   display: flex;
   background-color: #CED0E9;
+}
+
+@media (max-width: 768px) {
+  .layout {
+    display: flex;
+    background-color: #CED0E9;
+  }
+  .sidebar {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: 80px;
+    z-index: 10;
+    height: 12vh;
+    min-height: 55px;
+  }
+  .block{
+    height: 88vh;
+  }
 }
 </style>

@@ -157,4 +157,56 @@ export default {
   text-decoration: none;
 }
 
+@media (max-width: 768px) {
+  .sidebar__nav {
+    padding: 0;
+    margin: 0;
+    position: relative;
+  }
+  .sidebar__list{
+    display: flex;
+    flex-direction: row;
+    width: 100vw;
+    height: 100%;
+    align-items: stretch;
+  }
+  .sidebar__item{
+    width: 30vw;
+    height: 100%;
+    flex-grow: 1;
+    border-right: 1px  solid #CED0E9;
+  }
+  .sidebar__item--active{
+    height: 100%;
+    border-radius: 10px;
+    border-right: none;
+  }
+  .sidebar__link{
+    height: 100%;
+    font-size: 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .sidebar__item:last-child{
+    border-right: none;
+  }
+  .sidebar__link:hover {
+    height: 100%;
+    border-radius: 10px;
+  }
+
+  .sidebar__icon {
+    padding-right: 0;
+    font-size: initial;
+  }
+
+
+  .sidebar__logout {
+    position: absolute;
+    bottom: 80px;
+    right: 24px;
+  }
+
+}
 </style>
