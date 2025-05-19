@@ -105,4 +105,12 @@ watch(() => props.call, () => {
 .hidden {
   display: none;
 }
+@media (max-width: 768px) {
+  .call-card {
+
+    margin: 0;
+
+  }
+}
+
 </style>
