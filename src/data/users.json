@@ -9,7 +9,7 @@
     "phone": "+7 (923) 555-66-77",
     "email": "sidorov@example.com",
     "login": "operator_dmitriy",
-    "passwordHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+    "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
     "registeredAt": "2023-03-08T08:30:00Z",
     "modifiedAt": "2023-03-18T14:20:00Z",
     "status": "Active"
@@ -24,7 +24,7 @@
     "phone": "+7 (913) 999-88-77",
     "email": "zaitsev@example.com",
     "login": "operator_vladimir",
-    "passwordHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+    "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
     "registeredAt": "2023-02-12T09:15:00Z",
     "modifiedAt": "2023-02-20T15:30:00Z",
     "status": "Active"
@@ -39,7 +39,7 @@
     "phone": "+7 (910) 333-22-11",
     "email": "volkova@example.com",
     "login": "admin_maria",
-    "passwordHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+    "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
     "registeredAt": "2023-01-20T10:00:00Z",
     "modifiedAt": "2023-02-10T12:45:00Z",
     "status": "Active"
@@ -54,7 +54,7 @@
     "phone": "+7 (921) 444-55-66",
     "email": "melnikov@example.com",
     "login": "admin_sergey",
-    "passwordHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+    "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
     "registeredAt": "2023-04-01T11:00:00Z",
     "modifiedAt": "2023-04-15T14:00:00Z",
     "status": "Active"
@@ -69,7 +69,7 @@
     "phone": "+7 (952) 888-77-66",
     "email": "fedorov@example.com",
     "login": "brigadier_igor",
-    "passwordHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+    "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
     "registeredAt": "2023-04-10T11:45:00Z",
     "modifiedAt": "2023-05-25T16:10:00Z",
     "status": "Active"
@@ -84,7 +84,7 @@
     "phone": "+7 (934) 777-88-99",
     "email": "alekseev@example.com",
     "login": "fireman_max",
-    "passwordHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+    "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
     "registeredAt": "2023-05-18T07:20:00Z",
     "modifiedAt": "2023-05-30T10:50:00Z",
     "status": "Active"
@@ -99,7 +99,7 @@
     "phone": "+7 (905) 666-77-88",
     "email": "gordeeyev@example.com",
     "login": "fireman_andrey",
-    "passwordHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+    "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
     "registeredAt": "2023-06-25T08:40:00Z",
     "modifiedAt": "2023-07-02T13:20:00Z",
     "status": "Active"
@@ -114,7 +114,7 @@
     "phone": "+7 (952) 888-77-66",
     "email": "fedorov@example.com",
     "login": "brigadier_oleg",
-    "passwordHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+    "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
     "registeredAt": "2023-06-10T11:45:00Z",
     "modifiedAt": "2023-07-25T16:10:00Z",
     "status": "Active"
@@ -129,7 +129,7 @@
     "phone": "+7 (934) 777-88-99",
     "email": "alekseev@example.com",
     "login": "fireman_roman",
-    "passwordHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+    "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
     "registeredAt": "2023-07-18T07:20:00Z",
     "modifiedAt": "2023-08-30T10:50:00Z",
     "status": "Active"
@@ -144,7 +144,7 @@
     "phone": "+7 (905) 666-77-88",
     "email": "gordeeyev@example.com",
     "login": "fireman_ivan",
-    "passwordHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+    "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
     "registeredAt": "2023-08-25T08:40:00Z",
     "modifiedAt": "2023-09-02T13:20:00Z",
     "status": "Active"

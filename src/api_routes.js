@@ -60,9 +60,9 @@ const api_routes = {
       {
         orelse: { error: "User does not exist" },
         then: (user) => {
-          if (user.passwordHash !== password.value.hash) {
+          if (user.password !== password.value.hash) {
             console.log(
-              `Password ${password.value.password} with hash ${password.value.hash} does not match ${user.passwordHash}`,
+              `Password ${password.value.password} with hash ${password.value.hash} does not match ${user.password}`,
             );
             return error("Password is incorrect");
           }

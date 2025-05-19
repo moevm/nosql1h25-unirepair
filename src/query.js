@@ -162,10 +162,7 @@ export function props(conditions) {
       ? " { " +
         Object.entries(conditions)
           .filter(([key, cond]) => !!key && cond !== null && cond !== undefined)
-          .map(
-            ([key, cond]) =>
-              `${key === "password" ? "passwordHash" : key}: ${makeNeo4jLiteral(cond)}`,
-          )
+          .map(([key, cond]) => `${key}: ${makeNeo4jLiteral(cond)}`)
           .join(", ") +
         " }"
       : "")
