@@ -157,9 +157,11 @@
         >
           {{ formSubmitted ? "Форма отправлена" : "Отправить бригадам" }}
         </button>
+        <!--
         <button class="save-button" @click="showSaveAlert = true">
           Сохранить форму
         </button>
+        -->
       </div>
       <div v-if="showSaveAlert" class="alert__container">
         <img
@@ -438,6 +440,7 @@ export default {
 
         this.createdFormData = response;
         this.formSubmitted = true;
+        this.id = response.id
         //alert("Форма успешно создана!");
         return true;
       } catch (error) {

@@ -4,7 +4,7 @@
     <h2 class="report__title">Отчет №{{ reportData.id }}</h2>
 
     <section class="report__block">
-      <div><b>Бригадир:</b> {{ reportData.brigadier }}</div>
+      <div><b>Бригадир:</b> {{ userStore.user.fullName }}</div>
       <div><b>Оператор:</b> {{ reportData.operator }}</div>
       <div><b>Время вызова:</b> {{ reportData.callTime }}</div>
       <div><b>Вызов завершен:</b> {{ reportData.endTime }}</div>
@@ -161,10 +161,9 @@ const isNoDamageCheckboxDisabled = computed(() => {
 });
 
 const emit = defineEmits(["close"]);
-
+const userStore = useUserStore();
 async function saveDraft() {
   try {
-    const userStore = useUserStore();
     const report = props.reportData;
     const response = await query("incomplete_report", {
       reportId: report.id,
