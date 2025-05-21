@@ -73,27 +73,24 @@ import { computed, ref } from "vue";
 import { useUserStore } from "@/stores/user";
 
 export default {
-    name: "UserData",
-    setup(_, { emit }) {
-        const userStore = useUserStore();
-        const user = computed(() => userStore.user);
+  name: "UserData",
+  setup(_, { emit }) {
+    const userStore = useUserStore();
+    const user = computed(() => userStore.user);
 
-        const isOnShift = ref(user.value?.status === "на смене");
+    const isOnShift = computed(() => userStore.isOnShift);;
 
-        const toggleShift = () => {
-            isOnShift.value = !isOnShift.value;
-            emit(
-                "status-changed",
-                isOnShift.value ? "на смене" : "не на смене",
-            );
-        };
+    const toggleShift = () => {
+      userStore.toggleShift();
+      emit('status-changed', userStore.isOnShift ? 'на смене' : 'не на смене');
+    };
 
-        return {
-            user,
-            isOnShift,
-            toggleShift,
-        };
-    },
+    return {
+      user,
+      isOnShift,
+      toggleShift,
+    };
+  },
 };
 </script>
 
