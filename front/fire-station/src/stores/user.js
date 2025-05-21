@@ -3,6 +3,7 @@ import { defineStore } from 'pinia';
 export const useUserStore = defineStore('user', {
   state: () => ({
     user: null,
+    isOnShift: false,
   }),
   persist: true,
   actions: {
@@ -17,6 +18,9 @@ export const useUserStore = defineStore('user', {
           this.user[key] = value;
         }
       });
+    },
+    toggleShift() {
+      this.isOnShift = !this.isOnShift;
     }
   },
 });
