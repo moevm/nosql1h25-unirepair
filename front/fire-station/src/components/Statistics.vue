@@ -148,10 +148,16 @@ export default {
             this.$refs.fs.value = '';
         },
         async importJSON(file){
+          try {
             const importData = await this.readJSON(file)
             console.log(importData)
 
             await axios.post("http://localhost:3000/api/import_data", importData);
+            alert("✅ Данные успешно импортированы!");
+          } catch (error) {
+        console.error("Ошибка при импорте данных:", error);
+        alert("❌Ошибка при импорте данных. Проверьте формат файла или соединение с сервером.");
+      }
         },
         readJSON(file){
             return new Promise((resolve) => {
