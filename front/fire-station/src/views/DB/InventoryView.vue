@@ -138,10 +138,10 @@ export default {
 
 #submit-button {
   cursor: pointer;
-  font-size: x-large;
+  font-size: large;
   border-radius: 10px;
   border: none;
-  padding: 10px 20px 10px 20px;
+  padding: 7px 12px;
   background-color: #a7a3cc;
 }
 

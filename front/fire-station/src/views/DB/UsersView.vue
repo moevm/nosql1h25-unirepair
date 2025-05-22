@@ -101,7 +101,20 @@
               Сбросить
             </button>
           </div>
-
+          <ChartBuilder
+              :data="foundUsers"
+              :xOptions="[
+                          { value: 'registeredAt', label: 'Дата регистрации' },
+                          { value: 'modifiedAt', label: 'Дата последнего изменения' },
+                          { value: 'role', label: 'Роль' },
+                          { value: 'brigadeNumber', label: 'Номер бригады' }
+                      ]"
+              :yOptions="[
+                          { value: 'count', label: 'Количество записей' }
+                      ]"
+              :labels="rolesTranslations"
+              :getStatus="findRole"
+          />
           <div class="table__container">
             <table>
               <thead
@@ -177,10 +190,11 @@
 import Sidebar from "@/components/Sidebar.vue";
 import query from "../../common/query.js";
 import range from "../../common/range.js";
+import ChartBuilder from "@/components/ChartBuilder.vue";
 
 export default {
   name: "DBUsers",
-  components: { Sidebar },
+  components: {ChartBuilder, Sidebar },
   data() {
     return {
       name: "",
@@ -281,10 +295,10 @@ export default {
 
 #submit-button {
   cursor: pointer;
-  font-size: x-large;
+  font-size: large;
   border-radius: 10px;
   border: none;
-  padding: 10px 20px 10px 20px;
+  padding: 7px 12px;
   background-color: #a7a3cc;
 }
 
