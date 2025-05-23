@@ -178,7 +178,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(callForm, index) in foundCallForms" :key="index">
+                <tr v-for="(callForm, index) in paginatedData" :key="index">
                   <td>
                     {{ statusTranslations[findStatus(callForm)] }}
                   </td>
@@ -217,12 +217,60 @@
                 </tr>
               </tbody>
             </table>
+
+            <div class="pagination">
+              <button 
+                @click="prevPage" 
+                :disabled="currentPage === 1"
+                class="pagination-button"
+              >
+                Назад
+              </button>
+              
+              <div class="page-numbers">
+                <span 
+                  v-if="currentPage > 3" 
+                  class="page-dots"
+                >...</span>
+                
+                <button
+                  v-for="page in visiblePages"
+                  :key="page"
+                  @click="goToPage(page)"
+                  :class="{ 'current-page': page === currentPage }"
+                  class="page-number"
+                >
+                  {{ page }}
+                </button>
+                
+                <span 
+                  v-if="currentPage < totalPages - 2" 
+                  class="page-dots"
+                >...</span>
+              </div>
+              
+              <button 
+                @click="nextPage" 
+                :disabled="currentPage === totalPages || totalPages === 0"
+                class="pagination-button"
+              >
+                Вперед
+              </button>
+              <select v-model="pageSize" @change="changePageSize">
+                <option value="5">5 на странице</option>
+                <option value="10">10 на странице</option>
+                <option value="20">20 на странице</option>
+                <option value="30">30 на странице</option>
+              </select>
+              <span>Всего записей: {{ foundCallForms.length }}</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import Sidebar from "@/components/Sidebar.vue";
@@ -252,7 +300,42 @@ export default {
         Complete: "Завершен",
         Incomplete: "Не завершен",
       },
+      currentPage: 1,
+      pageSize: 5,
     };
+  },
+  computed: {
+     visiblePages() {
+        const pages = [];
+        const total = this.totalPages;
+        const current = this.currentPage;
+        const maxVisible = 5;
+        
+        if (total <= maxVisible) {
+          for (let i = 1; i <= total; i++) {
+            pages.push(i);
+          }
+        } else {
+          const start = Math.max(1, current - 2);
+          const end = Math.min(total, current + 2);
+          
+          for (let i = start; i <= end; i++) {
+            pages.push(i);
+          }
+        }
+        
+        return pages;
+      },
+
+    totalPages() {
+      return Math.ceil(this.foundCallForms.length / this.pageSize);
+    },
+    
+    paginatedData() {
+      const start = (this.currentPage - 1) * this.pageSize;
+      const end = start + this.pageSize;
+      return this.foundCallForms.slice(start, end);
+    }
   },
   methods: {
     async search() {
@@ -269,7 +352,32 @@ export default {
       });
       if (data === null) return;
       this.foundCallForms = data;
+      this.currentPage = 1;
     },
+
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+      }
+    },
+
+    goToPage(page) {
+      if (page >= 1 && page <= this.totalPages) {
+        this.currentPage = page;
+        this.updatePaginatedData();
+      }
+    },
+    
+    prevPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+      }
+    },
+    
+    changePageSize() {
+      this.currentPage = 1; 
+    },
+  
     findStatus(user) {
       return user.labels.find(
         (label) => label === "Complete" || label === "Incomplete",
@@ -309,8 +417,9 @@ export default {
   font-size: x-large;
   border-radius: 10px;
   border: none;
-  padding: 10px 20px 10px 20px;
+  padding: 10px 20px;
   background-color: #a7a3cc;
+  transition: background-color 0.3s;
 }
 
 #submit-button:hover {
@@ -343,7 +452,7 @@ export default {
 }
 
 #exit-icon:hover {
-  background-color: rgb(128, 128, 128, 0.2);
+  background-color: rgba(128, 128, 128, 0.2);
   border-radius: 10px;
 }
 
@@ -359,6 +468,9 @@ export default {
 .text__input {
   font-size: large;
   margin: 0 10px 10px 10px;
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
 }
 
 span {
@@ -367,29 +479,100 @@ span {
 
 .table__container {
   --row-height: 80px;
-
   overflow-y: scroll;
   width: 96%;
-  max-height: calc(
-    7 * (var(--row-height))
-  );
+  max-height: calc(7 * var(--row-height));
+  margin-top: 20px;
 }
 
 table {
   border-collapse: separate;
   border-spacing: 0;
+  width: 100%;
 }
 
 tr {
   height: var(--row-height);
 }
 
-td,
-th {
+td, th {
   border: 1px solid black;
   text-align: center;
   font-size: small;
   word-wrap: break-word;
   white-space: normal;
+  padding: 8px;
 }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 15px 0;
+  border-top: 1px solid #ddd;
+  flex-wrap: wrap;
+}
+
+.pagination-button {
+  padding: 8px 16px;
+  font-size: large;
+  border-radius: 10px;
+  border: none;
+  background-color: #a7a3cc;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #766ebf;
+}
+
+.pagination-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pagination select {
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid #a7a3cc;
+  background-color: white;
+  font-size: large;
+}
+
+.pagination span {
+  font-size: large;
+  color: #555;
+}
+
+.page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.page-number {
+  padding: 8px 12px;
+  border: 1px solid #a7a3cc;
+  background-color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.page-number:hover {
+  background-color: #e0ddf5;
+}
+
+.current-page {
+  background-color: #a7a3cc;
+  color: white;
+  font-weight: bold;
+}
+
+.page-dots {
+  padding: 0 5px;
+}
+
 </style>
