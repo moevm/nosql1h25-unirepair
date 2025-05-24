@@ -12,7 +12,6 @@
 
                 <div class="table-field__container">
                     <div>
-                        <!-- Поле для добавления нового инвентаря -->
                         <span>Добавить инвентарь:</span>
                         <input
                             type="text"
@@ -24,7 +23,6 @@
                         </button>
                         <br />
 
-                        <!-- Поле для поиска существующего инвентаря -->
                         <span>Поиск инвентаря:</span>
                         <input
                             type="text"
@@ -57,13 +55,61 @@
                             </thead>
                             <tbody>
                                 <tr
-                                    v-for="(inventory, index) in foundInventory"
+                                    v-for="(inventory, index) in paginatedData"
                                     :key="index"
                                 >
                                     <td>{{ inventory.name }}</td>
                                 </tr>
                             </tbody>
                         </table>
+
+                        <div class="pagination">
+                            <button 
+                                @click="prevPage" 
+                                :disabled="currentPage === 1"
+                                class="pagination-button"
+                            >
+                                Назад
+                            </button>
+                            
+                            <div class="page-numbers">
+                                <span 
+                                    v-if="currentPage > 3" 
+                                    class="page-dots"
+                                >...</span>
+                                
+                                <button
+                                    v-for="page in visiblePages"
+                                    :key="page"
+                                    @click="goToPage(page)"
+                                    :class="{ 'current-page': page === currentPage }"
+                                    class="page-number"
+                                >
+                                    {{ page }}
+                                </button>
+                                
+                                <span 
+                                    v-if="currentPage < totalPages - 2" 
+                                    class="page-dots"
+                                >...</span>
+                            </div>
+                            
+                            <button 
+                                @click="nextPage" 
+                                :disabled="currentPage === totalPages || totalPages === 0"
+                                class="pagination-button"
+                            >
+                                Вперед
+                            </button>
+                            
+                            <select v-model="pageSize" @change="changePageSize">
+                                <option value="5">5 на странице</option>
+                                <option value="10">10 на странице</option>
+                                <option value="20">20 на странице</option>
+                                <option value="30">30 на странице</option>
+                            </select>
+                            <span>Всего записей: {{ foundInventory.length }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -83,7 +129,36 @@ export default {
             newInventoryName: "",
             searchName: "",
             foundInventory: [],
+            paginatedData: [],
+            currentPage: 1,
+            pageSize: 5,
         };
+    },
+    computed: {
+        totalPages() {
+            return Math.ceil(this.foundInventory.length / this.pageSize);
+        },
+        visiblePages() {
+            const pages = [];
+            const total = this.totalPages;
+            const current = this.currentPage;
+            const maxVisible = 5;
+            
+            if (total <= maxVisible) {
+                for (let i = 1; i <= total; i++) {
+                    pages.push(i);
+                }
+            } else {
+                const start = Math.max(1, current - 2);
+                const end = Math.min(total, current + 2);
+                
+                for (let i = start; i <= end; i++) {
+                    pages.push(i);
+                }
+            }
+            
+            return pages;
+        }
     },
     methods: {
         async search() {
@@ -92,6 +167,8 @@ export default {
             });
             if (data === null) return;
             this.foundInventory = data;
+            this.currentPage = 1;
+            this.updatePaginatedData();
         },
         async addInventory() {
             const name = this.newInventoryName.trim();
@@ -119,6 +196,33 @@ export default {
             this.searchName = "";
             this.search();
         },
+        updatePaginatedData() {
+            const start = (this.currentPage - 1) * this.pageSize;
+            const end = start + this.pageSize;
+            this.paginatedData = this.foundInventory.slice(start, end);
+        },
+        nextPage() {
+            if (this.currentPage < this.totalPages) {
+                this.currentPage++;
+                this.updatePaginatedData();
+            }
+        },
+        prevPage() {
+            if (this.currentPage > 1) {
+                this.currentPage--;
+                this.updatePaginatedData();
+            }
+        },
+        goToPage(page) {
+            if (page >= 1 && page <= this.totalPages) {
+                this.currentPage = page;
+                this.updatePaginatedData();
+            }
+        },
+        changePageSize() {
+            this.currentPage = 1;
+            this.updatePaginatedData();
+        }
     },
 };
 </script>
@@ -199,17 +303,16 @@ span {
 
 .table__container {
   --row-height: 50px;
-
   width: 20%;
   overflow-y: scroll;
-  max-height: calc(
-    7 * (var(--row-height))
-  );
+  max-height: calc(7 * var(--row-height));
+  margin-bottom: 20px;
 }
 
 table {
   border-collapse: separate;
   border-spacing: 0;
+  width: 100%;
 }
 
 tr {
@@ -223,5 +326,72 @@ th {
   font-size: small;
   word-wrap: break-word;
   white-space: normal;
+  padding: 8px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 15px 0;
+  border-top: 1px solid #ddd;
+  flex-wrap: wrap;
+}
+
+.pagination-button {
+  padding: 8px 16px;
+  font-size: large;
+  border-radius: 10px;
+  border: none;
+  background-color: #a7a3cc;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #766ebf;
+}
+
+.pagination-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.page-number {
+  padding: 8px 12px;
+  border: 1px solid #a7a3cc;
+  background-color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.page-number:hover {
+  background-color: #e0ddf5;
+}
+
+.current-page {
+  background-color: #a7a3cc;
+  color: white;
+  font-weight: bold;
+}
+
+.page-dots {
+  padding: 0 5px;
+}
+
+select {
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid #a7a3cc;
+  background-color: white;
+  font-size: large;
 }
 </style>
