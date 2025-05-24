@@ -160,7 +160,22 @@
                             Сбросить
                         </button>
                     </div>
-
+                    <ChartBuilder
+                        :data="foundReports"
+                        :xOptions="[
+                          { value: 'status', label: 'Статус' },
+                          { value: 'allegedFireCause', label: 'Причина пожара' },
+                          { value: 'modifiedAt', label: 'Дата' }
+                      ]"
+                        :yOptions="[
+                          { value: 'count', label: 'Количество записей' },
+                          { value: 'waterSpent', label: 'Расход воды' },
+                          { value: 'foamSpent', label: 'Расход пены' },
+                          { value: 'damage', label: 'Ущерб' },
+                      ]"
+                        :labels="statusTranslations"
+                        :getStatus="findStatus"
+                    />
                     <div class="table__container">
                         <table>
                             <thead
@@ -267,10 +282,11 @@
 import Sidebar from "@/components/Sidebar.vue";
 import query from "../../common/query.js";
 import range from "../../common/range.js";
+import ChartBuilder from "@/components/ChartBuilder.vue";
 
 export default {
     name: "ReportsView",
-    components: { Sidebar },
+    components: {ChartBuilder, Sidebar },
     data() {
         return {
             status: "Complete",
@@ -400,10 +416,10 @@ export default {
 
 #submit-button {
   cursor: pointer;
-  font-size: x-large;
+  font-size: large;
   border-radius: 10px;
   border: none;
-  padding: 10px 20px 10px 20px;
+  padding: 7px 12px;
   background-color: #a7a3cc;
 }
 

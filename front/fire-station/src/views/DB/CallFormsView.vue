@@ -152,7 +152,24 @@
               Сбросить
             </button>
           </div>
-
+          <ChartBuilder
+              :data="foundCallForms"
+              :xOptions="[
+                          { value: 'status', label: 'Статус' },
+                          { value: 'callSource', label: 'Источник вызова' },
+                          { value: 'modifiedAt', label: 'Дата последнего изменения' },
+                          { value: 'createdAt', label: 'Дата создания' },
+                          { value: 'fireType', label: 'Тип пожара' },
+                          { value: 'fireRank', label: 'Ранг пожара' },
+                          { value: 'assignedTo', label: 'Номер бригады' }
+                      ]"
+              :yOptions="[
+                          { value: 'count', label: 'Количество записей' },
+                          { value: 'victimsCount', label: 'Количество жертв' },
+                      ]"
+              :labels="statusTranslations"
+              :getStatus="findStatus"
+          />
           <div class="table__container">
             <table>
               <thead
@@ -171,9 +188,9 @@
                   <th style="width: 20%">Адрес</th>
                   <th style="width: 10%">Локализация пожара</th>
                   <th style="width: 10%">Характер пожара</th>
-                  <th style="width: ">Ранг пожара</th>
-                  <th style="width: ">Пострадавшие</th>
-                  <th style="width: ">Прикреплённая бригада</th>
+                  <th >Ранг пожара</th>
+                  <th >Пострадавшие</th>
+                  <th >Прикреплённая бригада</th>
                   <th style="width: 10%">Автомобиль</th>
                 </tr>
               </thead>
@@ -277,10 +294,11 @@ import Sidebar from "@/components/Sidebar.vue";
 import query from "../../common/query.js";
 import range from "../../common/range.js";
 import subscribe from "../../common/subscription.js";
+import ChartBuilder from "@/components/ChartBuilder.vue";
 
 export default {
   name: "DBCallForms",
-  components: { Sidebar },
+  components: {ChartBuilder, Sidebar },
   data() {
     return {
       status: "Complete",
@@ -414,10 +432,10 @@ export default {
 
 #submit-button {
   cursor: pointer;
-  font-size: x-large;
+  font-size: large;
   border-radius: 10px;
   border: none;
-  padding: 10px 20px;
+  padding: 7px 12px;
   background-color: #a7a3cc;
   transition: background-color 0.3s;
 }
