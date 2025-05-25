@@ -290,6 +290,7 @@ export default {
   padding-top: 2vw;
   padding-bottom: 2vh;
   flex: 1;
+  padding: 20px;
 }
 
 .text__input {
@@ -303,9 +304,9 @@ span {
 
 .table__container {
   --row-height: 50px;
-  width: 20%;
+  width: 100%;
   overflow-y: scroll;
-  max-height: calc(7 * var(--row-height));
+  max-height: calc(7 * var(--row-height) + 40px);
   margin-bottom: 20px;
 }
 
