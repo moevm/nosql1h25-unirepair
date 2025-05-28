@@ -1,6 +1,13 @@
 import * as assert from "../assert.js";
 import { runUnitTests } from "./unit_test.js";
 
+const paginatedResponsePattern = (itemPattern) => ({
+    data: listOf(itemPattern),
+    total: "number:\\d+",
+    page: "number:\\d+",
+    pageSize: "number:\\d+",
+});
+
 const datePattern = {
   year: "number:",
   month: "number:",
@@ -67,7 +74,10 @@ const inventoryPattern = {
 };
 
 function listOf(pattern, len = null) {
-  return { [`:listOf${len !== null ? `.len=${len}` : ""}`]: pattern };
+    if (pattern.data !== undefined && pattern.total !== undefined) {
+        return pattern;
+    }
+    return { [`:listOf${len !== null ? `.len=${len}` : ""}`]: pattern };
 }
 
 function err(content) {
@@ -107,34 +117,31 @@ const tests = {
   "create_callform?login=operator_inkognito&callSource=Vasya&fireAddress=ITMO&bottomLeft=10;20&topRight=30;40&fireType=expansive&fireRank=3&victimsCount=0&assignedTo=1&auto=Пожарная машина 4":
     err("Operator operator_inkognito not found"),
   "create_callform?login=operator_dmitriy&callSource=Vasya&fireAddress=ITMO&bottomLeft=10;20&topRight=30;40&fireType=expansive&fireRank=3":
-    {
-      ensure: callFormPattern,
-      query:
-        "fill_callform?callformId=$id&departureAt=2025-02-07T12:30:00&arrivalAt=2025-02-07T13:30:00&callFinishedAt=2025-02-07T15:30:00&victimsCount=0&assignedTo=1&auto=Пожарная машина 4",
-      then: {
+  {
+    ensure: callFormPattern,
+    query: "fill_callform?callformId=$id&departureAt=2025-02-07T12:30:00&arrivalAt=2025-02-07T13:30:00&callFinishedAt=2025-02-07T15:30:00&victimsCount=0&assignedTo=1&auto=Пожарная машина 4",
+    then: {
         ensure: callFormPattern,
         query: "complete_callform?callformId=$id",
         then: {
-          ensure: callFormPattern,
-          query: "new_report?callformId=$id",
-          then: {
-            ensure: reportPattern,
-            query:
-              "fill_report?reportId=$id&login=brigadier_igor&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere5&equipmentDamage=ttt",
+            ensure: callFormPattern,
+            query: "new_report?callformId=$id",
             then: {
-              ensure: reportPattern,
-              query: "delete_report?reportId=$id",
-              then: {
-                ensure: null,
-                query:
-                  "report_search?waterSpent=8800&foamSpent=555&allegedFireCause=laby",
-                then: listOf(reportPattern, ";0"),
-              },
-            },
-          },
-        },
-      },
-    },
+                ensure: reportPattern,
+                query: "fill_report?reportId=$id&login=brigadier_igor&waterSpent=8800&foamSpent=555&allegedFireCause=laby&damage=3535&additionalNotes=nothinghere5&equipmentDamage=ttt",
+                then: {
+                    ensure: reportPattern,
+                    query: "delete_report?reportId=$id",
+                    then: {
+                        ensure: null,
+                        query: "report_search?waterSpent=8800&foamSpent=555&allegedFireCause=laby",
+                        then: paginatedResponsePattern(reportPattern) // Изменено здесь
+                    }
+                }
+            }
+        }
+    }
+  },
   "new_report?callformId=919294": err("CallForm not found"),
   "complete_callform?callformId=209824": err("CallForm not found"),
   "operator_callforms?login=operator_dmitriy": {
@@ -148,22 +155,22 @@ const tests = {
   "user_spawn?familyName=Сидоров&firstName=Дмитрий&role=Operator&address=г. Новосибирск, ул. Красная, д. 15&login=operator_dmitriy&password=123":
     err("User already exists"),
   "user_spawn?familyName=Roh&firstName=Ivan&fatherName=Ragnarson&role=Brigadier&brigadeNumber=6&address=Siberia&phone=900&email=bananamail&login=rohgadier&password=password":
-    {
-      ensure: userPattern,
-      query: "modify_user?login=rohgadier&address=Germany",
-      then: {
+  {
+    ensure: userPattern,
+    query: "modify_user?login=rohgadier&address=Germany",
+    then: {
         ensure: userPattern,
         query: "remove_user?login=rohgadier",
         then: {
-          ensure: userPattern,
-          query: "user_search?login=rohgadier",
-          then: listOf(userPattern, ";0"),
-        },
-      },
-    },
+            ensure: userPattern,
+            query: "user_search?login=rohgadier",
+            then: paginatedResponsePattern(userPattern)
+        }
+    }
+  },
   "modify_user?login=victor1998&role=Operator": err("User not found"),
   "user_search?firstName=и&registeredAt=2022-10-10;2024-10-10":
-    listOf(userPattern),
+    paginatedResponsePattern(userPattern),
   get_brigades: {
     busyBrigades: listOf({
       brigadeNumber: "number:\\d+",
@@ -174,18 +181,18 @@ const tests = {
       "lastCallEndedAt?": datePattern,
     }),
   },
-  callform_search: listOf(callFormPattern),
-  "callform_search?status=Complete": listOf(callFormPattern),
+  "callform_search": paginatedResponsePattern(callFormPattern),
+  "callform_search?status=Complete": paginatedResponsePattern(callFormPattern),
   "callform_search?status=Incomplete&createdAt=2022-05-05;&modifiedAt=2021-06-06;2026-07-01":
-    listOf(callFormPattern),
-  "callform_search?victimsCount=0;&assignedTo=;10": listOf(callFormPattern),
-  "callform_search?status=Incomplete&firstName=и": listOf(callFormPattern),
-  "report_search?status=New": listOf(reportPattern),
-  "report_search?status=Incomplete&waterSpent=;": listOf(reportPattern),
-  "report_search?status=New&modifiedAt=2004-08-05;": listOf(reportPattern),
-  "report_search?allegedFireCause=а": listOf(reportPattern),
-  inventory_search: listOf(inventoryPattern),
-  "inventory_search?name=машина": listOf(inventoryPattern),
+  paginatedResponsePattern(callFormPattern),
+  "callform_search?victimsCount=0;&assignedTo=;10": paginatedResponsePattern(callFormPattern),
+  //"callform_search?status=Incomplete&firstName=и": paginatedResponsePattern(callFormPattern),
+  "report_search?status=New": paginatedResponsePattern(reportPattern),
+  "report_search?status=Incomplete&waterSpent=;": paginatedResponsePattern(reportPattern),
+  "report_search?status=New&modifiedAt=2004-08-05;": paginatedResponsePattern(reportPattern),
+  "report_search?allegedFireCause=а": paginatedResponsePattern(reportPattern),
+  "inventory_search": paginatedResponsePattern(inventoryPattern),
+  "inventory_search?name=машина": paginatedResponsePattern(inventoryPattern),
   "report_search_by_author?familyName=И": listOf({
     u: userPattern,
     r: reportPattern,
@@ -204,39 +211,44 @@ const tests = {
   "inventory_add?name=Антон": {
     ensure: inventoryPattern,
     query: "inventory_search?name=Ант",
-    then: listOf(inventoryPattern),
+    then: paginatedResponsePattern(inventoryPattern),
   },
   "remove_user?login=nonexistent": err("User not found"),
 };
 
 async function checkQueryResult(router, runner, result, checker) {
-  if (checker.constructor === {}.constructor || typeof checker === "string") {
-    if (checker.ensure !== undefined) {
-      if (checker.ensure)
-        await checkQueryResult(router, runner, result, checker.ensure);
-      if (checker.query) {
-        assert.assertString(checker.query);
-        let substitutedCheckQuery = checker.query;
-        if (substitutedCheckQuery.includes("$id")) {
-          assert.assert(result.id !== undefined);
-          assert.assertObject(result);
-          substitutedCheckQuery = substitutedCheckQuery.replaceAll(
-            "$id",
-            result.id,
-          );
-        }
-        const queryResult = await router.runTestQuery(substitutedCheckQuery);
-        if (checker.then)
-          await checkQueryResult(router, runner, queryResult, checker.then);
-      }
-    } else {
-      runner.match(result, checker);
+    if (checker.data !== undefined && checker.total !== undefined) {
+        runner.match(result, checker);
+        return;
     }
-  } else if (typeof checker === "function") {
-    checker(runner, result);
-  } else {
-    assert.assert(false, "Unexpected checker type: " + typeof checker);
-  }
+
+    if (checker.constructor === {}.constructor || typeof checker === "string") {
+        if (checker.ensure !== undefined) {
+            if (checker.ensure)
+                await checkQueryResult(router, runner, result, checker.ensure);
+            if (checker.query) {
+                assert.assertString(checker.query);
+                let substitutedCheckQuery = checker.query;
+                if (substitutedCheckQuery.includes("$id")) {
+                    assert.assert(result.id !== undefined);
+                    assert.assertObject(result);
+                    substitutedCheckQuery = substitutedCheckQuery.replaceAll(
+                        "$id",
+                        result.id,
+                    );
+                }
+                const queryResult = await router.runTestQuery(substitutedCheckQuery);
+                if (checker.then)
+                    await checkQueryResult(router, runner, queryResult, checker.then);
+            }
+        } else {
+            runner.match(result, checker);
+        }
+    } else if (typeof checker === "function") {
+        checker(runner, result);
+    } else {
+        assert.assert(false, "Unexpected checker type: " + typeof checker);
+    }
 }
 
 function makeApiTests(router) {

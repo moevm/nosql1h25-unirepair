@@ -147,7 +147,7 @@
               style="width: 50px"
               class="text__input"
             />
-            <button @click="search" id="submit-button">Найти</button>
+            <button @click="search(true)" id="submit-button">Найти</button>
             <button @click="reset" id="submit-button" style="margin-left: 10px">
               Сбросить
             </button>
@@ -195,7 +195,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(callForm, index) in paginatedData" :key="index">
+                <tr v-for="(callForm, index) in foundCallForms" :key="index">
                   <td>
                     {{ statusTranslations[findStatus(callForm)] }}
                   </td>
@@ -279,7 +279,7 @@
                 <option value="20">20 на странице</option>
                 <option value="30">30 на странице</option>
               </select>
-              <span>Всего записей: {{ foundCallForms.length }}</span>
+              <span>Всего записей: {{ totalItems }}</span>
             </div>
           </div>
         </div>
@@ -320,6 +320,7 @@ export default {
       },
       currentPage: 1,
       pageSize: 5,
+      totalItems: 0
     };
   },
   computed: {
@@ -346,18 +347,18 @@ export default {
       },
 
     totalPages() {
-      return Math.ceil(this.foundCallForms.length / this.pageSize);
-    },
-    
-    paginatedData() {
-      const start = (this.currentPage - 1) * this.pageSize;
-      const end = start + this.pageSize;
-      return this.foundCallForms.slice(start, end);
+      return Math.ceil(this.totalItems / this.pageSize);
     }
   },
   methods: {
-    async search() {
-      const data = await query("callform_search", {
+    async search(resetPage = false) {
+      if (resetPage) {
+        this.currentPage = 1;
+      }
+
+      try {
+      
+      const response = await query("callform_search", {
         status: this.useStatus ? this.status : "",
         createdAt: range(this.created),
         modifiedAt: range(this.lastUpdate),
@@ -367,33 +368,51 @@ export default {
         fireRank: this.useRank ? this.fireRank : "",
         victimsCount: range(this.victims),
         assignedTo: this.brigade,
+        page: this.currentPage.toString(),
+        pageSize: this.pageSize.toString()
       });
-      if (data === null) return;
-      this.foundCallForms = data;
-      this.currentPage = 1;
+
+      this.foundCallForms = response.data || [];
+      this.totalItems = response.total || 0;
+
+      console.log("Данные для отображения:", {
+        page: this.currentPage,
+        items: this.foundCallForms.length,
+        total: this.totalItems
+      });
+
+      } catch (error) {
+        console.error("Ошибка поиска:", error);
+        this.foundCallForms = [];
+        this.totalItems = 0;
+      }
+
     },
 
-    nextPage() {
+    async nextPage() {
       if (this.currentPage < this.totalPages) {
         this.currentPage++;
+        await this.search();
       }
     },
 
-    goToPage(page) {
+    async goToPage(page) {
       if (page >= 1 && page <= this.totalPages) {
         this.currentPage = page;
-        this.updatePaginatedData();
+        await this.search();
       }
     },
     
-    prevPage() {
+    async prevPage() {
       if (this.currentPage > 1) {
         this.currentPage--;
+        await this.search();
       }
     },
     
-    changePageSize() {
-      this.currentPage = 1; 
+    async changePageSize() {
+      this.currentPage = 1;
+      await this.search();
     },
   
     findStatus(user) {

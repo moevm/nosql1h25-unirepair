@@ -151,7 +151,7 @@
                             class="text__input"
                             style="padding: 5px"
                         />
-                        <button @click="search" id="submit-button">Найти</button>
+                        <button @click="search(true)" id="submit-button">Найти</button>
                         <button
                             @click="reset"
                             id="submit-button"
@@ -225,51 +225,45 @@
                         </table>
 
                         <div class="pagination">
-                            <button 
-                                @click="prevPage" 
-                                :disabled="currentPage === 1"
-                                class="pagination-button"
+                        <button 
+                            @click="prevPage" 
+                            :disabled="!hasPrevPage || isLoading"
+                            class="pagination-button"
+                        >
+                            Назад
+                        </button>
+                        
+                        <div class="page-numbers">
+                            <span v-if="currentPage > 3" class="page-dots">...</span>
+                            <button
+                            v-for="pageNum in visiblePages"
+                            :key="pageNum"
+                            @click="goToPage(pageNum)"
+                            :class="{ 'current-page': pageNum === currentPage }"
+                            :disabled="isLoading"
                             >
-                                Назад
+                            {{ pageNum }}
                             </button>
-                            
-                            <div class="page-numbers">
-                                <span 
-                                    v-if="currentPage > 3" 
-                                    class="page-dots"
-                                >...</span>
-                                
-                                <button
-                                    v-for="page in visiblePages"
-                                    :key="page"
-                                    @click="goToPage(page)"
-                                    :class="{ 'current-page': page === currentPage }"
-                                    class="page-number"
-                                >
-                                    {{ page }}
-                                </button>
-                                
-                                <span 
-                                    v-if="currentPage < totalPages - 2" 
-                                    class="page-dots"
-                                >...</span>
-                            </div>
-                            
-                            <button 
-                                @click="nextPage" 
-                                :disabled="currentPage === totalPages || totalPages === 0"
-                                class="pagination-button"
-                            >
-                                Вперед
-                            </button>
-                            
-                            <select v-model="pageSize" @change="changePageSize">
-                                <option value="5">5 на странице</option>
-                                <option value="10">10 на странице</option>
-                                <option value="20">20 на странице</option>
-                                <option value="30">30 на странице</option>
-                            </select>
-                            <span>Всего записей: {{ foundReports.length }}</span>
+                            <span v-if="currentPage < totalPages - 2" class="page-dots">...</span>
+                        </div>
+                        
+                        <button 
+                            @click="nextPage" 
+                            :disabled="!hasNextPage || isLoading"
+                            class="pagination-button"
+                        >
+                            Вперед
+                        </button>
+                        
+                        <select v-model="pageSize" @change="changePageSize" :disabled="isLoading">
+                            <option value="5">5 на странице</option>
+                            <option value="10">10 на странице</option>
+                            <option value="20">20 на странице</option>
+                            <option value="30">30 на странице</option>
+                        </select>
+                        
+                        <span v-if="!isLoading">Всего записей: {{ totalItems }}</span>
+                        <span v-else>Загрузка...</span>
                         </div>
                     </div>
                 </div>
@@ -307,11 +301,20 @@ export default {
             paginatedData: [],
             currentPage: 1,
             pageSize: 5,
+            totalItems: 0,
+            isLoading: false,
+            forceDisablePrev: false
         };
     },
     computed: {
         totalPages() {
-            return Math.ceil(this.foundReports.length / this.pageSize);
+            return Math.max(1, Math.ceil(this.totalItems / this.pageSize));
+        },
+        hasNextPage() {
+            return this.currentPage < this.totalPages && !this.isLoading;
+        },
+        hasPrevPage() {
+            return this.currentPage > 1 && !this.isLoading && !this.forceDisablePrev;
         },
         visiblePages() {
             const pages = [];
@@ -320,36 +323,55 @@ export default {
             const maxVisible = 5;
             
             if (total <= maxVisible) {
-                for (let i = 1; i <= total; i++) {
-                    pages.push(i);
-                }
+                for (let i = 1; i <= total; i++) pages.push(i);
             } else {
                 const start = Math.max(1, current - 2);
                 const end = Math.min(total, current + 2);
-                
-                for (let i = start; i <= end; i++) {
-                    pages.push(i);
-                }
+                for (let i = start; i <= end; i++) pages.push(i);
             }
-            
             return pages;
         }
     },
     methods: {
-        async search() {
-            const data = await query("report_search", {
-                status: this.useStatus ? this.status : "",
-                waterSpent: range(this.waterSpent),
-                foamSpent: range(this.foamSpent),
-                allegedFireCause: this.allegedFireCause,
-                damage: range(this.damage),
-                additionalNotes: this.additionalNotes,
-                modifiedAt: range(this.modifiedAt),
-            });
-            if (data === null) return;
-            this.foundReports = data;
-            this.currentPage = 1;
-            this.updatePaginatedData();
+        async search(resetPage = false) {
+            if (resetPage) {
+                this.currentPage = 1;
+            }
+
+            this.isLoading = true;
+            try {
+                const response = await query("report_search", {
+                    status: this.useStatus ? this.status : "",
+                    waterSpent: range(this.waterSpent),
+                    foamSpent: range(this.foamSpent),
+                    allegedFireCause: this.allegedFireCause,
+                    damage: range(this.damage),
+                    additionalNotes: this.additionalNotes,
+                    modifiedAt: range(this.modifiedAt),
+                    page: this.currentPage.toString(),
+                    pageSize: this.pageSize.toString()
+                });
+
+                if (!response) {
+                    this.foundReports = [];
+                    this.totalItems = 0;
+                    this.paginatedData = [];
+                    return;
+                }
+
+                this.foundReports = response.data || response;
+                this.totalItems = response.total || response.length || 0;
+                this.paginatedData = this.foundReports;
+
+            } catch (error) {
+                console.error("Ошибка поиска:", error);
+                this.foundReports = [];
+                this.totalItems = 0;
+                this.paginatedData = [];
+                this.forceDisablePrev = true;
+            } finally {
+                this.isLoading = false;
+            }
         },
         findStatus(user) {
             return user.labels.find(
@@ -375,27 +397,27 @@ export default {
             const end = start + this.pageSize;
             this.paginatedData = this.foundReports.slice(start, end);
         },
-        nextPage() {
+        async nextPage() {
             if (this.currentPage < this.totalPages) {
-                this.currentPage++;
-                this.updatePaginatedData();
+            this.currentPage++;
+            await this.search();
             }
         },
-        prevPage() {
+        async prevPage() {
             if (this.currentPage > 1) {
-                this.currentPage--;
-                this.updatePaginatedData();
+            this.currentPage--;
+            await this.search();
             }
         },
-        goToPage(page) {
+        async goToPage(page) {
             if (page >= 1 && page <= this.totalPages) {
-                this.currentPage = page;
-                this.updatePaginatedData();
+            this.currentPage = page;
+            await this.search();
             }
         },
-        changePageSize() {
+        async changePageSize() {
             this.currentPage = 1;
-            this.updatePaginatedData();
+            await this.search();
         }
     },
 };

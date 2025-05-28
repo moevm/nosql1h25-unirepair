@@ -96,7 +96,7 @@
               class="text__input"
               style="padding: 5px"
             />
-            <button @click="search" id="submit-button">Найти</button>
+            <button @click="search(true)" id="submit-button">Найти</button>
             <button @click="reset" id="submit-button" style="margin-left: 10px">
               Сбросить
             </button>
@@ -181,37 +181,28 @@
             <div class="pagination">
               <button 
                 @click="prevPage" 
-                :disabled="currentPage === 1"
+                :disabled="!hasPrevPage"
                 class="pagination-button"
               >
                 Назад
               </button>
               
               <div class="page-numbers">
-                <span 
-                  v-if="currentPage > 3" 
-                  class="page-dots"
-                >...</span>
-                
+                <span v-if="currentPage > 3">...</span>
                 <button
-                  v-for="page in visiblePages"
-                  :key="page"
-                  @click="goToPage(page)"
-                  :class="{ 'current-page': page === currentPage }"
-                  class="page-number"
+                  v-for="pageNum in visiblePages"
+                  :key="pageNum"
+                  @click="goToPage(pageNum)"
+                  :class="{ 'current-page': pageNum === currentPage }"
                 >
-                  {{ page }}
+                  {{ pageNum }}
                 </button>
-                
-                <span 
-                  v-if="currentPage < totalPages - 2" 
-                  class="page-dots"
-                >...</span>
+                <span v-if="currentPage < totalPages - 2">...</span>
               </div>
               
               <button 
                 @click="nextPage" 
-                :disabled="currentPage === totalPages || totalPages === 0"
+                :disabled="!hasNextPage"
                 class="pagination-button"
               >
                 Вперед
@@ -223,7 +214,8 @@
                 <option value="20">20 на странице</option>
                 <option value="30">30 на странице</option>
               </select>
-              <span>Всего записей: {{ foundUsers.length }}</span>
+              
+              <span>Всего записей: {{ totalItems }}</span>
             </div>
           </div>
         </div>
@@ -262,6 +254,9 @@ export default {
       paginatedData: [],
       currentPage: 1,
       pageSize: 5,
+      totalItems: 0,
+      isLoading: false, 
+      forceDisablePrev: false,
       rolesTranslations: {
         Brigadier: "Бригадир",
         Fireman: "Пожарный",
@@ -276,7 +271,13 @@ export default {
   },
   computed: {
     totalPages() {
-      return Math.ceil(this.foundUsers.length / this.pageSize);
+      return Math.max(1, Math.ceil(this.totalItems / this.pageSize));
+    },
+    hasNextPage() {
+      return this.currentPage < this.totalPages && !this.isLoading;
+    },
+    hasPrevPage() {
+      return this.currentPage > 1 && !this.isLoading && !this.forceDisablePrev;
     },
     visiblePages() {
       const pages = [];
@@ -285,24 +286,25 @@ export default {
       const maxVisible = 5;
       
       if (total <= maxVisible) {
-        for (let i = 1; i <= total; i++) {
-          pages.push(i);
-        }
+        for (let i = 1; i <= total; i++) pages.push(i);
       } else {
         const start = Math.max(1, current - 2);
         const end = Math.min(total, current + 2);
-        
-        for (let i = start; i <= end; i++) {
-          pages.push(i);
-        }
+        for (let i = start; i <= end; i++) pages.push(i);
       }
-      
       return pages;
     }
   },
   methods: {
-    async search() {
-      const data = await query("user_search", {
+    async search(resetPage = false) {
+
+      if (resetPage) {
+        this.currentPage = 1;
+      }
+
+      this.isLoading = true;
+      try {
+      const response = await query("user_search", {
         familyName: this.surname,
         firstName: this.name,
         fatherName: this.patronymic,
@@ -319,12 +321,38 @@ export default {
         status: this.status,
         registeredAt: range(this.registeredAt),
         modifiedAt: range(this.modifiedAt),
+        page: this.currentPage.toString(),
+        pageSize: this.pageSize.toString()
       });
-      if (data === null) return;
-      this.foundUsers = data;
-      this.currentPage = 1;
-      this.updatePaginatedData();
+      
+        if (!response) {
+          this.foundUsers = [];
+          this.totalItems = 0;
+          this.paginatedData = [];
+          return;
+        }
+
+        this.foundUsers = response.data || [];
+        this.totalItems = response.total || 0;
+        this.paginatedData = this.foundUsers;
+        console.log(`Received ${this.foundUsers.length} of ${this.totalItems} items`);
+        
+        console.log(`Page: ${this.currentPage}, Total: ${this.totalItems}`);
+        console.log('Has prev page:', this.hasPrevPage);
+        console.log('Has next page:', this.hasNextPage);
+        this.forceDisablePrev = false;
+
+      } catch (error) {
+        console.error("Ошибка при поиске:", error);
+        this.foundUsers = [];
+        this.totalItems = 0;
+        this.paginatedData = [];
+        this.forceDisablePrev = true;
+      } finally {
+        this.isLoading = false;
+      }
     },
+
     findRole(user) {
       return user.labels.find(
         (label) =>
@@ -354,31 +382,29 @@ export default {
       this.status = "";
     },
     updatePaginatedData() {
-      const start = (this.currentPage - 1) * this.pageSize;
-      const end = start + this.pageSize;
-      this.paginatedData = this.foundUsers.slice(start, end);
+      this.paginatedData = this.foundUsers;
     },
     nextPage() {
-      if (this.currentPage < this.totalPages) {
+      if (this.hasNextPage) {
         this.currentPage++;
-        this.updatePaginatedData();
+        this.search();
       }
     },
     prevPage() {
-      if (this.currentPage > 1) {
+      if (this.hasPrevPage) {
         this.currentPage--;
-        this.updatePaginatedData();
+        this.search();
       }
     },
     goToPage(page) {
       if (page >= 1 && page <= this.totalPages) {
         this.currentPage = page;
-        this.updatePaginatedData();
+        this.search();
       }
     },
     changePageSize() {
       this.currentPage = 1;
-      this.updatePaginatedData();
+      this.search();
     }
   },
 };
@@ -549,5 +575,11 @@ select {
   border: 1px solid #a7a3cc;
   background-color: white;
   font-size: large;
+}
+
+.disabled-button {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 </style>
