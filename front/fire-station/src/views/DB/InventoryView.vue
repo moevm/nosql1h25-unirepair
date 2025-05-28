@@ -55,7 +55,7 @@
                             </thead>
                             <tbody>
                                 <tr
-                                    v-for="(inventory, index) in paginatedData"
+                                    v-for="(inventory, index) in foundInventory"
                                     :key="index"
                                 >
                                     <td>{{ inventory.name }}</td>
@@ -108,7 +108,7 @@
                                 <option value="20">20 на странице</option>
                                 <option value="30">30 на странице</option>
                             </select>
-                            <span>Всего записей: {{ foundInventory.length }}</span>
+                            <span>Всего записей: {{ totalItems }}</span>
                         </div>
                     </div>
                 </div>
@@ -132,11 +132,12 @@ export default {
             paginatedData: [],
             currentPage: 1,
             pageSize: 5,
+            totalItems: 0
         };
     },
     computed: {
         totalPages() {
-            return Math.ceil(this.foundInventory.length / this.pageSize);
+            return Math.ceil(this.totalItems / this.pageSize);
         },
         visiblePages() {
             const pages = [];
@@ -161,14 +162,32 @@ export default {
         }
     },
     methods: {
-        async search() {
-            const data = await query("inventory_search", {
-                name: this.searchName,
-            });
-            if (data === null) return;
-            this.foundInventory = data;
-            this.currentPage = 1;
-            this.updatePaginatedData();
+        async search(resetPage = true) {
+            if (resetPage) {
+                this.currentPage = 1;
+            }
+
+            try {
+                const response = await query("inventory_search", {
+                    name: this.searchName,
+                    page: this.currentPage,
+                    pageSize: this.pageSize
+                });
+
+                this.foundInventory = response.data || [];
+                this.totalItems = response.total || 0;
+                
+                console.log("Данные инвентаря:", {
+                    page: this.currentPage,
+                    items: this.foundInventory.length,
+                    total: this.totalItems
+                });
+
+            } catch (error) {
+                console.error("Ошибка поиска:", error);
+                this.foundInventory = [];
+                this.totalItems = 0;
+            }
         },
         async addInventory() {
             const name = this.newInventoryName.trim();
@@ -181,7 +200,7 @@ export default {
                 const response = await query("inventory_add", { name });
                 if (response) {
                     this.newInventoryName = "";
-                    this.search();
+                    this.search(true);
                 }
             } catch (error) {
                 console.error("Полная ошибка:", error);
@@ -194,36 +213,39 @@ export default {
         },
         reset() {
             this.searchName = "";
-            this.search();
+            this.search(true);
         },
         updatePaginatedData() {
             const start = (this.currentPage - 1) * this.pageSize;
             const end = start + this.pageSize;
             this.paginatedData = this.foundInventory.slice(start, end);
         },
-        nextPage() {
+        async nextPage() {
             if (this.currentPage < this.totalPages) {
                 this.currentPage++;
-                this.updatePaginatedData();
+                await this.search(false);
             }
         },
-        prevPage() {
+        async prevPage() {
             if (this.currentPage > 1) {
                 this.currentPage--;
-                this.updatePaginatedData();
+                await this.search(false);
             }
         },
-        goToPage(page) {
+        async goToPage(page) {
             if (page >= 1 && page <= this.totalPages) {
                 this.currentPage = page;
-                this.updatePaginatedData();
+                await this.search(false);
             }
         },
-        changePageSize() {
+        async changePageSize() {
             this.currentPage = 1;
-            this.updatePaginatedData();
+            await this.search(false);
         }
     },
+    mounted() {
+        this.search(true);
+    }
 };
 </script>
 

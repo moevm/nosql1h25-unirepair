@@ -166,9 +166,38 @@ const api_routes = {
       );
     },
   // 8. User search
-  "user_search/familyName? firstName? fatherName? role:label? brigadeNumber:uint..? address? phone? email? login? registeredAt:datetime..? modifiedAt:datetime..?":
+  "user_search/familyName? firstName? fatherName? role:label? brigadeNumber:uint..? address? phone? email? login? registeredAt:datetime..? modifiedAt:datetime..? page:uint? pageSize:uint?":
     async (args) => {
-      return await match("u:User:Active", args, { orderBy: "u.name DESC" });
+        
+        const page = args.page?.value || 1;
+        const pageSize = args.pageSize?.value || 10;
+
+        const searchArgs = { ...args };
+        delete searchArgs.page;
+        delete searchArgs.pageSize;
+
+        const allData = await match("u:User:Active", searchArgs, {
+            orderBy: "u.name DESC"
+        });
+
+        if (!Array.isArray(allData)) {
+            return {
+                data: [],
+                total: 0,
+                page,
+                pageSize
+            };
+        }
+
+        const startIndex = (page - 1) * pageSize;
+        const paginatedData = allData.slice(startIndex, startIndex + pageSize);
+
+        return {
+            data: paginatedData,
+            total: allData.length,
+            page,
+            pageSize
+        };
     },
   // 9. User modification
   "modify_user/familyName? firstName? fatherName? role:label? brigadeNumber:uint? address? phone? email? login:string password:password?":
@@ -259,25 +288,105 @@ const api_routes = {
     return result;
   },
   // Call forms search
-  "callform_search/status:label? createdAt:datetime..? modifiedAt:datetime..? departureAt:datetime..? arrivalAt:datetime..? callFinishedAt:datetime..? callSource? fireAddress? fireType? fireRank? victimsCount:uint..? assignedTo:uint..? familyName? firstName? fatherName?":
+  "callform_search/status:label? createdAt:datetime..? modifiedAt:datetime..? callSource? fireAddress? fireType? fireRank? victimsCount:uint..? assignedTo:uint..? page:uint? pageSize:uint?":
     async (args) => {
-      const userArgs = fishOut(args, ({ k }) => k.includes("Name"));
-      return await match("cf:CallForm", args, {
-        match: "(u:User:Operator:Active)-[:CREATED]->(cf)",
-        having: matches({ u: userArgs }),
-        orderBy: "cf.createdAt DESC",
-      });
+        const page = args.page?.value || 1;
+        const pageSize = args.pageSize?.value || 10;
+
+        const searchArgs = { ...args };
+        delete searchArgs.page;
+        delete searchArgs.pageSize;
+
+        const allData = await match("cf:CallForm", searchArgs, {
+            match: "(u:User:Operator:Active)-[:CREATED]->(cf)",
+            orderBy: "cf.createdAt DESC",
+            results: ["cf"]
+        });
+
+        if (!Array.isArray(allData)) {
+            return {
+                data: [],
+                total: 0,
+                page,
+                pageSize
+            };
+        }
+
+        const startIndex = (page - 1) * pageSize;
+        const paginatedData = allData.slice(startIndex, startIndex + pageSize);
+
+        return {
+            data: paginatedData,
+            total: allData.length,
+            page,
+            pageSize
+        };
     },
   // Report search
-  "report_search/status:label? modifiedAt:datetime..? waterSpent:uint..? foamSpent:uint..? allegedFireCause? damage:uint..? additionalNotes?":
+  "report_search/status:label? waterSpent:uint..? foamSpent:uint..? allegedFireCause? damage:uint..? additionalNotes? modifiedAt:datetime..? page:uint? pageSize:uint?":
     async (args) => {
-      return await match("r:Report", args, {
-        orderBy: "r.modifiedAt DESC",
-      });
+        const page = args.page?.value || 1;
+        const pageSize = args.pageSize?.value || 10;
+
+        const searchArgs = { ...args };
+        delete searchArgs.page;
+        delete searchArgs.pageSize;
+
+        const allData = await match("r:Report", searchArgs, {
+            orderBy: "r.modifiedAt DESC"
+        });
+
+        if (!Array.isArray(allData)) {
+            return {
+                data: [],
+                total: 0,
+                page,
+                pageSize
+            };
+        }
+
+        const startIndex = (page - 1) * pageSize;
+        const paginatedData = allData.slice(startIndex, startIndex + pageSize);
+
+        return {
+            data: paginatedData,
+            total: allData.length,
+            page,
+            pageSize
+        };
     },
   // Inventory search
-  "inventory_search/name?": async (args) => {
-    return await match("i:Inventory", args, { orderBy: "i.name ASC" });
+  "inventory_search/name? page:uint? pageSize:uint?": async (args) => {
+    const page = args.page?.value || 1;
+    const pageSize = args.pageSize?.value || 10;
+
+    const searchArgs = { ...args };
+    delete searchArgs.page;
+    delete searchArgs.pageSize;
+
+    const allData = await match("i:Inventory", searchArgs, {
+        orderBy: "i.name ASC",
+        results: ["i"]
+    });
+
+    if (!Array.isArray(allData)) {
+        return {
+            data: [],
+            total: 0,
+            page,
+            pageSize
+        };
+    }
+
+    const startIndex = (page - 1) * pageSize;
+    const paginatedData = allData.slice(startIndex, startIndex + pageSize);
+
+    return {
+        data: paginatedData,
+        total: allData.length,
+        page,
+        pageSize
+    };
   },
   "complete_callform/callformId:id": async (args) => {
     await brigadeCallForms.update();
